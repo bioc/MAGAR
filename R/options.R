@@ -6,7 +6,9 @@
 ## G L O B A L S #######################################################################################################
 
 QTL.OPTIONS <- new.env()
-assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc','HDF5dump','hardy.weinberg.p','minor.allele.frequency','missing.values.samples'),QTL.OPTIONS)
+assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc','HDF5dump','hardy.weinberg.p',
+               'minor.allele.frequency','missing.values.samples','plink.path',
+               'cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff'),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',system.file("extdata/rnbeads_options.xml",package="methQTL"),QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
 assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
@@ -15,6 +17,10 @@ assign('HDF5DUMP',FALSE,QTL.OPTIONS)
 assign("HARDY.WEINBERG.P",0.001,QTL.OPTIONS)
 assign("MINOR.ALLELE.FREQUENCY",0.05,QTL.OPTIONS)
 assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
+assign("PLINK.PATH",system.file("bin/plink",package="methQTL"),QTL.OPTIONS)
+assign("CLUSTER.COR.THRESHOLD",0.2,QTL.OPTIONS)
+assign("STANDARD.DEVIATION.GAUSS",5000,QTL.OPTIONS)
+assign("ABSOLUTE.DISTANCE.CUTOFF",1e6,QTL.OPTIONS)
 
 #' qtl.setOption
 #'
@@ -25,6 +31,7 @@ assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
 #' @param meth.data.type Type of DNA methylation data used. Choices are listed in \code{\link{rnb.execute.import}}.
 #' @param rnbeads.report Path to an existing directory, in which the preprocessing report of RnBeads is to be stored.
 #'            Defaults to the temporary file.
+#' @param rnbeads.qc Flag indicating if the quality control module of RnBeads is to be executed.
 #' @param HDF5dump Flag indicating, if large matrices are to be stored on disk rather than in main memory using the
 #'            \code{\link{HDF5Array}} package.
 #' @param hardy.weinberg.p P-value used for the markers to be excluded if the do not follow the
@@ -32,6 +39,12 @@ assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
 #' @param minor.allele.frequency Threshold for the minor allele frequency of the SNPs to be used in the analysis.
 #' @param missing.values.samples Threshold specifying how much missing values per SNP are allowed across the samples
 #'            to be included in the analyis.
+#' @param plink.path Path to an installation of PLINK (also comes with the package)
+#' @param cluster.cor.threshold Threshold for CpG methylatin state correlation to be considered as connected in
+#'            the distance graph used to compute the correlation clustering.
+#' @param standard.deviation.gauss Standard deviation of the Gauss distribution used to weight the correlation
+#'            according to its distance.
+#' @param absolute.distance.cutoff Distance cutoff after which a CpG correlation is not considered anymore.
 #' @export
 #' @author Michael Scherer
 #' @examples
@@ -47,7 +60,11 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        HDF5dump=F,
                        hardy.weinberg.p=0.001,
                        minor.allele.frequency=0.05,
-                       missing.values.samples=0.05){
+                       missing.values.samples=0.05,
+                       plink.path=system.file("bin/plink",package="methQTL"),
+                       cluster.cor.threshold=0.2,
+                       standard.deviation.gauss=1000,
+                       absolute.distance.cutoff=1e6){
   if(length(rnbeads.options)!=1){
     stop("Please specify the options one by one, not as a vector or list.")
   }
@@ -99,6 +116,31 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['MISSING.VALUES.SAMPLES']] <- missing.values.samples
   }
+  if(!missing(plink.path)){
+    er <- tryCatch(system(plink.path),function(x)x)
+    if(inherits(er,"error")){
+      stop("Invalid value for plink.path, needs to be path to an executable")
+    }
+    QTL.OPTIONS[['PLINK.PATH']] <- plink.path
+  }
+  if(!missing(cluster.cor.threshold)){
+    if(!is.numeric(cluster.cor.threshold) & cluster.cor.threshold >1){
+      stop("Invalid value for cluster.cor.threshold, needs to be a numeric value between 0 and 1")
+    }
+    QTL.OPTIONS['CLUSTER.COR.THRESHOLD'] <- cluster.cor.threshold
+  }
+  if(!missing(standard.deviation.gauss)){
+    if(!is.numeric(standard.deviation.gauss)){
+      stop("Invalid value for standard.deviation.gauss, needs to be numeric")
+    }
+    QTL.OPTIONS['STANDARD.DEVIATION.GAUSS'] <- standard.deviation.gauss
+  }
+  if(!missing(absolute.distance.cutoff)){
+    if(!is.numeric(absolute.distance.cutoff)){
+      stop("Invalid value for absolute.distance.cutoff, needs to be numeric")
+    }
+    QTL.OPTIONS['ABSOLUTE.DISTANCE.CUTOFF'] <- absolute.distance.cutoff
+  }
 }
 
 #' qtl.getOption
@@ -123,6 +165,9 @@ qtl.getOption <- function(names){
   if('rnbeads.report'%in%names){
     ret <- c(ret,rnbeads.report=QTL.OPTIONS[['RNBEADS.REPORT']])
   }
+  if('rnbeads.qc'%in%names){
+    ret <- c(ret,rnbeads.qc=QTL.OPTIONS[['RNBEADS.QC']])
+  }
   if('HDF5dump'%in%names){
     ret <- c(ret,HDF5dump=QTL.OPTIONS[['HDF5DUMP']])
   }
@@ -134,6 +179,18 @@ qtl.getOption <- function(names){
   }
   if('missing.values.samples'%in%names){
     ret <- c(ret,missing.values.samples=QTL.OPTIONS[['MISSING.VALUES.SAMPLES']])
+  }
+  if('plink.path'%in%names){
+    ret <- c(ret,plink.path=QTL.OPTIONS[['PLINK.PATH']])
+  }
+  if('cluster.cor.thrshold'%in%names){
+    ret <- c(ret,cluster.cor.threshold=QTL.OPTIONS[['CLUSTER.COR.THRESHOLD']])
+  }
+  if('standard.deviation.gauss'%in%names){
+    ret <- c(ret,standard.deviation.gauss=QTL.OPTIONS[['STANDARD.DEVIATION.GAUSS']])
+  }
+  if('absolute.distance.cutoff'%in%names){
+    ret <- c(ret,absolute.distance.cutoff=QTL.OPTIONS[['ABSLUTE.DISTANCE.CUTOFF']])
   }
   return(ret[names])
 }

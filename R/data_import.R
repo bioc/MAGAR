@@ -6,11 +6,6 @@
 # Methods to perform data import for methQTL analysis.
 ##########################################################################################
 
-##########################################################################################
-# GLOBALS
-##########################################################################################
-PLINK.PATH <- system.file("bin/plink",package="methQTL")
-
 #' do.import
 #'
 #' Performs input for the given DNA methylation and genotyping data.
@@ -68,7 +63,7 @@ do.import <- function(data.location,s.anno=NULL,assembly.meth="hg19",assembly.ge
   geno.import <- do.geno.import(data.location,pheno.data,s.id.col)
   pheno.data <- geno.import$pheno.data
   meth.import <- do.meth.import(data.location,assembly.meth,s.anno,s.id.col,tab.sep)
-  s.names <- pheno.data[,s.id.col]
+  s.names <- as.character(pheno.data[,s.id.col])
   if(is.null(s.names) || (length(unique(s.names)) < length(s.names))){
     stop("Invalid value for s.id.col, needs to specify unique identfiers in the sample annotation sheet")
   }
@@ -76,7 +71,7 @@ do.import <- function(data.location,s.anno=NULL,assembly.meth="hg19",assembly.ge
     stop("Samples are not present in all of the datasets")
   }
   row.names(pheno.data) <- s.names
-  pheno.data <- pheno.data[,-s.id.col]
+  pheno.data <- pheno.data[,!(colnames(pheno.data) %in% s.id.col)]
   dataset.import <- new("methQTLInput",
     meth.data=meth.import$data,
     geno.data=geno.import$data,
@@ -138,11 +133,11 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
   }
   rnb.imp <- rnb.run.preprocessing(rnb.imp,rnb.report)$rnb.set
   s.names <- samples(rnb.imp)
-  meth.data <- meth(rnb.set)
+  meth.data <- meth(rnb.imp)
   if(qtl.getOption("HDF5dump")){
     meth.data <- writeHDF5Array(meth.data)
   }
-  anno.meth <- annotation(rnb.set)
+  anno.meth <- annotation(rnb.imp)
   logger.completed()
   return(list(samples=s.names,data=meth.data,annotation=anno.meth))
 }
@@ -184,7 +179,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col){
   proc.data <- file.path(tempdir(),"processed_snp_data")
   write.table(keep.frame,keep.file,sep="\t",row.names=F,col.names=F,quote=F)
   plink.file <- gsub(".bed","",bed.file)
-  cmd <- paste(PLINK.PATH,"--bfile",plink.file,"--keep",keep.file,"--hwe",qtl.getOption("hardy.weinberg.p"),
+  cmd <- paste(qtl.getOption("plink.path"),"--bfile",plink.file,"--keep",keep.file,"--hwe",qtl.getOption("hardy.weinberg.p"),
                "--maf",qtl.getOption("minor.allele.frequency"),"--mind",qtl.getOption("missing.values.samples"),
                "--make-bed --out",proc.data)
   system(cmd)
@@ -193,7 +188,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col){
   snp.mat <- snp.mat[,s.anno[,s.id.col]]
   anno.geno <- snp.dat$map
   logger.completed()
-  return(list(data=snp.mat,annotation=anno.geno,pheno.data=s.anno))
+  return(list(data=snp.mat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
 }
 
 match.assemblies <- function(meth.qtl){

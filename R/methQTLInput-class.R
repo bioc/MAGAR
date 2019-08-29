@@ -249,3 +249,24 @@ setMethod("show","methQTLInput",
     cat(do.call(paste0,ret.str))
   }
 )
+
+if(!isGeneric("save.methQTL")) setGeneric("save.methQTL", function(object,...)standardGeneric("save.methQTL"))
+
+setMethod("save.methQTL","methQTLInput",
+          function(object,path){
+            if(file.exists(path)){
+              if(dir.exists(path)){
+                path <- file.path(path,"methQTL")
+              }else{
+                stop("Will not overwrite existing data")
+              }
+            }
+            save(object,file=file.path(path,"methQTLInput.RData"))
+            saveRDS(object@meth.data,file=file.path(path,"meth_data.RDS"))
+            saveRDS(object@geno.data,file=file.path(path,"meth_data.RDS"))
+          }
+)
+
+load.methQTL <- function(path){
+
+}
