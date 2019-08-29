@@ -1,0 +1,8 @@
+<rnb.xml>
+	<normalization.method>wm.dasen</normalization.method>
+	<normalization.background.method>none</normalization.background.method>
+	<filtering.snp>any</filtering.snp>
+	<filtering.cross.reactive>true</filtering.cross.reactive>
+	<filtering.sex.chromosomes.removal>true</filtering.sex.chromosomes.removal>
+	<filtering.missing.value.quantile>0</filtering.missing.value.quantile>
+</rnb.xml>

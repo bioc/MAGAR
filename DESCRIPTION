@@ -1,0 +1,16 @@
+Package: methQTL
+Type: Package
+Title: Package to compute methylation Quantitative Trait Loci (methQTL) from DNA methylation and genotyping data
+Version: 0.1.0
+Author: Michael Scherer
+Maintainer: Michael Scherer <mscherer@mpi-inf.mpg.de>
+Description: This package computes methQTL from DNA methylation and genotyping data from matched samples. It uses a
+     linear modeling stragety to call CpGs/SNPs that form a methQTL that is aware of the local correlation structure
+     of CpGs.
+Depends: HDF5Array,
+         RnBeads,
+         snpStats
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
