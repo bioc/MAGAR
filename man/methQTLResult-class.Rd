@@ -24,8 +24,8 @@ This class stores the results of the methQTL analysis. It stores a \code{data.fr
 \section{Methods}{
 
 \describe{
-  \item{\code{\link[=getResult,methQTL-method]{getResult}}}{Returns the methQTL results.}
-  \item{\code{\link[=getAnno,methQTL-method]{getAnno}}}{Returns the genomic annotation.}
+  \item{\code{\link[=getResult,methQTLResult-method]{getResult}}}{Returns the methQTL results.}
+  \item{\code{\link[=getAnno,methQTLResult-method]{getAnno}}}{Returns the genomic annotation.}
 }
 }
 

@@ -41,7 +41,7 @@ Import of DNA methylation and genotyping data is done separately:
            series. If you want to specify further options, we refer to the \code{\link{rnb.options}}.}
            \item{Genotyping data}{Genotyping data is processed using PLINK. We focus on genotyping data generated
            with the Illumina BeadArray series and use default options. For further option settings, you should consult
-           the \code{\link{qtl.options}} documentation.}
+           the \code{\link{qtl.setOption}} documentation.}
          }
 
          If \code{assembly.meth} and \code{assembly.geno} do not match, we use the liftOver function to match the

@@ -27,16 +27,18 @@ This class is the basis for computing methQTLs in the methQTL-package. It stores
   \item{\code{samples}}{The sample identifiers used both for \code{meth.data} and \code{geno.data}, and as the rownames of
       \code{pheno.data}.}
   \item{\code{assembly}}{The genome assembly used.}
+  \item{\code{disk.dump}}{Flag indicating if the matrices are stored on disk rather than in memory.}
 }
 }
 
 \section{Methods}{
 
 \describe{
-  \item{\code{\link[=getMeth,methQTL-method]{getMeth}}}{Returns the methylation matrix.}
+  \item{\code{\link[=getMethData,methQTL-method]{getMeth}}}{Returns the methylation matrix.}
   \item{\code{\link[=getGeno,methQTL-method]{getGeno}}}{Returns the genotyping matrix.}
   \item{\code{\link[=getPheno,methQTL-method]{getPheno}}}{Returns the phenotypic information.}
   \item{\code{\link[=getAnno,methQTL-method]{getAnno}}}{Returns the genomic annotation.}
+  \item{\code{\link[=save.methQTL,methQTL-method]{save.methQTL}}}{Stores the object on disk.}
 }
 }
 

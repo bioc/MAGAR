@@ -5,4 +5,5 @@
 	<filtering.cross.reactive>true</filtering.cross.reactive>
 	<filtering.sex.chromosomes.removal>true</filtering.sex.chromosomes.removal>
 	<filtering.missing.value.quantile>0</filtering.missing.value.quantile>
+	<imputation.method>knn</imputation.method>
 </rnb.xml>

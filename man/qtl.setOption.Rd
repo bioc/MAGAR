@@ -5,17 +5,25 @@
 \title{qtl.setOption}
 \usage{
 
-  qtl.setOption(rnbeads.options = system.file("inst/extdata/rnbeads_options.xml",
-  package = "methQTL"), rnbeads.report = "temp", rnbeads.qc = F,
-  HDF5dump = F, hardy.weinberg.p = 0.001,
-  minor.allele.frequency = 0.05, missing.values.samples = 0.05)
+  qtl.setOption(rnbeads.options = system.file("extdata/rnbeads_options.xml",
+  package = "methQTL"), meth.data.type = "idat.dir",
+  rnbeads.report = "temp", rnbeads.qc = F, HDF5dump = F,
+  hardy.weinberg.p = 0.001, minor.allele.frequency = 0.05,
+  missing.values.samples = 0.05, plink.path = system.file("bin/plink",
+  package = "methQTL"), cluster.cor.threshold = 0.2,
+  standard.deviation.gauss = 1000, absolute.distance.cutoff = 1e+06,
+  linear.model.type = "classial.linear")
 }
 \arguments{
 \item{rnbeads.options}{Path to an XML file specifying the RnBeads options used for data import. The default options
 are suitable for Illumina Beads Array data sets.}
 
+\item{meth.data.type}{Type of DNA methylation data used. Choices are listed in \code{\link{rnb.execute.import}}.}
+
 \item{rnbeads.report}{Path to an existing directory, in which the preprocessing report of RnBeads is to be stored.
 Defaults to the temporary file.}
+
+\item{rnbeads.qc}{Flag indicating if the quality control module of RnBeads is to be executed.}
 
 \item{HDF5dump}{Flag indicating, if large matrices are to be stored on disk rather than in main memory using the
 \code{\link{HDF5Array}} package.}
@@ -27,6 +35,19 @@ Hardy-Weinberg equilibrium as implemented in \code{PLINK}.}
 
 \item{missing.values.samples}{Threshold specifying how much missing values per SNP are allowed across the samples
 to be included in the analyis.}
+
+\item{plink.path}{Path to an installation of PLINK (also comes with the package)}
+
+\item{cluster.cor.threshold}{Threshold for CpG methylatin state correlation to be considered as connected in
+the distance graph used to compute the correlation clustering.}
+
+\item{standard.deviation.gauss}{Standard deviation of the Gauss distribution used to weight the correlation
+according to its distance.}
+
+\item{absolute.distance.cutoff}{Distance cutoff after which a CpG correlation is not considered anymore.}
+
+\item{linear.model.type}{Linear model type to be used. Can be either \code{"categorical.anova"} or \code{"classical.linear"}.
+see \code{\link{call.methQTL.block}} for more informations.}
 }
 \description{
 Change global options for methQTL calculation

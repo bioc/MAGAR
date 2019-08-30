@@ -23,8 +23,8 @@
 #' }
 #' @section Methods:
 #' \describe{
-#'   \item{\code{\link[=getResult,methQTL-method]{getResult}}}{Returns the methQTL results.}
-#'   \item{\code{\link[=getAnno,methQTL-method]{getAnno}}}{Returns the genomic annotation.}
+#'   \item{\code{\link[=getResult,methQTLResult-method]{getResult}}}{Returns the methQTL results.}
+#'   \item{\code{\link[=getAnno,methQTLResult-method]{getAnno}}}{Returns the genomic annotation.}
 #' }
 #'
 #' @name methQTLResult-class
@@ -76,7 +76,7 @@ if(!isGeneric("getResult")) setGeneric("getResult",function(object) standardGene
 #' @return The methQTL results as a \code{data.frame} with each row being a methQTL.
 #' @rdname getResult
 #' @docType methods
-#' @aliases getResult,methQTLResult
+#' @aliases getResult,methQTLResult-method
 #' @export
 setMethod("getResult",signature(object="methQTLResult"),
           function(object){
@@ -97,7 +97,7 @@ if(!isGeneric("getAnno")) setGeneric("getAnno",function(object,...) standardGene
 #'
 #' @rdname getAnno
 #' @docType methods
-#' @aliases getAnno,methQTL-method
+#' @aliases getAnno,methQTLResult-method
 #' @export
 setMethod("getAnno",signature(object="methQTLResult"),
           function(object,type="meth"){

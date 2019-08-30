@@ -35,13 +35,15 @@ setClassUnion("characterOrNULL",c("character","NULL"))
 #'   \item{\code{samples}}{The sample identifiers used both for \code{meth.data} and \code{geno.data}, and as the rownames of
 #'       \code{pheno.data}.}
 #'   \item{\code{assembly}}{The genome assembly used.}
+#'   \item{\code{disk.dump}}{Flag indicating if the matrices are stored on disk rather than in memory.}
 #' }
 #' @section Methods:
 #' \describe{
-#'   \item{\code{\link[=getMeth,methQTL-method]{getMeth}}}{Returns the methylation matrix.}
+#'   \item{\code{\link[=getMethData,methQTL-method]{getMeth}}}{Returns the methylation matrix.}
 #'   \item{\code{\link[=getGeno,methQTL-method]{getGeno}}}{Returns the genotyping matrix.}
 #'   \item{\code{\link[=getPheno,methQTL-method]{getPheno}}}{Returns the phenotypic information.}
 #'   \item{\code{\link[=getAnno,methQTL-method]{getAnno}}}{Returns the genomic annotation.}
+#'   \item{\code{\link[=save.methQTL,methQTL-method]{save.methQTL}}}{Stores the object on disk.}
 #' }
 #'
 #' @name methQTLInput-class
@@ -56,7 +58,8 @@ setClass("methQTLInput",
            anno.meth="data.frame",
            anno.geno="data.frame",
            samples="characterOrNULL",
-           assembly="character"
+           assembly="character",
+           disk.dump="logical"
          ),
          prototype(
            meth.data=matrix(nrow=0,ncol=0),
@@ -65,7 +68,8 @@ setClass("methQTLInput",
            anno.meth=data.frame(),
            anno.geno=data.frame(),
            samples=c(),
-           assembly="hg19"
+           assembly="hg19",
+           disk.dump=F
          ),
          package="methQTL")
 
@@ -78,7 +82,8 @@ setMethod("initialize","methQTLInput",
             anno.meth=data.frame(),
             anno.geno=data.frame(),
             samples=c(),
-            assembly="hg19"
+            assembly="hg19",
+            disk.dump=F
           ){
             if(length(samples) != ncol(meth.data) | length(samples) != ncol(geno.data) | length(samples) != nrow(pheno.data)){
               stop("Samples do not match dimension of the matrices.")
@@ -90,6 +95,7 @@ setMethod("initialize","methQTLInput",
             .Object@anno.geno <- anno.geno
             .Object@samples <- samples
             .Object@assembly <- assembly
+            .Object@disk.dump <- disk.dump
 
             .Object
           })
@@ -108,8 +114,8 @@ get.value <- function(mat,site=NULL,sample=NULL){
   if(!is.element(class(site),c("NULL","integer","numeric","logical"))){
     stop("Invalid value for site, needs to be numeric, logical or NULL")
   }
-  if(!is.element(class(sample),c("NULL","integer","numeric","logical"))){
-    stop("Invalid value for site, needs to be numeric, logical or NULL")
+  if(!is.element(class(sample),c("NULL","integer","numeric","logical","character"))){
+    stop("Invalid value for sample, needs to be numeric, character, logical or NULL")
   }
   if(is.null(site)){
     if(is.null(sample)){
@@ -147,8 +153,11 @@ if(!isGeneric("getMethData")) setGeneric("getMethData",function(object,...) stan
 #' @export
 setMethod("getMethData",signature(object="methQTLInput"),
           function(object,site=NULL,sample=NULL){
-              return(get.value(object@meth.data,site=site,sample=sample))
-
+              ret.mat <- get.value(object@meth.data,site=site,sample=sample)
+              if(object@disk.dump){
+                colnames(ret.mat) <- getSamples(object)
+              }
+              return(ret.mat)
   }
 )
 
@@ -168,9 +177,13 @@ if(!isGeneric("getGeno")) setGeneric("getGeno",function(object,...) standardGene
 #' @aliases getGeno,methQTL-method
 #' @export
 setMethod("getGeno",signature(object="methQTLInput"),
-          function(object,site=NULL,sample=NULL){
-            return(get.value(object@geno.data,site=site,sample=sample))
+        function(object,site=NULL,sample=NULL){
+          ret.mat <- get.value(object@geno.data,site=site,sample=sample)
+          if(object@disk.dump){
+            colnames(ret.mat) <- getSamples(object)
           }
+          return(ret.mat)
+        }
 )
 
 if(!isGeneric("getPheno")) setGeneric("getPheno",function(object) standardGeneric("getPheno"))
@@ -186,7 +199,7 @@ if(!isGeneric("getPheno")) setGeneric("getPheno",function(object) standardGeneri
 #' @docType methods
 #' @aliases getPheno,methQTL-method
 #' @export
-setMethod("getGeno",signature(object="methQTLInput"),
+setMethod("getPheno",signature(object="methQTLInput"),
           function(object){
             return(object@pheno.data)
           }
@@ -252,21 +265,85 @@ setMethod("show","methQTLInput",
 
 if(!isGeneric("save.methQTL")) setGeneric("save.methQTL", function(object,...)standardGeneric("save.methQTL"))
 
+#' save.methQTL
+#'
+#' This functions stores a methQTLInput object in disk.
+#'
+#' @param object The \code{\link{methQTLInput-class}} object to be stored on disk.
+#' @param path A path to a non-existing directory for files to be stored.
+#'
+#' @rdname save.methQTL
+#' @docType methods
+#' @aliases svae.methQTL,methQTL-method
+#' @author Michael Scherer
 setMethod("save.methQTL","methQTLInput",
           function(object,path){
             if(file.exists(path)){
               if(dir.exists(path)){
                 path <- file.path(path,"methQTL")
+                if(file.exists(path)){
+                  stop("Will not overwrite existing data")
+                }
+                dir.create(path)
               }else{
                 stop("Will not overwrite existing data")
               }
+            }else{
+              dir.create(path)
             }
+            if(!object@disk.dump){
+              saveRDS(object@meth.data,file=file.path(path,"meth_data.RDS"))
+              saveRDS(object@geno.data,file=file.path(path,"geno_data.RDS"))
+            }else{
+              writeHDF5Array(object@meth.data,filepath = file.path(path,"meth_data.h5"),name="meth.data")
+              writeHDF5Array(object@geno.data,filepath = file.path(path,"geno_data.h5"),name="geno.data")
+            }
+            saveRDS(object@anno.meth,file=file.path(path,"anno_meth.RDS"))
+            saveRDS(object@anno.geno,file=file.path(path,"anno_geno.RDS"))
+            saveRDS(object@pheno.data,file=file.path(path,"pheno_data.RDS"))
+            object@meth.data <- matrix(nrow = 0,ncol = 0)
+            object@geno.data <- matrix(nrow = 0,ncol = 0)
+            object@anno.meth <- data.frame()
+            object@anno.geno <- data.frame()
+            object@pheno.data <- data.frame()
             save(object,file=file.path(path,"methQTLInput.RData"))
-            saveRDS(object@meth.data,file=file.path(path,"meth_data.RDS"))
-            saveRDS(object@geno.data,file=file.path(path,"meth_data.RDS"))
           }
 )
 
+#' load.methQTL
+#'
+#' This functions load a \code{\link{methQTLInput-class}} object from disk.
+#'
+#' @param path Path to the directory that has been created by \code{\link{save.methQTL,methQTLInput-method}}.
+#' @return The object of type \code{\link{methQTLInput-class}} that has been stored on disk.
+#' @author Michael Scherer
+#' @export
 load.methQTL <- function(path){
-
+  if(any(!(file.exists(file.path(path,"meth_data.RDS"))||file.exists(file.path(path,"meth_data.h5"))),
+         !(file.exists(file.path(path,"geno_data.RDS"))||file.exists(file.path(path,"geno_data.h5"))),
+         !file.exists(file.path(path,"anno_meth.RDS")),
+         !file.exists(file.path(path,"anno_geno.RDS")),
+         !file.exists(file.path(path,"pheno_data.RDS")))){
+    stop("Invalid value for path. Potentially not a directory saved with save.methQTL")
+  }
+  load_env<-new.env(parent=emptyenv())
+  load(file.path(path, "methQTLInput.RData"),envir=load_env)
+  object <- get("object",load_env)
+  is.dumped <- object@disk.dump
+  if(!is.dumped){
+    meth.data <- readRDS(file.path(path,"meth_data.RDS"))
+    geno.data <- readRDS(file.path(path,"geno_data.RDS"))
+  }else{
+    meth.data <- HDF5Array(filepath=file.path(path,"meth_data.h5"),name="meth.data")
+    geno.data <- HDF5Array(filepath=file.path(path,"geno_data.h5"),name="geno.data")
+  }
+  anno.meth <- readRDS(file.path(path,"anno_meth.RDS"))
+  anno.geno <- readRDS(file.path(path,"anno_geno.RDS"))
+  pheno.data <- readRDS(file.path(path,"pheno_data.RDS"))
+  object@meth.data <- meth.data
+  object@geno.data <- geno.data
+  object@anno.meth <- anno.meth
+  object@anno.geno <- anno.geno
+  object@pheno.data <- pheno.data
+  return(object)
 }

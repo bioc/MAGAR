@@ -31,7 +31,7 @@
 #'            series. If you want to specify further options, we refer to the \code{\link{rnb.options}}.}
 #'            \item{Genotyping data}{Genotyping data is processed using PLINK. We focus on genotyping data generated
 #'            with the Illumina BeadArray series and use default options. For further option settings, you should consult
-#'            the \code{\link{qtl.options}} documentation.}
+#'            the \code{\link{qtl.setOption}} documentation.}
 #'          }
 #'
 #'          If \code{assembly.meth} and \code{assembly.geno} do not match, we use the liftOver function to match the
@@ -79,7 +79,8 @@ do.import <- function(data.location,s.anno=NULL,assembly.meth="hg19",assembly.ge
     anno.geno=geno.import$annotation,
     pheno.data=pheno.data,
     samples=s.names,
-    assembly=assembly.meth
+    assembly=assembly.meth,
+    disk.dump=qtl.getOption("HDF5dump")
   )
   if(assembly.meth != assembly.geno){
     dataset.import <- match.assemblies(dataset.import)
@@ -186,7 +187,16 @@ do.geno.import <- function(data.location,s.anno,s.id.col){
   snp.dat <- read.plink(bed=paste0(proc.data,".bed"),bim=paste0(proc.data,".bim"),fam=paste0(proc.data,".fam"))
   snp.mat <- t(as(snp.dat$genotypes,"numeric"))
   snp.mat <- snp.mat[,s.anno[,s.id.col]]
+  if(qtl.getOption("HDF5dump")){
+    snp.mat <- writeHDF5Array(snp.mat)
+  }
   anno.geno <- snp.dat$map
+  colnames(anno.geno) <- c("Chromosome","Name","cM","Start","Allele.1","Allele.2")
+  row.names(anno.geno) <- as.character(anno.geno$Name)
+  anno.geno <- anno.geno[,c("Chromosome","Start","cM","Allele.1","Allele.2")]
+  if(!any(grepl("chr*",anno.geno$Chromosome))){
+    anno.geno$Chromosome <- paste0("chr",anno.geno$Chromosome)
+  }
   logger.completed()
   return(list(data=snp.mat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
 }

@@ -6,7 +6,7 @@
 \alias{getGeno,methQTL-method}
 \title{getGeno}
 \usage{
-\S4method{getGeno}{methQTLInput}(object)
+\S4method{getGeno}{methQTLInput}(object, site = NULL, sample = NULL)
 }
 \arguments{
 \item{object}{An object of class \code{\link{methQTLInput-class}}.}

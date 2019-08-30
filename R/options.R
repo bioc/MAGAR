@@ -8,7 +8,8 @@
 QTL.OPTIONS <- new.env()
 assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc','HDF5dump','hardy.weinberg.p',
                'minor.allele.frequency','missing.values.samples','plink.path',
-               'cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff'),QTL.OPTIONS)
+               'cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
+               'linear.model.type'),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',system.file("extdata/rnbeads_options.xml",package="methQTL"),QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
 assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
@@ -21,6 +22,7 @@ assign("PLINK.PATH",system.file("bin/plink",package="methQTL"),QTL.OPTIONS)
 assign("CLUSTER.COR.THRESHOLD",0.2,QTL.OPTIONS)
 assign("STANDARD.DEVIATION.GAUSS",5000,QTL.OPTIONS)
 assign("ABSOLUTE.DISTANCE.CUTOFF",1e6,QTL.OPTIONS)
+assign("LINEAR.MODEL.TYPE","classical.linear",QTL.OPTIONS)
 
 #' qtl.setOption
 #'
@@ -45,6 +47,8 @@ assign("ABSOLUTE.DISTANCE.CUTOFF",1e6,QTL.OPTIONS)
 #' @param standard.deviation.gauss Standard deviation of the Gauss distribution used to weight the correlation
 #'            according to its distance.
 #' @param absolute.distance.cutoff Distance cutoff after which a CpG correlation is not considered anymore.
+#' @param linear.model.type Linear model type to be used. Can be either \code{"categorical.anova"} or \code{"classical.linear"}.
+#'            see \code{\link{call.methQTL.block}} for more informations.
 #' @export
 #' @author Michael Scherer
 #' @examples
@@ -64,7 +68,8 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        plink.path=system.file("bin/plink",package="methQTL"),
                        cluster.cor.threshold=0.2,
                        standard.deviation.gauss=1000,
-                       absolute.distance.cutoff=1e6){
+                       absolute.distance.cutoff=1e6,
+                       linear.model.type="classial.linear"){
   if(length(rnbeads.options)!=1){
     stop("Please specify the options one by one, not as a vector or list.")
   }
@@ -141,6 +146,12 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS['ABSOLUTE.DISTANCE.CUTOFF'] <- absolute.distance.cutoff
   }
+  if(!missing(linear.model.type)){
+    if(!linear.model.type %in% c("classical.linear","categorical.anova")){
+      stop("Invalid value for linear.model.type. Needs to be classical linear or categorical.anova.")
+    }
+    QTL.OPTIONS['LINEAR.MODEL.TYPE'] <- linear.model.type
+  }
 }
 
 #' qtl.getOption
@@ -183,14 +194,17 @@ qtl.getOption <- function(names){
   if('plink.path'%in%names){
     ret <- c(ret,plink.path=QTL.OPTIONS[['PLINK.PATH']])
   }
-  if('cluster.cor.thrshold'%in%names){
+  if('cluster.cor.threshold'%in%names){
     ret <- c(ret,cluster.cor.threshold=QTL.OPTIONS[['CLUSTER.COR.THRESHOLD']])
   }
   if('standard.deviation.gauss'%in%names){
     ret <- c(ret,standard.deviation.gauss=QTL.OPTIONS[['STANDARD.DEVIATION.GAUSS']])
   }
   if('absolute.distance.cutoff'%in%names){
-    ret <- c(ret,absolute.distance.cutoff=QTL.OPTIONS[['ABSLUTE.DISTANCE.CUTOFF']])
+    ret <- c(ret,absolute.distance.cutoff=QTL.OPTIONS[['ABSOLUTE.DISTANCE.CUTOFF']])
+  }
+  if('linear.model.type'%in%names){
+    ret <- c(ret,linear.model.type=QTL.OPTIONS[['LINEAR.MODEL.TYPE']])
   }
   return(ret[names])
 }
