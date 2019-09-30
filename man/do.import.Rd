@@ -36,7 +36,7 @@ Performs input for the given DNA methylation and genotyping data.
 \details{
 Import of DNA methylation and genotyping data is done separately:
          \describe{
-           \item{DNA methylation data}{DNA methylation data is imported using the \code{\link{RnBeads}}package. We
+           \item{DNA methylation data}{DNA methylation data is imported using the \code{\link{RnBeads}} package. We
            use a default option setting commonly used for DNA methylation data obtained from the Illumina BeadArray
            series. If you want to specify further options, we refer to the \code{\link{rnb.options}}.}
            \item{Genotyping data}{Genotyping data is processed using PLINK. We focus on genotyping data generated

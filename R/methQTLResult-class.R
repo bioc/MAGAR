@@ -87,17 +87,9 @@ setMethod("getResult",signature(object="methQTLResult"),
 if(!isGeneric("getAnno")) setGeneric("getAnno",function(object,...) standardGeneric("getAnno"))
 
 #' getAnno
-#'
-#' Returns genomic annotation information for the given dataset.
-#'
-#' @param object An object of class \code{\link{methQTLResult-class}}.
-#' @param type The type of annotation to be returned. Can either be \code{'meth'} or \code{'geno'} for methylation,
-#'    and genotyping information, respectively.
-#' @return The genomic annotation as a \code{data.frame}.
-#'
 #' @rdname getAnno
 #' @docType methods
-#' @aliases getAnno,methQTLResult-method
+#' @aliases getAnno,methQTL-method
 #' @export
 setMethod("getAnno",signature(object="methQTLResult"),
           function(object,type="meth"){

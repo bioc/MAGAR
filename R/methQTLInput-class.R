@@ -36,6 +36,7 @@ setClassUnion("characterOrNULL",c("character","NULL"))
 #'       \code{pheno.data}.}
 #'   \item{\code{assembly}}{The genome assembly used.}
 #'   \item{\code{disk.dump}}{Flag indicating if the matrices are stored on disk rather than in memory.}
+#'   \item{\code{imputed}}{Flag indicating if DNA methylation dataset has been imputed.}
 #' }
 #' @section Methods:
 #' \describe{
@@ -43,7 +44,8 @@ setClassUnion("characterOrNULL",c("character","NULL"))
 #'   \item{\code{\link[=getGeno,methQTL-method]{getGeno}}}{Returns the genotyping matrix.}
 #'   \item{\code{\link[=getPheno,methQTL-method]{getPheno}}}{Returns the phenotypic information.}
 #'   \item{\code{\link[=getAnno,methQTL-method]{getAnno}}}{Returns the genomic annotation.}
-#'   \item{\code{\link[=save.methQTL,methQTL-method]{save.methQTL}}}{Stores the object on disk.}
+#'   \item{\code{\link[=save.methQTL,methQTLInput-method]{save.methQTL}}}{Stores the object on disk.}
+#'   \item{\code{\link[=impute.meth,methQTL-method]{impute.meth}}}{Imputes the DNA methylation data matrix}
 #' }
 #'
 #' @name methQTLInput-class
@@ -59,7 +61,8 @@ setClass("methQTLInput",
            anno.geno="data.frame",
            samples="characterOrNULL",
            assembly="character",
-           disk.dump="logical"
+           disk.dump="logical",
+           imputed="logical"
          ),
          prototype(
            meth.data=matrix(nrow=0,ncol=0),
@@ -69,7 +72,8 @@ setClass("methQTLInput",
            anno.geno=data.frame(),
            samples=c(),
            assembly="hg19",
-           disk.dump=F
+           disk.dump=F,
+           imputed=F
          ),
          package="methQTL")
 
@@ -83,7 +87,8 @@ setMethod("initialize","methQTLInput",
             anno.geno=data.frame(),
             samples=c(),
             assembly="hg19",
-            disk.dump=F
+            disk.dump=F,
+            imputed=F
           ){
             if(length(samples) != ncol(meth.data) | length(samples) != ncol(geno.data) | length(samples) != nrow(pheno.data)){
               stop("Samples do not match dimension of the matrices.")
@@ -96,6 +101,7 @@ setMethod("initialize","methQTLInput",
             .Object@samples <- samples
             .Object@assembly <- assembly
             .Object@disk.dump <- disk.dump
+            .Object@imputed <- imputed
 
             .Object
           })
@@ -211,7 +217,7 @@ if(!isGeneric("getAnno")) setGeneric("getAnno",function(object,...) standardGene
 #'
 #' Returns genomic annotation information for the given dataset.
 #'
-#' @param object An object of class \code{\link{methQTLInput-class}}.
+#' @param object An object of class \code{\link{methQTLInput-class}} or \code{\link{methQTLResult-class}}.
 #' @param type The type of annotation to be returned. Can either be \code{'meth'} or \code{'geno'} for methylation,
 #'    and genotyping information, respectively.
 #' @return The genomic annotation as a \code{data.frame}.
@@ -248,6 +254,32 @@ if(!isGeneric("getSamples")) setGeneric("getSamples",function(object) standardGe
 setMethod("getSamples",signature(object="methQTLInput"),
           function(object){
             return(object@samples)
+          }
+)
+
+if(!isGeneric("impute.meth")) setGeneric("impute.meth",function(object) standardGeneric("impute.meth"))
+
+#' impute.meth
+#'
+#' Replaces missing values in the DNA methylation data matrix by imputed values
+#'
+#' @param object An object of class \code{\link{methQTLInput-class}}.
+#' @return The object with imputed values.
+#'
+#' @rdname impute.meth
+#' @docType methods
+#' @aliases impute.meth,methQTL-method
+#' @export
+setMethod("impute.meth",signature(object="methQTLInput"),
+          function(object){
+            if(!object@disk.dump){
+              object@meth.data <- rnb.execute.imputation(object@meth.data)
+            }else{
+              meth.mat <- as.matrix(object@meth.data)
+              meth.mat <- rnb.execute.imputation(meth.mat)
+              object@meth.data <- writeHDF5Array(meth.mat)
+            }
+            return(object)
           }
 )
 

@@ -12,7 +12,8 @@
   missing.values.samples = 0.05, plink.path = system.file("bin/plink",
   package = "methQTL"), cluster.cor.threshold = 0.2,
   standard.deviation.gauss = 1000, absolute.distance.cutoff = 1e+06,
-  linear.model.type = "classial.linear")
+  linear.model.type = "classial.linear",
+  representative.CpG.computation = "majority.median")
 }
 \arguments{
 \item{rnbeads.options}{Path to an XML file specifying the RnBeads options used for data import. The default options
@@ -28,7 +29,7 @@ Defaults to the temporary file.}
 \item{HDF5dump}{Flag indicating, if large matrices are to be stored on disk rather than in main memory using the
 \code{\link{HDF5Array}} package.}
 
-\item{hardy.weinberg.p}{P-value used for the markers to be excluded if the do not follow the
+\item{hardy.weinberg.p}{P-value used for the markers to be excluded if they do not follow the
 Hardy-Weinberg equilibrium as implemented in \code{PLINK}.}
 
 \item{minor.allele.frequency}{Threshold for the minor allele frequency of the SNPs to be used in the analysis.}
@@ -48,6 +49,12 @@ according to its distance.}
 
 \item{linear.model.type}{Linear model type to be used. Can be either \code{"categorical.anova"} or \code{"classical.linear"}.
 see \code{\link{call.methQTL.block}} for more informations.}
+
+\item{representative.CpG.computation}{Method how the representative per CpG correlation block is computed. Available
+options are \code{"majority.median"} for the site that is the median in most of the samples within the
+correlation block, \code{"mean.center"} for an artifical site in the geometric center of the block with
+the average methylation level or \code{"best.all"} for the CpG with the best p-value across all of the
+CpGs in the correlation block.}
 }
 \description{
 Change global options for methQTL calculation

@@ -20,10 +20,11 @@
 #'          \describe{
 #'            \item{1}{First the two matrices are split according to the chromosomes.}
 #'            \item{2}{We then compute correlations among the CpGs and compute CpG correlation blocks.}
-#'            \item{3}{In each of the CpG correlation blocks, simple linear models with the CpG methylation state
-#'              of all CpGs as output and the SNP genotype state and all possible covariates as input are computed.}
-#'            \item{4}{For each of the CpG correlation blocks, the CpGs with the lowest p-value is selected as the
-#'              representative methQTL per block.}
+#'            \item{3}{In each of the CpG correlation blocks, linear models according to the \code{linear.model.type}
+#'              \code{\link{qtl.setOption}} with the CpG methylation state of the reference CpG specified by
+#'              \code{representative.CpG.computation} as output and the SNP genotype state and all possible covariates
+#'              as input are computed.}
+#'            \item{4}{For each of the CpG correlation blocks, we report the p-value of the representative CpG.}
 #'          }
 #' @author Michael Scherer
 #' @export
@@ -31,14 +32,24 @@ do.methQTL <- function(meth.qtl,sel.covariates=NULL,p.val.cutoff=1e-5,ncores=1){
   if(!inherits(meth.qtl,"methQTLInput")){
     stop("Invalid value for meth.qtl, needs to be of type methQTLInput")
   }
+  if(!meth.qtl@imputed){
+    meth.qtl <- impute.meth(meth.qtl)
+  }
   all.chroms <- unique(getAnno(meth.qtl)$Chromosome)
   if(ncores>1){
     require(doParallel)
     parallel.setup(ncores)
   }
-  res.all <- foreach(chrom=all.chroms,.combine="cbind",.export=c()) %dopar%{
+  logger.start("Computing methQTLs")
+  # res.all <- foreach(chrom=all.chroms,.combine="cbind",.export=c()) %dopar%{
+  #   res.chrom <- do.methQTL.chromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff)
+  # }
+  res.all <- c()
+  for(chrom in all.chroms){
     res.chrom <- do.methQTL.chromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff)
+    res.all <- cbind(res.all,res.chrom)
   }
+  logger.completed()
 }
 
 #' do.methQTL.chromosome
@@ -52,7 +63,7 @@ do.methQTL <- function(meth.qtl,sel.covariates=NULL,p.val.cutoff=1e-5,ncores=1){
 #' @param p.val.cutoff The p-value used for methQTL calling
 #' @return A data frame with seven columns:
 #'        \describe{
-#'          \item{CpG}{The CpG ID (as cgNNNNNN) involved in the methQTL}
+#'          \item{CpGs}{The CpG ID chosen to be the representative CpG in the methQTL}
 #'          \item{SNP}{The SNP ID (as rsNNNNNN) involved in the methQTL}
 #'          \item{Beta}{The coefficient estimate of the linear model}
 #'          \item{P.value}{The p-value associated with the coefficient estimate}
@@ -64,6 +75,7 @@ do.methQTL <- function(meth.qtl,sel.covariates=NULL,p.val.cutoff=1e-5,ncores=1){
 #' @author Michael Scherer
 #' @noRd
 do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff){
+  logger.start(paste("Computing methQTL for chromosome",chrom))
   anno <- getAnno(meth.qtl,"meth")
   sel.meth <- which(anno$Chromosome %in% chrom)
   sel.anno <- anno[sel.meth,]
@@ -86,17 +98,20 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff){
     }
     ph.dat <- ph.dat[,sel.covariates,drop=FALSE]
   }
+  logger.start("Compute methQTL per correlation block")
   res.chr.p.val <- sapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat)
+  logger.completed()
   res.chr.p.val <- res.chr.p.val[res.chr.p.val$P.value<p.val.cutoff,]
   tests.performed <- length(cor.blocks)*nrow(sel.geno)
-  chrom.frame <- data.frame(CpG=row.names(anno)[res.chr.p.val$Position_CpG],
+  chrom.frame <- data.frame(CpGs=row.names(anno)[res.chr.p.val$Position_CpG],
                             SNP=row.names(anno.geno)[res.chr.p.val$Position_SNP],
                             Beta=res.chr.p.val$Beta,
                             P.value=res.chr.p.val$P.value,
-                            Chromosome=anno$Chromosome[res.chr.p.val$Position_CpG],
+                            Chromosome=anno.geno$Chromosome[res.chr.p.val$Position_SNP],
                             Position.CpG=anno$Start[res.chr.p.val$Position_CpG],
-                            Position.SNP=anno$Start[res.chr.p.val$Position_SNP])
-  chrom.frame$Distance <- abs(chrom.frame$Position.CpG - chrom.frame$Position.SNP)
+                            Position.SNP=anno.geno$Start[res.chr.p.val$Position_SNP])
+  chrom.frame$Distance <- min(c(abs(chrom.frame$Position.CpG.block.start - chrom.frame$Position.SNP),abs(chrom.frame$Position.CpG.block.end - chrom.frame$Position.SNP)))
+  logger.completed()
   return(chrom.frame)
 }
 
@@ -110,6 +125,9 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff){
 #' @param cor.threshold The correlation threshold used to discard edges from the correlation-based network.
 #' @param sd.gauss Standard deviation of the Gauss distribution used to weight the distance
 #' @param absolute.cutoff Absolute distance cutoff after which no methQTL interaction is to be considered.
+#' @param max.cpgs Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
+#'             default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
+#'             for larger ones.
 #' @return A list representing the clustering of CpGs into correlation blocks. Each element is a cluster, which contains
 #'      row indices of the DNA methylation matrix that correspond to this cluster.
 #' @details This method performs clustering of the correlation matrix obtaind from the DNA methylation matrix. Correlations
@@ -126,26 +144,101 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff){
 #' @export
 compute.correlation.blocks <- function(meth.data,annotation,cor.threshold=qtl.getOption("cluster.cor.threshold"),
                                        sd.gauss=qtl.getOption("standard.deviation.gauss"),
-                                       absolute.cutoff=qtl.getOption("absolute.distance.cutoff")){
+                                       absolute.cutoff=qtl.getOption("absolute.distance.cutoff"),
+                                       max.cpgs=40000){
+  logger.start("Compute correlation blocks")
   require("RnBeads")
   require("psych")
   require("igraph")
-  meth.data <- rnb.execute.imputation(meth.data)
-  cor.all <- cor(t(meth.data))
+  require("bigstatsr")
+  require("Matrix")
+  if(nrow(annotation)>max.cpgs){
+    logger.info(paste("Split workload, since facing",nrow(annotation),"CpGs (Maximum is",max.cpgs,")"))
+    bin.split <- round(nrow(annotation)/2)
+    return(c(compute.correlation.blocks(meth.data=meth.data[1:bin.split,],
+                                        annotation=annotation[1:bin.split],
+                                        cor.threshold = cor.threshold,
+                                        sd.gauss = sd.gauss,
+                                        absolute.cutoff = absolute.cutoff,
+                                        max.cpgs = max.cpgs),
+             compute.correlation.blocks(meth.data=meth.data[(bin.split+1):nrow(annotation),],
+                                        annotation=annotation[(bin.split+1):nrow(annotation),],
+                                        cor.threshold = cor.threshold,
+                                        sd.gauss = sd.gauss,
+                                        absolute.cutoff = absolute.cutoff,
+                                        max.cpgs = max.cpgs)
+             ))
+  }
+  logger.start("Compute correlation matrix")
+  cor.all <- big_cor(as_FBM(t(as.matrix(meth.data)),type="double"))
+  rm(meth.data)
+  logger.completed()
+  cor.all <- cor.all[,,drop=F]
+  if(qtl.getOption("HDF5dump")){
+    cor.all <- writeHDF5Array(cor.all)
+  }
+  logger.start("Compute correlation distance")
   dist.all <- cor2dist(cor.all)
-  dist.all[cor.all<cor.threshold] <- 0
+  if(qtl.getOption("HDF5dump")){
+    dist.all <- writeHDF5Array(dist.all)
+  }
+  logger.completed()
+  rep.vals <- cor.all<cor.threshold
+  if(qtl.getOption("HDF5dump")){
+    rep.vals <- writeHDF5Array(rep.vals)
+  }
+  dist.all[rep.vals] <- 0
   genomic.positions <- annotation$Start
+  logger.start("Compute pairwise distances")
+  gc()
   pairwise.distance <- abs(as.data.frame(lapply(genomic.positions,function(x)x-genomic.positions)))
-  dist.all[pairwise.distance>absolute.cutoff] <- 0
-  weighted.distances <- dist.all*dnorm(as.matrix(pairwise.distance),0,sd.gauss)
-  colnames(weighted.distances) <- 1:ncol(weighted.distances)
-  rownames(weighted.distances) <- 1:nrow(weighted.distances)
-  graph.ad <- graph.adjacency(weighted.distances,weighted = T,mode = "undirected",diag=T)
+  logger.completed()
+  rep.vals <- pairwise.distance>absolute.cutoff
+  if(qtl.getOption("HDF5dump")){
+    rep.vals <- writeHDF5Array(rep.vals)
+  }
+  dist.all[rep.vals] <- 0
+  gc()
+  logger.start("Weight distances")
+  if(qtl.getOption("HDF5dump")){
+    weighted.distances <- matrix(nrow=nrow(dist.all),ncol=ncol(dist.all))
+    weighted.distances <- writeHDF5Array(weighted.distances)
+    chunk.size <- 10000
+    i <- 1
+    while(i < nrow(dist.all)){
+      if((i + chunk.size)>nrow(dist.all)){
+        do.work <- i:nrow(dist.all)
+        weighted.distances[do.work,] <- as.matrix(dist.all[do.work,])*dnorm(as.matrix(pairwise.distance[do.work,]),0,sd.gauss)
+        break
+      }
+      do.work <- i:(i+chunk.size)
+      weighted.distances[do.work,] <- as.matrix(dist.all[do.work,])*dnorm(as.matrix(pairwise.distance[do.work,]),0,sd.gauss)
+      i <- i+chunk.size+1
+    }
+  }else{
+    weighted.distances <- dist.all*dnorm(as.matrix(pairwise.distance),0,sd.gauss)
+  }
+  logger.completed()
+  colnames(weighted.distances) <- as.character(1:ncol(weighted.distances))
+  rownames(weighted.distances) <- as.character(1:nrow(weighted.distances))
+  rm(dist.all)
+  rm(rep.vals)
+  rm(cor.all)
+  gc()
+  logger.start("Compute graph")
+  graph.ad <- graph.adjacency(as.matrix(weighted.distances),weighted = T,mode = "undirected",diag=F)
+  logger.completed()
+  logger.start("Compute clustering")
   clust <- cluster_louvain(graph.ad)
+  logger.completed()
+  logger.completed()
   return(groups(clust))
 }
 
 #' call.methQTL.block
+#'
+#' NOTE by TL: Choosing the best CpG might lead to detecting only outliers. It might thus be better to choose a
+#' representative by correlation block.
 #'
 #' This function computes a methQTL per correlation block.
 #' @param cor.block A single correlation block as determined by \code{\link{compute.correlation.blocks}}
@@ -161,6 +254,11 @@ compute.correlation.blocks <- function(meth.data,annotation,cor.threshold=qtl.ge
 #'      induces an ordering between heterozygous and homozygous reference. We then use the p-value from the t-statistic
 #'      and the associated beta value.}
 #'    }
+#' @param repr.type Argument specifying how reference CpGs per correlation block are to be computed. Available
+#'            options are \code{"majority.median"} for the site that is the median in most of the samples within the
+#'            correlation block, \code{"mean.center"} for an artifical site in the geometric center of the block with
+#'            the average methylation level or \code{"best.all"} for the CpG with the best p-value across all of the
+#'            CpGs in the correlation block.
 #' @return A vector of three elements:
 #'    \describe{
 #'      \item{1}{The p-value of the best methQTL}
@@ -174,36 +272,41 @@ compute.correlation.blocks <- function(meth.data,annotation,cor.threshold=qtl.ge
 #'     p-value and return it.
 #' @author Michael Scherer
 #' @export
-call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,model.type=qtl.getOption("linear.model.type")){
+call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,model.type=qtl.getOption("linear.model.type"),
+                               repr.type=qtl.getOption("representative.CpG.computation")){
   sel.meth <- meth.data[cor.block,]
-  min.p.val <- apply(sel.meth,1,function(cpg){
-    all.snps <- apply(geno.data,1,function(snp){
-      if(is.null(covs)){
-        form <- as.formula("CpG~SNP")
-      }else{
-        form <- as.formula(paste("CpG~SNP",colnames(covs),sep="+"))
-      }
-      if(model.type == "categorical.anova"){
-        in.mat <- data.frame(CpG=cpg,SNP=as.factor(snp),covs)
-        lm.model <- lm(form,data=in.mat)
-        an.model <- anova(lm.model)
-        p.val <- an.model["SNP","Pr(>F)"]
-        return(p.val=p.val,beta=NA)
-      }else if(model.type == "classical.linear"){
-        in.mat <- data.frame(CpG=cpg,SNP=snp,covs)
-        lm.model <- lm(form,data=in.mat)
-        p.val <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
-        beta <- summary(lm.model)$coefficients["SNP","Estimate"]
-        return(c(p.val=p.val,beta=beta))
-      }
-    })
-    all.snps <- t(all.snps)
-    is.min <- which.min(all.snps[,'p.val'])
-    c(all.snps[is.min,'p.val'],all.snps[is.min,'beta'],is.min)
+  if(repr.type == "majority.median"){
+    reps <- apply(sel.meth,2,median,na.rm=T)
+    is.med <- which(sel.meth == reps,arr.ind = T)
+    count.med <- count(is.med[,1])
+    is.repr <- which.max(count.med)
+    reps <- sel.meth[is.repr]
+  }else if(repr.type == "mean.center"){
+    stop("Not yet implemented")
+  }
+  all.snps <- apply(geno.data,1,function(snp){
+    if(is.null(covs)){
+      form <- as.formula("CpG~SNP")
+    }else{
+      form <- as.formula(paste("CpG~SNP",colnames(covs),sep="+"))
+    }
+    if(model.type == "categorical.anova"){
+      in.mat <- data.frame(CpG=reps,SNP=as.factor(snp),covs)
+      lm.model <- lm(form,data=in.mat)
+      an.model <- anova(lm.model)
+      p.val <- an.model["SNP","Pr(>F)"]
+      return(p.val=p.val,beta=NA)
+    }else if(model.type == "classical.linear"){
+      in.mat <- data.frame(CpG=reps,SNP=snp,covs)
+      lm.model <- lm(form,data=in.mat)
+      p.val <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
+      beta <- summary(lm.model)$coefficients["SNP","Estimate"]
+      return(c(p.val=p.val,beta=beta))
+    }
   })
-  min.p.val <- t(min.p.val)
-  min.p.val <- data.frame(min.p.val,1:nrow(min.p.val))
+  all.snps <- t(all.snps)
+  is.min <- which.min(all.snps[,'p.val'])
+  min.p.val <- data.frame(all.snps[is.min,'p.val'],all.snps[is.min,'beta'],is.min,min(cor.block)+is.repr)
   colnames(min.p.val) <- c("P.value","Beta","Position_SNP","Position_CpG")
-  min.val <- which.min(min.p.val$P.value)
-  return(min.p.val[min.val,])
+  return(min.p.val)
 }

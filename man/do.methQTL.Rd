@@ -28,10 +28,11 @@ The process is split into 4 steps:
          \describe{
            \item{1}{First the two matrices are split according to the chromosomes.}
            \item{2}{We then compute correlations among the CpGs and compute CpG correlation blocks.}
-           \item{3}{In each of the CpG correlation blocks, simple linear models with the CpG methylation state
-             of all CpGs as output and the SNP genotype state and all possible covariates as input are computed.}
-           \item{4}{For each of the CpG correlation blocks, the CpGs with the lowest p-value is selected as the
-             representative methQTL per block.}
+           \item{3}{In each of the CpG correlation blocks, linear models according to the \code{linear.model.type}
+             \code{\link{qtl.setOption}} with the CpG methylation state of the reference CpG specified by
+             \code{representative.CpG.computation} as output and the SNP genotype state and all possible covariates
+             as input are computed.}
+           \item{4}{For each of the CpG correlation blocks, we report the p-value of the representative CpG.}
          }
 }
 \author{

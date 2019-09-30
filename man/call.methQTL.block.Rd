@@ -5,7 +5,8 @@
 \title{call.methQTL.block}
 \usage{
 call.methQTL.block(cor.block, meth.data, geno.data, covs,
-  model.type = qtl.getOption("linear.model.type"))
+  model.type = qtl.getOption("linear.model.type"),
+  repr.type = qtl.getOption("representative.CpG.computation"))
 }
 \arguments{
 \item{cor.block}{A single correlation block as determined by \code{\link{compute.correlation.blocks}}}
@@ -25,6 +26,12 @@ call.methQTL.block(cor.block, meth.data, geno.data, covs,
   induces an ordering between heterozygous and homozygous reference. We then use the p-value from the t-statistic
   and the associated beta value.}
 }}
+
+\item{repr.type}{Argument specifying how reference CpGs per correlation block are to be computed. Available
+options are \code{"majority.median"} for the site that is the median in most of the samples within the
+correlation block, \code{"mean.center"} for an artifical site in the geometric center of the block with
+the average methylation level or \code{"best.all"} for the CpG with the best p-value across all of the
+CpGs in the correlation block.}
 }
 \value{
 A vector of three elements:
@@ -36,9 +43,12 @@ A vector of three elements:
    }
 }
 \description{
-This function computes a methQTL per correlation block.
+NOTE by TL: Choosing the best CpG might lead to detecting only outliers. It might thus be better to choose a
+representative by correlation block.
 }
 \details{
+This function computes a methQTL per correlation block.
+
 methQTL are called using a linear modeling strategy: The DNA methylation state of the CpG is considered
     the output, while the SNP genotype and the potential covariates are the input. We compute a linear model
     for each CpG in the correlation block and each SNP. We then select the best methQTL according to the lowest

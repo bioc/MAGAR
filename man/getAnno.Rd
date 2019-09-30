@@ -12,23 +12,14 @@
 \S4method{getAnno}{methQTLResult}(object, type = "meth")
 }
 \arguments{
-\item{object}{An object of class \code{\link{methQTLInput-class}}.}
-
-\item{type}{The type of annotation to be returned. Can either be \code{'meth'} or \code{'geno'} for methylation,
-and genotyping information, respectively.}
-
-\item{object}{An object of class \code{\link{methQTLResult-class}}.}
+\item{object}{An object of class \code{\link{methQTLInput-class}} or \code{\link{methQTLResult-class}}.}
 
 \item{type}{The type of annotation to be returned. Can either be \code{'meth'} or \code{'geno'} for methylation,
 and genotyping information, respectively.}
 }
 \value{
 The genomic annotation as a \code{data.frame}.
-
-The genomic annotation as a \code{data.frame}.
 }
 \description{
-Returns genomic annotation information for the given dataset.
-
 Returns genomic annotation information for the given dataset.
 }

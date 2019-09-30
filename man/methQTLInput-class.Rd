@@ -28,6 +28,7 @@ This class is the basis for computing methQTLs in the methQTL-package. It stores
       \code{pheno.data}.}
   \item{\code{assembly}}{The genome assembly used.}
   \item{\code{disk.dump}}{Flag indicating if the matrices are stored on disk rather than in memory.}
+  \item{\code{imputed}}{Flag indicating if DNA methylation dataset has been imputed.}
 }
 }
 
@@ -38,7 +39,8 @@ This class is the basis for computing methQTLs in the methQTL-package. It stores
   \item{\code{\link[=getGeno,methQTL-method]{getGeno}}}{Returns the genotyping matrix.}
   \item{\code{\link[=getPheno,methQTL-method]{getPheno}}}{Returns the phenotypic information.}
   \item{\code{\link[=getAnno,methQTL-method]{getAnno}}}{Returns the genomic annotation.}
-  \item{\code{\link[=save.methQTL,methQTL-method]{save.methQTL}}}{Stores the object on disk.}
+  \item{\code{\link[=save.methQTL,methQTLInput-method]{save.methQTL}}}{Stores the object on disk.}
+  \item{\code{\link[=impute.meth,methQTL-method]{impute.meth}}}{Imputes the DNA methylation data matrix}
 }
 }
 
