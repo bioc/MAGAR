@@ -80,7 +80,7 @@ do.import <- function(data.location,s.anno=NULL,assembly.meth="hg19",assembly.ge
     pheno.data=pheno.data,
     samples=s.names,
     assembly=assembly.meth,
-    disk.dump=qtl.getOption("HDF5dump")
+    disk.dump=qtl.getOption("hdf5dump")
   )
   if(assembly.meth != assembly.geno){
     dataset.import <- match.assemblies(dataset.import)
@@ -111,7 +111,6 @@ do.import <- function(data.location,s.anno=NULL,assembly.meth="hg19",assembly.ge
 #' @author Michael Scherer
 #' @noRd
 do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep=","){
-  require("RnBeads")
   logger.start("Processing DNA methylation data")
   rnb.xml2options(qtl.getOption("rnbeads.options"))
   rnb.options(identifiers.column=s.id.col,
@@ -135,7 +134,7 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
   rnb.imp <- rnb.run.preprocessing(rnb.imp,rnb.report)$rnb.set
   s.names <- samples(rnb.imp)
   meth.data <- meth(rnb.imp)
-  if(qtl.getOption("HDF5dump")){
+  if(qtl.getOption("hdf5dump")){
     meth.data <- writeHDF5Array(meth.data)
   }
   anno.meth <- annotation(rnb.imp)
@@ -159,7 +158,6 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
 #' @author Michael Scherer
 #' @noRd
 do.geno.import <- function(data.location,s.anno,s.id.col){
-  require(snpStats)
   logger.start("Processing genotyping data")
   snp.loc <- data.location["plink.dir"]
   all.files <- list.files(snp.loc,full.names=T)
@@ -187,7 +185,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col){
   snp.dat <- read.plink(bed=paste0(proc.data,".bed"),bim=paste0(proc.data,".bim"),fam=paste0(proc.data,".fam"))
   snp.mat <- t(as(snp.dat$genotypes,"numeric"))
   snp.mat <- snp.mat[,s.anno[,s.id.col]]
-  if(qtl.getOption("HDF5dump")){
+  if(qtl.getOption("hdf5dump")){
     snp.mat <- writeHDF5Array(snp.mat)
   }
   anno.geno <- snp.dat$map
@@ -202,7 +200,6 @@ do.geno.import <- function(data.location,s.anno,s.id.col){
 }
 
 match.assemblies <- function(meth.qtl){
-  require(rtracklayer)
   print("Not yet implemented")
   return(meth.qtl)
 }

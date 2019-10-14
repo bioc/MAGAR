@@ -3,7 +3,7 @@
 \docType{methods}
 \name{save.methQTL,methQTLInput-method}
 \alias{save.methQTL,methQTLInput-method}
-\alias{svae.methQTL,methQTL-method}
+\alias{save.methQTL,methQTL-method}
 \title{save.methQTL}
 \usage{
 \S4method{save.methQTL}{methQTLInput}(object, path)

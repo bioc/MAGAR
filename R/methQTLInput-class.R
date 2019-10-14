@@ -306,7 +306,7 @@ if(!isGeneric("save.methQTL")) setGeneric("save.methQTL", function(object,...)st
 #'
 #' @rdname save.methQTL
 #' @docType methods
-#' @aliases svae.methQTL,methQTL-method
+#' @aliases save.methQTL,methQTL-method
 #' @author Michael Scherer
 setMethod("save.methQTL","methQTLInput",
           function(object,path){

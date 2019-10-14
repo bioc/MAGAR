@@ -4,9 +4,9 @@
 \alias{call.methQTL.block}
 \title{call.methQTL.block}
 \usage{
-call.methQTL.block(cor.block, meth.data, geno.data, covs,
-  model.type = qtl.getOption("linear.model.type"),
-  repr.type = qtl.getOption("representative.CpG.computation"))
+call.methQTL.block(cor.block, meth.data, geno.data, covs, anno.meth,
+  anno.geno, model.type = qtl.getOption("linear.model.type"),
+  repr.type = qtl.getOption("representative.cpg.computation"))
 }
 \arguments{
 \item{cor.block}{A single correlation block as determined by \code{\link{compute.correlation.blocks}}}
@@ -16,6 +16,10 @@ call.methQTL.block(cor.block, meth.data, geno.data, covs,
 \item{geno.data}{The genotype data matrix}
 
 \item{covs}{A \code{data.frame} specifying the covariates used for the analysis}
+
+\item{anno.meth}{A \code{data.frame} containing genomic annotations of the CpGs}
+
+\item{anno.geno}{A \code{data.frame} containing genomic annotations for the SNPs}
 
 \item{model.type}{Type of the linear model to be used. Supported options are:
 \describe{
@@ -28,8 +32,8 @@ call.methQTL.block(cor.block, meth.data, geno.data, covs,
 }}
 
 \item{repr.type}{Argument specifying how reference CpGs per correlation block are to be computed. Available
-options are \code{"majority.median"} for the site that is the median in most of the samples within the
-correlation block, \code{"mean.center"} for an artifical site in the geometric center of the block with
+options are \code{"row.medians"} for the site that is the row median across the samples within the
+correlation block (for ties a random selection is performed), \code{"mean.center"} for an artifical site in the geometric center of the block with
 the average methylation level or \code{"best.all"} for the CpG with the best p-value across all of the
 CpGs in the correlation block.}
 }

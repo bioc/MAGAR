@@ -7,13 +7,15 @@
 
   qtl.setOption(rnbeads.options = system.file("extdata/rnbeads_options.xml",
   package = "methQTL"), meth.data.type = "idat.dir",
-  rnbeads.report = "temp", rnbeads.qc = F, HDF5dump = F,
+  rnbeads.report = "temp", rnbeads.qc = F, hdf5dump = F,
   hardy.weinberg.p = 0.001, minor.allele.frequency = 0.05,
   missing.values.samples = 0.05, plink.path = system.file("bin/plink",
   package = "methQTL"), cluster.cor.threshold = 0.2,
   standard.deviation.gauss = 1000, absolute.distance.cutoff = 1e+06,
   linear.model.type = "classial.linear",
-  representative.CpG.computation = "majority.median")
+  representative.cpg.computation = "row.medians", max.cpgs = 40000,
+  rscript.path = "/usr/bin/R", cluster.config = c(h_vmem = "5G",
+  mem_free = "5G"))
 }
 \arguments{
 \item{rnbeads.options}{Path to an XML file specifying the RnBeads options used for data import. The default options
@@ -26,7 +28,7 @@ Defaults to the temporary file.}
 
 \item{rnbeads.qc}{Flag indicating if the quality control module of RnBeads is to be executed.}
 
-\item{HDF5dump}{Flag indicating, if large matrices are to be stored on disk rather than in main memory using the
+\item{hdf5dump}{Flag indicating, if large matrices are to be stored on disk rather than in main memory using the
 \code{\link{HDF5Array}} package.}
 
 \item{hardy.weinberg.p}{P-value used for the markers to be excluded if they do not follow the
@@ -50,11 +52,19 @@ according to its distance.}
 \item{linear.model.type}{Linear model type to be used. Can be either \code{"categorical.anova"} or \code{"classical.linear"}.
 see \code{\link{call.methQTL.block}} for more informations.}
 
-\item{representative.CpG.computation}{Method how the representative per CpG correlation block is computed. Available
-options are \code{"majority.median"} for the site that is the median in most of the samples within the
-correlation block, \code{"mean.center"} for an artifical site in the geometric center of the block with
+\item{representative.cpg.computation}{Option specifying how reference CpGs per correlation block are to be computed. Available
+options are \code{"row.medians"} for the site that is the row median across the samples within the
+correlation block (for ties a random selection is performed), \code{"mean.center"} for an artifical site in the geometric center of the block with
 the average methylation level or \code{"best.all"} for the CpG with the best p-value across all of the
 CpGs in the correlation block.}
+
+\item{max.cpgs}{Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
+default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
+for larger ones.}
+
+\item{rscript.path}{Path to an executable version of Rscript needed for submitting batch jobs to a cluster}
+
+\item{cluster.config}{Resource parameters needed to setup an SGE cluster job. Includes \code{h_vmem} and \code{mem_free}}
 }
 \description{
 Change global options for methQTL calculation

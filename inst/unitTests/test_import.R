@@ -3,7 +3,7 @@ test.import <- function(){
   s.anno <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_CD4_IPC.tsv"
   plink.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO//"
   data.loc <- c(idat.dir=idat.files,plink.dir=plink.files)
-  qtl.setOption(HDF5dump=T)
+  qtl.setOption(hdf5dump=T)
   res <- do.import(data.location = data.loc,s.anno = s.anno,s.id.col = "ind_IPC",tab.sep = "\t")
   checkTrue(inherits(res,"methQTLInput"))
 }
@@ -19,6 +19,17 @@ idat.files <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
 s.anno <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_CD4_IPC.tsv"
 plink.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO//"
 data.loc <- c(idat.dir=idat.files,plink.dir=plink.files)
-qtl.setOption(HDF5dump=T)
+qtl.setOption(hdf5dump=T)
 res <- do.import(data.location = data.loc,s.anno = s.anno,s.id.col = "ind_IPC",tab.sep = "\t")
 meth.qtl <- do.methQTL(res,sel.covariates="Alcohol")
+
+require("methQTL")
+idat.files <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
+s.anno <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_CD4_IPC.tsv"
+plink.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO//"
+data.loc <- c(idat.dir=idat.files,plink.dir=plink.files)
+qtl.setOption(hdf5dump=T)
+qtl.setOption(rscript.path="/TL/deep-share/archive00/software/packages/R/R-3.6.0/bin/Rscript")
+qtl.setOption(cluster.config=c(h_vmem="120G",mem_free="120G"))
+res <- do.import(data.location = data.loc,s.anno = s.anno,s.id.col = "ind_IPC",tab.sep = "\t")
+meth.qtl <- do.methQTL(res,sel.covariates="Alcohol",cluster.submit=T)

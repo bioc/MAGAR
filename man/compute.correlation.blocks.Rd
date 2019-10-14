@@ -7,7 +7,8 @@
 compute.correlation.blocks(meth.data, annotation,
   cor.threshold = qtl.getOption("cluster.cor.threshold"),
   sd.gauss = qtl.getOption("standard.deviation.gauss"),
-  absolute.cutoff = qtl.getOption("absolute.distance.cutoff"))
+  absolute.cutoff = qtl.getOption("absolute.distance.cutoff"),
+  max.cpgs = qtl.getOption("max.cpgs"))
 }
 \arguments{
 \item{meth.data}{A \code{data.frame} containing the methylation data with CpGs in the rows and samples in the columns.}
@@ -19,6 +20,10 @@ compute.correlation.blocks(meth.data, annotation,
 \item{sd.gauss}{Standard deviation of the Gauss distribution used to weight the distance}
 
 \item{absolute.cutoff}{Absolute distance cutoff after which no methQTL interaction is to be considered.}
+
+\item{max.cpgs}{Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
+default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
+for larger ones.}
 }
 \value{
 A list representing the clustering of CpGs into correlation blocks. Each element is a cluster, which contains

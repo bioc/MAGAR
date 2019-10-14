@@ -5,7 +5,7 @@
 \title{do.methQTL}
 \usage{
 do.methQTL(meth.qtl, sel.covariates = NULL, p.val.cutoff = 1e-05,
-  ncores = 1)
+  ncores = 1, cluster.submit = F, out.dir = getwd())
 }
 \arguments{
 \item{meth.qtl}{An object of type \code{\link{methQTLInput-class}} on which methQTL computation is to be performed}
@@ -16,6 +16,10 @@ used for covariate adjustment.}
 \item{p.val.cutoff}{The p-value cutoff used for methQTL calling}
 
 \item{ncores}{The number of cores used.}
+
+\item{cluster.submit}{Flag indicating if jobs are to be distributed among a SGE compute cluster}
+
+\item{out.dir}{Output directory}
 }
 \value{
 An object of type \code{\link{methQTLResult-class}} containing the called methQTL interactions.
@@ -30,7 +34,7 @@ The process is split into 4 steps:
            \item{2}{We then compute correlations among the CpGs and compute CpG correlation blocks.}
            \item{3}{In each of the CpG correlation blocks, linear models according to the \code{linear.model.type}
              \code{\link{qtl.setOption}} with the CpG methylation state of the reference CpG specified by
-             \code{representative.CpG.computation} as output and the SNP genotype state and all possible covariates
+             \code{representative.cpg.computation} as output and the SNP genotype state and all possible covariates
              as input are computed.}
            \item{4}{For each of the CpG correlation blocks, we report the p-value of the representative CpG.}
          }
