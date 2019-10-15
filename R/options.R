@@ -202,7 +202,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
 #' qtl.getOption
 #' Print the value of the global option
 #'
-#' @param names string or character vector containing the names of the options to be printed
+#' @param names string or character vector containing the names of the options to be printed. All options are listed in \code{\link{qtl.setOption}}
 #'
 #' @return the option for the specified option
 #' @author Michael Scherer

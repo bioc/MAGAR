@@ -1,0 +1,53 @@
+---
+title: "methQTL package"
+author: "Michael Scherer"
+date: "October 14, 2019"
+---
+
+```{r setup, include=FALSE, cache=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#knitr::opts_knit$set(root.dir="")
+```
+
+# Introduction
+
+This vignette describes the *methQTL* R-package (https://github.com/MPIIComputationalEpigenetics/methQTL-package) available from GitHub. The package uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). Using a linear modeling strategy, *methQTL* computes statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs.
+
+# Installation
+
+The package can be directly installed from GitHub, after installing the *devtools* package.
+
+```{r installation}
+if(!requireNamespace("devtools")) install.packages("devtools")
+if(!requireNamespace("methQTL")) devtools::install_github("MPIIComputationalEpigenetics/methQTL-package")
+suppressPackageStartupMessages(library(methQTL))
+```
+
+# Input data
+
+The *methQTL* package needs two types of data as input: DNA methylation data obtained using the Illumina Infinium BeadArrays and genotyping data obtained using genotyping microarrays or whole genome sequencing.
+
+# DNA methylation data
+
+The package uses the widely used [*RnBeads*](http://rnbeads.org/) software package for DNA methylation data import. It requires raw IDAT files as input, since critical preprocessing is to be perfomed within the package. In addition to the raw methylation data, a sample annotation sheet, specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:
+
+```{bash sample_annotation, eval=FALSE}
+SampleID,age,sex,barcode
+Sample_1,14,f,209054857842_R01C01
+Sample_2,42,f,209054857842_R02C01
+Sample_3,45,m,209054857842_R03C01
+```
+
+For further details on the import process, we refer to the [RnBeads vignette](http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf). Most importantly, analysis options need to be specified for the import and preprocessing modules of *RnBeads*. *methQTL* provides a default setting, which is available in *extdata/rnbeads_options.xml*. You can use this file as a template for your own setting and then specify it to the methQTL package:
+
+```{r options}
+opts <- rnb.xml2options(system.file("extdata/rnbeads_options.xml",package="methQTL"))
+rnb.options(identifiers.column="SampleID")
+xml.fi <- file.path(getwd(),"rnbeads_options.xml")
+cat(rnb.options2xml(),file=xml.fi)
+qtl.setOption(rnbeads.options = xml.fi)
+```
+
+# Genotyping data
+
+We require that genotyping data has already been processed by *plink* and is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, or as variant calling files (*.vcf*). For further processing, we use the command line tool *plink*, which comes with this package, but is only applicable on Linux systems. For Windows and MacOS users, please install the *plink* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```.

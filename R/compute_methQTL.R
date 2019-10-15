@@ -115,21 +115,21 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff){
       res.chr.p.val[,j] <- unlist(lapply(res.chr.p.val[,j],as.numeric))
     }
   }
-  res.chr.p.val <- as.data.frame(res.chr.p.val)
+  res.chr.p.val <- as.data.frame(apply(res.chr.p.val,2,unlist))
   logger.completed()
-  res.chr.p.val <- res.chr.p.val[res.chr.p.val$P.value<p.val.cutoff,]
+  res.chr.p.val <- res.chr.p.val[as.numeric(as.character(res.chr.p.val$P.value))<p.val.cutoff,]
   if(nrow(res.chr.p.val)==0){
     logger.info(paste("No methQTL found for chromosome",chrom))
     chrom.frame <- data.frame()
   }else{
     tests.performed <- length(cor.blocks)*nrow(sel.geno)
-    chrom.frame <- data.frame(CpG=res.chr.p.val$CpG,
-                            SNP=res.chr.p.val$SNP,
-                            Beta=res.chr.p.val$Beta,
-                            P.value=res.chr.p.val$P.value,
-                            Chromosome=res.chr.p.val$Chromosome,
-                            Position.CpG=res.chr.p.val$Position_CpG,
-                            Position.SNP=res.chr.p.val$Position_SNP)
+    chrom.frame <- data.frame(CpG=as.character(res.chr.p.val$CpG),
+                            SNP=as.character(res.chr.p.val$SNP),
+                            Beta=as.numeric(as.character(res.chr.p.val$Beta)),
+                            P.value=as.numeric(as.character(res.chr.p.val$P.value)),
+                            Chromosome=as.character(res.chr.p.val$Chromosome),
+                            Position.CpG=as.numeric(as.character(res.chr.p.val$Position_CpG)),
+                            Position.SNP=as.numeric(as.character(res.chr.p.val$Position_SNP)))
     chrom.frame$Distance <- abs(chrom.frame$Position.CpG - chrom.frame$Position.SNP)
     chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,method="fdr",n=tests.performed)
   }
