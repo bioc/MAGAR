@@ -130,7 +130,7 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff){
                             Chromosome=as.character(res.chr.p.val$Chromosome),
                             Position.CpG=as.numeric(as.character(res.chr.p.val$Position_CpG)),
                             Position.SNP=as.numeric(as.character(res.chr.p.val$Position_SNP)))
-    chrom.frame$Distance <- abs(chrom.frame$Position.CpG - chrom.frame$Position.SNP)
+    chrom.frame$Distance <- chrom.frame$Position.CpG - chrom.frame$Position.SNP
     chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,method="fdr",n=tests.performed)
   }
   methQTL.result <- new("methQTLResult",
@@ -325,13 +325,19 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
       form <- as.formula(paste("CpG~SNP",colnames(covs),sep="+"))
     }
     if(model.type == "categorical.anova"){
-      in.mat <- data.frame(CpG=reps,SNP=as.factor(snp),covs)
+      in.mat <- data.frame(CpG=reps,SNP=as.factor(snp))
+      if(!is.null(covs)){
+        in.mat <- data.frame(in.mat,covs)
+      }
       lm.model <- lm(form,data=in.mat)
       an.model <- anova(lm.model)
       p.val <- an.model["SNP","Pr(>F)"]
       return(p.val=p.val,beta=NA)
     }else if(model.type == "classical.linear"){
-      in.mat <- data.frame(CpG=reps,SNP=snp,covs)
+      in.mat <- data.frame(CpG=reps,SNP=snp)
+      if(!is.null(covs)){
+        in.mat <- data.frame(in.mat,covs)
+      }
       lm.model <- lm(form,data=in.mat)
       p.val <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
       beta <- summary(lm.model)$coefficients["SNP","Estimate"]

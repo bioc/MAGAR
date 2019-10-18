@@ -62,6 +62,8 @@ do.import <- function(data.location,s.anno=NULL,assembly.meth="hg19",assembly.ge
   pheno.data <- read.table(s.anno,sep=tab.sep,header = T)
   geno.import <- do.geno.import(data.location,pheno.data,s.id.col)
   pheno.data <- geno.import$pheno.data
+  s.anno <- file.path(tempdir(),ifelse(tab.sep==",","sample_annotation.csv","sample_annotation.tsv"))
+  write.table(pheno.data,s.anno,sep=tab.sep)
   meth.import <- do.meth.import(data.location,assembly.meth,s.anno,s.id.col,tab.sep)
   s.names <- as.character(pheno.data[,s.id.col])
   if(is.null(s.names) || (length(unique(s.names)) < length(s.names))){
@@ -169,7 +171,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col){
   }
   snp.dat <- read.plink(bed = bed.file,bim = bim.file,fam = fam.file)
   fam <- snp.dat$fam
-  s.anno <- s.anno[s.anno[,s.id.col] %in% row.names(fam),]
+  s.anno <- s.anno[as.character(s.anno[,s.id.col]) %in% row.names(fam),]
   if(is.null(s.anno)){
     stop("Sample ids and IDs of PLINK files do not match.")
   }
@@ -184,7 +186,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col){
   system(cmd)
   snp.dat <- read.plink(bed=paste0(proc.data,".bed"),bim=paste0(proc.data,".bim"),fam=paste0(proc.data,".fam"))
   snp.mat <- t(as(snp.dat$genotypes,"numeric"))
-  snp.mat <- snp.mat[,s.anno[,s.id.col]]
+  snp.mat <- snp.mat[,as.character(s.anno[,s.id.col])]
   if(qtl.getOption("hdf5dump")){
     snp.mat <- writeHDF5Array(snp.mat)
   }

@@ -272,6 +272,7 @@ if(!isGeneric("impute.meth")) setGeneric("impute.meth",function(object) standard
 #' @export
 setMethod("impute.meth",signature(object="methQTLInput"),
           function(object){
+            rnb.xml2options(qtl.getOption("rnbeads.options"))
             if(!object@disk.dump){
               object@meth.data <- rnb.execute.imputation(object@meth.data)
             }else{

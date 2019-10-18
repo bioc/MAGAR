@@ -8,7 +8,7 @@ Print the value of the global option}
 qtl.getOption(names)
 }
 \arguments{
-\item{names}{string or character vector containing the names of the options to be printed}
+\item{names}{string or character vector containing the names of the options to be printed. All options are listed in \code{\link{qtl.setOption}}}
 }
 \value{
 the option for the specified option

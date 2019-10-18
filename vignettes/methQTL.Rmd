@@ -2,6 +2,7 @@
 title: "methQTL package"
 author: "Michael Scherer"
 date: "October 14, 2019"
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE, cache=FALSE}
@@ -27,7 +28,7 @@ suppressPackageStartupMessages(library(methQTL))
 
 The *methQTL* package needs two types of data as input: DNA methylation data obtained using the Illumina Infinium BeadArrays and genotyping data obtained using genotyping microarrays or whole genome sequencing.
 
-# DNA methylation data
+## DNA methylation data
 
 The package uses the widely used [*RnBeads*](http://rnbeads.org/) software package for DNA methylation data import. It requires raw IDAT files as input, since critical preprocessing is to be perfomed within the package. In addition to the raw methylation data, a sample annotation sheet, specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:
 
@@ -48,6 +49,25 @@ cat(rnb.options2xml(),file=xml.fi)
 qtl.setOption(rnbeads.options = xml.fi)
 ```
 
-# Genotyping data
+## Genotyping data
 
-We require that genotyping data has already been processed by *plink* and is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, or as variant calling files (*.vcf*). For further processing, we use the command line tool *plink*, which comes with this package, but is only applicable on Linux systems. For Windows and MacOS users, please install the *plink* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```.
+We require that genotyping data has already been processed by *plink* and is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, or as variant calling files (*.vcf*). For further processing, we use the command line tool *plink*, which comes with this package, but is only applicable on Linux systems. For Windows and MacOS users, please install the *plink* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.
+
+## Perform data import
+
+The ```do.import``` function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. You'll have to specify the paths to the corresponding *IDAT* and *plink* files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory ```"hdf5dump"```.
+
+```{r import}
+idat.dir <- "~/Documents/nfs/mscherer/data/EPIC/CEDAR/idats/"
+plink.dir <- "~/Documents/nfs/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO/"
+anno.sheet <- "~/Documents/nfs/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv"
+qtl.setOption(hdf5dump=TRUE)
+imp.data <- do.import(data.location = c(idat.dir=idat.dir,plink.dir=plink.dir),
+                      s.anno = anno.sheet,
+                      s.id.col = "ind_IPC",
+                      tab.sep = "\t")
+```
+
+# Advanced configuration
+
+## Employ methQTL on a scientific compute cluster

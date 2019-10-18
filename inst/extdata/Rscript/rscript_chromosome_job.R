@@ -18,9 +18,13 @@ logger.start("Loading methQTL object")
 meth.qtl <- load.methQTL(cmd.args$methQTL)
 logger.completed()
 
-logger.start("Reading covariates")
-covs <- unlist(readLines(cmd.args$covariates))
-logger.completed()
+if(!is.null(cmd.args$covariates)){
+  logger.start("Reading covariates")
+  covs <- unlist(readLines(cmd.args$covariates))
+  logger.completed()
+}else{
+  covs <- NULL
+}
 
 p.val <- as.numeric(cmd.args$p.val)
 

@@ -24,10 +24,14 @@ submit.cluster.jobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir){
   logger.start("Prepare cluster submission")
   json.path <- file.path(out.dir,"methQTL_configuration.json")
   qtl.options2json(json.path)
-  cov.file <- file.path(out.dir,"methQTL_covariates.txt")
-  writeLines(covariates,cov.file)
+  if(!is.null(covariates)){
+    cov.file <- file.path(out.dir,"methQTL_covariates.txt")
+    writeLines(covariates,cov.file)
+  }
   methQTL.file <- file.path(out.dir,"methQTLInput")
-  save.methQTL(methQTL.input,methQTL.file)
+  if(!file.exists(methQTL.file)){
+    save.methQTL(methQTL.input,methQTL.file)
+  }
   logger.completed()
   all.chroms <- unique(getAnno(methQTL.input)$Chromosome)
   set.seed(42)
@@ -48,10 +52,12 @@ submit.cluster.jobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir){
                      "-m",methQTL.file,
                      "-j",json.path,
                      "-c",chr,
-                     "-u",cov.file,
                      "-p",p.val.cutoff,
                      "-o",paste0(out.dir,"'")
                      )
+    if(!is.null(covariates)){
+      cmd.tok <- paste(cmd.tok,"-u",cov.file)
+    }
     system(cmd.tok)
     paste0("methQTL_",id,"_",chr)
   })
@@ -63,9 +69,8 @@ submit.cluster.jobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir){
                    "-hold_jid",paste0(job.names,collapse = ","),
                    "-b y",
                    paste0("'",qtl.getOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="methQTL")),
-                   paste0("-o",out.dir,"'")
+                   paste0("-o ",out.dir,"'")
                   )
-  print(cmd.tok)
   system(cmd.tok)
   logger.start("Waiting for jobs to finish")
   finished <- F
