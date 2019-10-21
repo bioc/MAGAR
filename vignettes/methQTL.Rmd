@@ -1,8 +1,9 @@
 ---
 title: "methQTL package"
 author: "Michael Scherer"
-date: "October 14, 2019"
+date: "October 20, 2019"
 output: pdf_document
+  sansfont: Georgia
 ---
 
 ```{r setup, include=FALSE, cache=FALSE}
@@ -58,9 +59,9 @@ We require that genotyping data has already been processed by *plink* and is ava
 The ```do.import``` function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. You'll have to specify the paths to the corresponding *IDAT* and *plink* files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory ```"hdf5dump"```.
 
 ```{r import}
-idat.dir <- "~/Documents/nfs/mscherer/data/EPIC/CEDAR/idats/"
-plink.dir <- "~/Documents/nfs/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO/"
-anno.sheet <- "~/Documents/nfs/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv"
+idat.dir <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
+plink.dir <- "/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO/"
+anno.sheet <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv"
 qtl.setOption(hdf5dump=TRUE)
 imp.data <- do.import(data.location = c(idat.dir=idat.dir,plink.dir=plink.dir),
                       s.anno = anno.sheet,
@@ -68,6 +69,46 @@ imp.data <- do.import(data.location = c(idat.dir=idat.dir,plink.dir=plink.dir),
                       tab.sep = "\t")
 ```
 
+# methQTL calling
+
+Although *methQTL* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter.
+
+```{r call_methQTL, eval=TRUE}
+meth.qtl.res <- do.methQTL(imp.data)
+```
+
+We will now present the two steps of the methQTL calling procedure in more detail.
+
+## Compute CpG correlation blocks
+
+Since neighboring CpGs are often highly correlated, using each CpG idenpendently as a potential methQTL candidate leads to many redundant results. We thus aimed to approximate *DNA methylation haplotypes* by determining highly correlated CpGs in close vicinity. The procedure itself is split into six steps, and is performed for each chromosome independently:
+
+1. Compute the (Pearson) correlation matrix between all CpGs
+2. Construct the distance matrix from the correlation matrix
+3. Discard all interactions with a correlation lower than a given threshold (option ```cluster.cor.threshold```, default: 0.2)
+4. Weight the distance according to the genomic distance between the two CpGs with a Gaussian (options ```standard.deviation.gauss```, default: 5000)
+5. Discard all interactions further than the option ```absolute.distance.cutoff``` (default: 1,000,000)
+6. Compute the Louvain clustering on the undirected, weighted graph induced by the distance matrix
+
+## Call methQTL per correlation block
+
+From the list of correlation blocks, *methQTL* computes methQTL interactions with all SNPs on the same chromosome. The process is split into three steps:
+
+1. Compute a representative CpG per correlation block, as specified with the option ```representative.cpg.computation``` (default: *row.medians*).
+2. Discard all SNPs that are further than ```absolute.distance.cutoff``` (default: 1,000,000) away from the representative CpG
+3. Call methQTL by using linear models. Multiple options of methQTL calling are available and can be selected via the option ```linear.model.type``` (default: *classical.linear*).
+
+In the latest stage, potential covariates can be specified using the option *sel.covariates*. We recommend to include at least *age* and *sex* as covariates, as they have a strong influence on the DNA methylation pattern.
+
 # Advanced configuration
 
 ## Employ methQTL on a scientific compute cluster
+
+*methQTL* can automatically distribute jobs across a high performance compute cluster, which has been setup using the Sun Grid Engine (SGE) technology. You can pass the option ```cluster.submit``` to ```do.methQTL``` and thus activate the compute cluster submission. Note that you'll also have to specify a path to an executable *Rscript* and potentially specify resource requirements using the option setting ```cluster.config```.
+
+```{r cluster, eval=FALSE}
+qtl.setOption(cluster.config = c(h_vmem="60G",mem_free="20G"))
+qtl.setOption(rscript.path = "/usr/bin/Rscript")
+meth.qtl.res <- do.methQTL(meth.qtl = imp.data,
+                          cluster.submit = T)
+```

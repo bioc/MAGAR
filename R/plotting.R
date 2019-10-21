@@ -69,7 +69,7 @@ distance.scatterplot <- function(meth.qtl.result,out.dir=NULL){
     my_theme+xlab("Distance CpG - SNP")+ylab("absolute beta")+labs(color="beta")+
     scale_color_gradient2(mid="#19547b",low = "#ffd89b",high = "chartreuse3")
   g3 <- ggplot(res,aes(x=Distance,y=Beta,color=-log10(P.value)))+geom_point()+
-    my_theme+xlab("Distance CpG - SNP")+ylab("absolute beta")+labs(color="-log10(p.val)")+
+    my_theme+xlab("Distance CpG - SNP")+ylab("beta")+labs(color="-log10(p.val)")+
     scale_color_continuous(low="#19547b",high = "#ffd89b")
   ret <- grid.arrange(g1,g2,g3,ncol=1)
   if(!is.null(out.dir)){
