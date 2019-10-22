@@ -2,8 +2,13 @@
 title: "methQTL package"
 author: "Michael Scherer"
 date: "October 20, 2019"
-output: pdf_document
-  sansfont: Georgia
+output:
+  pdf_document:
+    number_sections: true
+    sansfont: Georgia
+vignette:
+  \VignetteEngine{knitr::knitr}
+  \usepackage{helvet}
 ---
 
 ```{r setup, include=FALSE, cache=FALSE}
@@ -59,9 +64,9 @@ We require that genotyping data has already been processed by *plink* and is ava
 The ```do.import``` function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. You'll have to specify the paths to the corresponding *IDAT* and *plink* files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory ```"hdf5dump"```.
 
 ```{r import}
-idat.dir <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
-plink.dir <- "/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO/"
-anno.sheet <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv"
+idat.dir <- "~/Documents/nfs/mscherer/data/EPIC/CEDAR/idats/"
+plink.dir <- "~/Documents/nfs/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO/"
+anno.sheet <- "~/Documents/nfs/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv"
 qtl.setOption(hdf5dump=TRUE)
 imp.data <- do.import(data.location = c(idat.dir=idat.dir,plink.dir=plink.dir),
                       s.anno = anno.sheet,
@@ -73,7 +78,7 @@ imp.data <- do.import(data.location = c(idat.dir=idat.dir,plink.dir=plink.dir),
 
 Although *methQTL* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter.
 
-```{r call_methQTL, eval=TRUE}
+```{r call_methQTL, eval=FALSE}
 meth.qtl.res <- do.methQTL(imp.data)
 ```
 

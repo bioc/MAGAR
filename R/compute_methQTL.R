@@ -137,7 +137,8 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff){
                         result.frame=chrom.frame,
                         anno.meth=sel.anno,
                         anno.geno=sel.anno.geno,
-                        method=qtl.getOption("linear.model.type"))
+                        method=qtl.getOption("linear.model.type"),
+                        rep.type=qtl.getOption("representative.cpg.computation"))
   logger.completed()
   return(methQTL.result)
 }
@@ -313,9 +314,23 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
     reps <- as.matrix(sel.meth)[sel.site,]
     sel.anno <- anno.meth[sel.site,]
   }else if(repr.type == "mean.center"){
-    stop("Not yet implemented")
+    reps <- apply(as.matrix(sel.meth),2,mean,na.rm=T)
+    sel.anno <- data.frame(Chromosome=unique(anno.meth$Chromosome),Start=mean(anno.meth$Start))
+    row.names(sel.anno) <- pasteo("mean_of_",nrow(sel.meth))
   }
   distances <- abs(anno.geno$Start - sel.anno$Start)
+  if(all(distances>=qtl.getOption("absolute.distance.cutoff"))){
+    logger.info(paste("No SNP closer than",qtl.getOption("absolute.distance.cutoff")))
+    ret <- data.frame(as.character(row.names(sel.anno)),
+                      NA,
+                      NA,
+                      NA,
+                      as.character(sel.anno$Chromosome),
+                      NA,
+                      sel.anno$Start)
+    colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
+    return(ret)
+  }
   geno.data <- geno.data[distances<qtl.getOption("absolute.distance.cutoff"),]
   anno.geno <- anno.geno[distances<qtl.getOption("absolute.distance.cutoff"),]
   all.snps <- apply(geno.data,1,function(snp){
@@ -332,7 +347,7 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
       lm.model <- lm(form,data=in.mat)
       an.model <- anova(lm.model)
       p.val <- an.model["SNP","Pr(>F)"]
-      return(p.val=p.val,beta=NA)
+      return(c(p.val=p.val,beta=NA))
     }else if(model.type == "classical.linear"){
       in.mat <- data.frame(CpG=reps,SNP=snp)
       if(!is.null(covs)){

@@ -17,9 +17,11 @@ Depends: HDF5Array,
          rtracklayer,
          bigstatsr,
          rjson,
-         Matrix
+         Matrix,
+         knitr
 Suggests: gridExtra         
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
+VignetteBuilder: knitr

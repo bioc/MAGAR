@@ -20,6 +20,7 @@
 #'   \item{\code{anno.meth}}{Genomic annotation of the methylation sites as a \code{data.frame}.}
 #'   \item{\code{anno.geno}}{Genomic annotation of the SNPs as a \code{data.frame}.}
 #'   \item{\code{method}}{The method used to call methQTL.}
+#'   \item{\code{rep.type}}{Method used to determine representative CpGs from correlation blocks.}
 #' }
 #' @section Methods:
 #' \describe{
@@ -37,13 +38,15 @@ setClass("methQTLResult",
            result.frame="data.frame",
            anno.meth="data.frame",
            anno.geno="data.frame",
-           method="character"
+           method="character",
+           rep.type="character"
          ),
          prototype(
            result.frame=data.frame(),
            anno.meth=data.frame(),
            anno.geno=data.frame(),
-           method="classical.linear"
+           method="classical.linear",
+           rep.type="row.medians"
          ),
          package="methQTL")
 
@@ -53,12 +56,14 @@ setMethod("initialize","methQTLResult",
             result.frame=data.frame(),
             anno.meth=data.frame(),
             anno.geno=data.frame(),
-            method="classical.linear"
+            method="classical.linear",
+            rep.type="row.medians"
           ){
             .Object@result.frame <- result.frame
             .Object@anno.meth <- anno.meth
             .Object@anno.geno <- anno.geno
             .Object@method <- method
+            .Object@rep.type <- rep.type
 
             .Object
           })
@@ -109,6 +114,7 @@ setMethod("show","methQTLResult",
             ret.str[1] <- "Object of class methQTLResult\n"
             ret.str[2] <- paste("\t Contains",nrow(object@result.frame),"methQTL\n")
             ret.str[3] <- paste("\t methQTL called using",object@method,"\n")
+            ret.str[4] <- paste("\t representative CpGs computed with",object@rep.type,"\n")
             cat(do.call(paste0,ret.str))
           }
 )
@@ -193,6 +199,7 @@ join.methQTL <- function(obj.list){
   anno.meth <- c()
   anno.geno <- c()
   methods <- c()
+  rep.types <- c()
   for(obj in obj.list){
     result.frame <- rbind(result.frame,getResult(obj))
     anno.meth <- rbind(anno.meth,getAnno(obj))
@@ -200,6 +207,10 @@ join.methQTL <- function(obj.list){
     methods <- c(methods,obj@method)
     if(any(methods != obj@method)){
       logger.error("Incompatible methQTL calling methods")
+    }
+    rep.types <- c(rep.types,obj@rep.type)
+    if(any(rep.types != obj@rep.type)){
+      logger.error("Incompatible representative CpG computation methods")
     }
   }
   result.frame <- data.frame(result.frame[order(result.frame[,1]),])
@@ -209,6 +220,7 @@ join.methQTL <- function(obj.list){
                  result.frame=result.frame,
                  anno.meth=anno.meth,
                  anno.geno=anno.geno,
-                 method=methods[1])
+                 method=methods[1],
+                 rep.type=rep.types[1])
   return(ret.obj)
 }

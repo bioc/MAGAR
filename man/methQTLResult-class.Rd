@@ -18,6 +18,7 @@ This class stores the results of the methQTL analysis. It stores a \code{data.fr
   \item{\code{anno.meth}}{Genomic annotation of the methylation sites as a \code{data.frame}.}
   \item{\code{anno.geno}}{Genomic annotation of the SNPs as a \code{data.frame}.}
   \item{\code{method}}{The method used to call methQTL.}
+  \item{\code{rep.type}}{Method used to determine representative CpGs from correlation blocks.}
 }
 }
 

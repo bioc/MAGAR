@@ -11,7 +11,7 @@ my_theme <- theme_bw()+theme(panel.grid=element_blank(),text=element_text(size=1
                   axis.text = element_text(size=15,color="black"))
 
 
-#' plot.SNP.CpG.interaction
+#' qtl.plot.SNP.CpG.interaction
 #'
 #' Compares the methylation states of a given CpG for the genotype states availabe at the given SNP
 #'
@@ -23,7 +23,10 @@ my_theme <- theme_bw()+theme(panel.grid=element_blank(),text=element_text(size=1
 #' @return An object of type \code{ggplot} comparing the CpG methylation states as boxplots across the different genotype states
 #' @author Michael Scherer
 #' @export
-plot.SNP.CpG.interaction <- function(meth.qtl,cpg,snp,out.dir=NULL){
+qtl.plot.SNP.CpG.interaction <- function(meth.qtl,cpg,snp,out.dir=NULL){
+  if(meth.qtl@rep.type == "mean.center"){
+    logger.error("Interaction plot not available for representative CpG computation 'mean.center;. Pseudo CpG was created.")
+  }
   sel.cpg <- which(row.names(getAnno(meth.qtl,"meth")) %in% cpg)
   sel.snp <- which(row.names(getAnno(meth.qtl,"geno")) %in% snp)
   sel.cpg <- getMethData(meth.qtl)[sel.cpg,]
@@ -59,18 +62,23 @@ distance.scatterplot <- function(meth.qtl.result,out.dir=NULL){
   res <- getResult(meth.qtl.result)
   cori.pval <- round(cor(abs(res$Distance),res$P.value),2)
   cori.pval.pval <- round(cor.test(abs(res$Distance),res$P.value)$p.value,3)
-  cori.beta <- round(cor(abs(res$Distance),abs(res$Beta)),2)
-  cori.beta.pval <- round(cor.test(abs(res$Distance),abs(res$Beta))$p.value,3)
   g1 <- ggplot(res,aes(x=Distance,y=-log10(P.value)))+geom_point()+
     ggtitle(paste("Correlation btw absolute distance and p-value:",cori.pval,"p-value:",cori.pval.pval))+
     my_theme+xlab("Distance CpG - SNP")+ylab("-log10(methQTL p-value)")
-  g2 <- ggplot(res,aes(x=Distance,y=abs(Beta),color=Beta))+geom_point()+
-    ggtitle(paste("Correlation btw absolute distance and absolute beta:",cori.beta,"p-value:",cori.beta.pval))+
-    my_theme+xlab("Distance CpG - SNP")+ylab("absolute beta")+labs(color="beta")+
-    scale_color_gradient2(mid="#19547b",low = "#ffd89b",high = "chartreuse3")
-  g3 <- ggplot(res,aes(x=Distance,y=Beta,color=-log10(P.value)))+geom_point()+
-    my_theme+xlab("Distance CpG - SNP")+ylab("beta")+labs(color="-log10(p.val)")+
-    scale_color_continuous(low="#19547b",high = "#ffd89b")
+  if(meth.qtl.result@rep.type != "mean.center"){
+    cori.beta <- round(cor(abs(res$Distance),abs(res$Beta)),2)
+    cori.beta.pval <- round(cor.test(abs(res$Distance),abs(res$Beta))$p.value,3)
+    g2 <- ggplot(res,aes(x=Distance,y=abs(Beta),color=Beta))+geom_point()+
+      ggtitle(paste("Correlation btw absolute distance and absolute beta:",cori.beta,"p-value:",cori.beta.pval))+
+      my_theme+xlab("Distance CpG - SNP")+ylab("absolute beta")+labs(color="beta")+
+      scale_color_gradient2(mid="#19547b",low = "#ffd89b",high = "chartreuse3")
+    g3 <- ggplot(res,aes(x=Distance,y=Beta,color=-log10(P.value)))+geom_point()+
+      my_theme+xlab("Distance CpG - SNP")+ylab("beta")+labs(color="-log10(p.val)")+
+      scale_color_continuous(low="#19547b",high = "#ffd89b")
+  }else{
+    g2 <- ggplot()+my_theme+annotate("text",y=0,x=0,label="Not beta available")
+    g3 <- ggplot()+my_theme+annotate("text",y=0,x=0,label="Not beta available")
+  }
   ret <- grid.arrange(g1,g2,g3,ncol=1)
   if(!is.null(out.dir)){
     if(file.exists(out.dir)){
