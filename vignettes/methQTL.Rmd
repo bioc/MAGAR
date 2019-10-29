@@ -1,14 +1,17 @@
 ---
 title: "methQTL package"
 author: "Michael Scherer"
-date: "October 20, 2019"
+date: "October 23, 2019"
+header-includes:
+  \usepackage{helvet}
+  \hypersetup{colorlinks,
+              urlcolor=blue}
 output:
   pdf_document:
     number_sections: true
-    sansfont: Georgia
+    latex_engine: xelatex
 vignette:
   \VignetteEngine{knitr::knitr}
-  \usepackage{helvet}
 ---
 
 ```{r setup, include=FALSE, cache=FALSE}
@@ -26,7 +29,9 @@ The package can be directly installed from GitHub, after installing the *devtool
 
 ```{r installation}
 if(!requireNamespace("devtools")) install.packages("devtools")
-if(!requireNamespace("methQTL")) devtools::install_github("MPIIComputationalEpigenetics/methQTL-package")
+if(!requireNamespace("methQTL")){
+  devtools::install_github("MPIIComputationalEpigenetics/methQTL-package")
+}  
 suppressPackageStartupMessages(library(methQTL))
 ```
 
@@ -36,7 +41,7 @@ The *methQTL* package needs two types of data as input: DNA methylation data obt
 
 ## DNA methylation data
 
-The package uses the widely used [*RnBeads*](http://rnbeads.org/) software package for DNA methylation data import. It requires raw IDAT files as input, since critical preprocessing is to be perfomed within the package. In addition to the raw methylation data, a sample annotation sheet, specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:
+The package uses the widely used [*RnBeads*](http://rnbeads.org/) software package for DNA methylation data import. It requires raw IDAT files as input, since critical preprocessing is to be perfomed within the package. In addition to the raw methylation data, a sample annotation sheet specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:
 
 ```{bash sample_annotation, eval=FALSE}
 SampleID,age,sex,barcode
@@ -49,7 +54,7 @@ For further details on the import process, we refer to the [RnBeads vignette](ht
 
 ```{r options}
 opts <- rnb.xml2options(system.file("extdata/rnbeads_options.xml",package="methQTL"))
-rnb.options(identifiers.column="SampleID")
+rnb.options(identifiers.column="ind_IPC")
 xml.fi <- file.path(getwd(),"rnbeads_options.xml")
 cat(rnb.options2xml(),file=xml.fi)
 qtl.setOption(rnbeads.options = xml.fi)
@@ -61,12 +66,12 @@ We require that genotyping data has already been processed by *plink* and is ava
 
 ## Perform data import
 
-The ```do.import``` function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. You'll have to specify the paths to the corresponding *IDAT* and *plink* files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory ```"hdf5dump"```.
+The ```do.import``` function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. You'll have to specify the paths to the corresponding *IDAT* and *plink* files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory (```hdf5dump```).
 
-```{r import}
-idat.dir <- "~/Documents/nfs/mscherer/data/EPIC/CEDAR/idats/"
-plink.dir <- "~/Documents/nfs/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO/"
-anno.sheet <- "~/Documents/nfs/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv"
+```{r import,eval=TRUE}
+idat.dir <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
+plink.dir <- "/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO/"
+anno.sheet <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv"
 qtl.setOption(hdf5dump=TRUE)
 imp.data <- do.import(data.location = c(idat.dir=idat.dir,plink.dir=plink.dir),
                       s.anno = anno.sheet,
@@ -78,7 +83,7 @@ imp.data <- do.import(data.location = c(idat.dir=idat.dir,plink.dir=plink.dir),
 
 Although *methQTL* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter.
 
-```{r call_methQTL, eval=FALSE}
+```{r call_methQTL, eval=TRUE}
 meth.qtl.res <- do.methQTL(imp.data)
 ```
 
@@ -86,14 +91,16 @@ We will now present the two steps of the methQTL calling procedure in more detai
 
 ## Compute CpG correlation blocks
 
-Since neighboring CpGs are often highly correlated, using each CpG idenpendently as a potential methQTL candidate leads to many redundant results. We thus aimed to approximate *DNA methylation haplotypes* by determining highly correlated CpGs in close vicinity. The procedure itself is split into six steps, and is performed for each chromosome independently:
+Since neighboring CpGs are often highly correlated, using each CpG independently as a potential methQTL candidate leads to many redundant results. We thus aimed to approximate *DNA methylation haplotypes* by determining highly correlated CpGs in close vicinity. The procedure itself is split into six steps, and is performed for each chromosome independently:
 
 1. Compute the (Pearson) correlation matrix between all CpGs
 2. Construct the distance matrix from the correlation matrix
-3. Discard all interactions with a correlation lower than a given threshold (option ```cluster.cor.threshold```, default: 0.2)
-4. Weight the distance according to the genomic distance between the two CpGs with a Gaussian (options ```standard.deviation.gauss```, default: 5000)
+3. Discard all interactions with a correlation lower than a given threshold (option: ```cluster.cor.threshold```, default: 0.2)
+4. Weight the distance according to the genomic distance between the two CpGs with a Gaussian (option: ```standard.deviation.gauss```, default: 5000)
 5. Discard all interactions further than the option ```absolute.distance.cutoff``` (default: 1,000,000)
 6. Compute the Louvain clustering on the undirected, weighted graph induced by the distance matrix
+
+This will return a clustering according to the correlation structure between neighboring CpGs that we will use for later methQTL calling.
 
 ## Call methQTL per correlation block
 
@@ -105,11 +112,36 @@ From the list of correlation blocks, *methQTL* computes methQTL interactions wit
 
 In the latest stage, potential covariates can be specified using the option *sel.covariates*. We recommend to include at least *age* and *sex* as covariates, as they have a strong influence on the DNA methylation pattern.
 
+# Downstream analysis and interpretation
+
+## How to use *methQTLResult*
+
+The above procedure will create an object of class ```methQTLResult```, which contains the methQTL that are called in the previous step. To get a table of all the methQTL, you need to extract the information from the object. Furthermore, you can obtain genomic annotations for both the CpGs and the SNPs involved in the methQTL interactions:
+
+```{r show_results, eval=TRUE}
+result.table <- getResult(meth.qtl.res)
+head(result.table)
+anno.meth <- getAnno(meth.qtl.res,"meth")
+head(anno.meth)
+anno.geno <- getAnno(meth.qtl.res,"geno")
+head(anno.geno)
+```
+
+## Plots
+
+To visualize methQTL, the package provides some plotting functions. All functions return an object of type ```ggplot```, which can be subsequently stored or viewed. Either all methQTL can be simultaneously visualized in a single plot, or a specific methQTL can be visualized:
+
+```{r plots,eval=TRUE}
+result.table <- result.table[order(result.table$P.value,decreasing=F),]
+qtl.plot.SNP.CpG.interaction(meth.qtl.res,result.table$CpG[1],result.table$SNP[1])
+distance.scatterplot(meth.qtl.res)
+```
+
 # Advanced configuration
 
 ## Employ methQTL on a scientific compute cluster
 
-*methQTL* can automatically distribute jobs across a high performance compute cluster, which has been setup using the Sun Grid Engine (SGE) technology. You can pass the option ```cluster.submit``` to ```do.methQTL``` and thus activate the compute cluster submission. Note that you'll also have to specify a path to an executable *Rscript* and potentially specify resource requirements using the option setting ```cluster.config```.
+*methQTL* can automatically distribute jobs across a high performance compute cluster, which has been setup using the Sun Grid Engine (SGE) technology. You can pass the option ```cluster.submit``` to ```do.methQTL``` and thus activate the cluster submission. Note that you'll also have to specify a path to an executable *Rscript* and potentially specify resource requirements using the option setting ```cluster.config```.
 
 ```{r cluster, eval=FALSE}
 qtl.setOption(cluster.config = c(h_vmem="60G",mem_free="20G"))

@@ -316,7 +316,7 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
   }else if(repr.type == "mean.center"){
     reps <- apply(as.matrix(sel.meth),2,mean,na.rm=T)
     sel.anno <- data.frame(Chromosome=unique(anno.meth$Chromosome),Start=mean(anno.meth$Start))
-    row.names(sel.anno) <- pasteo("mean_of_",nrow(sel.meth))
+    row.names(sel.anno) <- paste0("mean_of_",nrow(sel.meth))
   }
   distances <- abs(anno.geno$Start - sel.anno$Start)
   if(all(distances>=qtl.getOption("absolute.distance.cutoff"))){
@@ -331,13 +331,36 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
     colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
     return(ret)
   }
-  geno.data <- geno.data[distances<qtl.getOption("absolute.distance.cutoff"),]
-  anno.geno <- anno.geno[distances<qtl.getOption("absolute.distance.cutoff"),]
-  all.snps <- apply(geno.data,1,function(snp){
+  geno.data <- geno.data[distances<qtl.getOption("absolute.distance.cutoff"),,drop=FALSE]
+  if(is.null(geno.data) || all(is.na(geno.data))){
+    logger.error("Geno data is null")
+    ret <- data.frame(as.character(row.names(sel.anno)),
+                      NA,
+                      NA,
+                      NA,
+                      as.character(sel.anno$Chromosome),
+                      NA,
+                      sel.anno$Start)
+    colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
+    return(ret)
+  }else if(nrow(geno.data)==0){
+    logger.error("Geno data contains no rows")
+    ret <- data.frame(as.character(row.names(sel.anno)),
+                      NA,
+                      NA,
+                      NA,
+                      as.character(sel.anno$Chromosome),
+                      NA,
+                      sel.anno$Start)
+    colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
+    return(ret)
+  }
+  anno.geno <- anno.geno[distances<qtl.getOption("absolute.distance.cutoff"),,drop=FALSE]
+  all.snps <- apply(as.matrix(geno.data),1,function(snp){
     if(is.null(covs)){
       form <- as.formula("CpG~SNP")
     }else{
-      form <- as.formula(paste("CpG~SNP",colnames(covs),sep="+"))
+      form <- as.formula(paste0("CpG~SNP+",paste0(colnames(covs),collapse="+")))
     }
     if(model.type == "categorical.anova"){
       in.mat <- data.frame(CpG=reps,SNP=as.factor(snp))
@@ -345,6 +368,15 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
         in.mat <- data.frame(in.mat,covs)
       }
       lm.model <- lm(form,data=in.mat)
+      if(length(unique(snp))==2){
+        if(is.na(coef(lm.model)["SNP"])){
+          return(c(p.val=NA,beta=NA))
+        }
+      }else{
+        if(any(is.na(coef(lm.model)["SNP1"]),is.na(coef(lm.model)["SNP2"]))){
+          return(c(p.val=NA,beta=NA))
+        }
+      }
       an.model <- anova(lm.model)
       p.val <- an.model["SNP","Pr(>F)"]
       return(c(p.val=p.val,beta=NA))
@@ -354,13 +386,28 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
         in.mat <- data.frame(in.mat,covs)
       }
       lm.model <- lm(form,data=in.mat)
+      if(is.na(coef(lm.model)["SNP"])){
+        return(c(p.val=NA,beta=NA))
+      }
       p.val <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
       beta <- summary(lm.model)$coefficients["SNP","Estimate"]
-      return(c(p.val=p.val,beta=beta))
+     return(c(p.val=p.val,beta=beta))
     }
   })
   all.snps <- t(all.snps)
   is.min <- which.min(all.snps[,'p.val'])
+  if(length(is.min)==0){
+    logger.info(paste("No methQTL found for block",cor.block))
+    ret <- data.frame(as.character(row.names(sel.anno)),
+                      NA,
+                      NA,
+                      NA,
+                      as.character(sel.anno$Chromosome),
+                      NA,
+                      sel.anno$Start)
+    colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
+    return(ret)
+  }
   min.p.val <- data.frame(as.character(row.names(sel.anno)),
                           as.character(row.names(anno.geno)[is.min]),
                           all.snps[is.min,'p.val'],

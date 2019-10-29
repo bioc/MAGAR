@@ -85,7 +85,11 @@ if(!isGeneric("getResult")) setGeneric("getResult",function(object) standardGene
 #' @export
 setMethod("getResult",signature(object="methQTLResult"),
           function(object){
-            return(object@result.frame)
+            ret <- object@result.frame
+            keep.lines <- apply(ret,1,function(line){
+              any(!is.na(line))
+            })
+            return(ret[keep.lines,])
           }
 )
 
@@ -116,6 +120,28 @@ setMethod("show","methQTLResult",
             ret.str[3] <- paste("\t methQTL called using",object@method,"\n")
             ret.str[4] <- paste("\t representative CpGs computed with",object@rep.type,"\n")
             cat(do.call(paste0,ret.str))
+          }
+)
+
+if(!isGeneric("filter.pval")) setGeneric("filter.pval", function(object,...)standardGeneric("filter.pval"))
+
+#' filter.pval
+#'
+#' This functions filters the methQTL results according to a given p-value cutoff
+#'
+#' @param object The \code{\link{methQTLResult-class}} object to be filtered
+#' @param p.val.cutoff The p-value cutoff to be employed
+#' @return The filtered \code{\link{methQTLResult-class}} object
+#' @rdname filter.pval
+#' @docType methods
+#' @aliases filter.pval,methQTLResult-method
+#' @author Michael Scherer
+setMethod("filter.pval","methQTLResult",
+          function(object,p.val.cutoff=0.01){
+            res <- object@result.frame
+            res <- res[res$p.val.adj.fdr <= p.val.cutoff,]
+            object@result.frame <- res
+            return(object)
           }
 )
 

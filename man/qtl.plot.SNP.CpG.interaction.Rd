@@ -4,7 +4,8 @@
 \alias{qtl.plot.SNP.CpG.interaction}
 \title{qtl.plot.SNP.CpG.interaction}
 \usage{
-qtl.plot.SNP.CpG.interaction(meth.qtl, cpg, snp, out.dir = NULL)
+qtl.plot.SNP.CpG.interaction(meth.qtl, cpg = NULL, snp = NULL,
+  out.dir = NULL, meth.qtl.res = NULL, out.name = NULL)
 }
 \arguments{
 \item{meth.qtl}{An object of type \code{\link{methQTLInput-class}} containing the methylation and genotype information
@@ -15,6 +16,12 @@ for the given CpG and the given SNP}
 \item{snp}{The SNP identifier as a character (e.g. rs12345678)}
 
 \item{out.dir}{If specified, the plot is stored as a pdf in this directory}
+
+\item{meth.qtl.res}{An optional argument of type \code{\link{methQTLResult-class}} containing information on the results.
+If either \code{cpg} or \code{snp} are NULL, this function sorts the results by increasing p-value and the uses the
+best results for plotting.}
+
+\item{out.name}{Optional name for the resulting plot}
 }
 \value{
 An object of type \code{ggplot} comparing the CpG methylation states as boxplots across the different genotype states

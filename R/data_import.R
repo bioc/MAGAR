@@ -82,7 +82,8 @@ do.import <- function(data.location,s.anno=NULL,assembly.meth="hg19",assembly.ge
     pheno.data=pheno.data,
     samples=s.names,
     assembly=assembly.meth,
-    disk.dump=qtl.getOption("hdf5dump")
+    disk.dump=qtl.getOption("hdf5dump"),
+    imputed=ifelse(rnb.getOption("imputation.method")=="none",FALSE,TRUE)
   )
   if(assembly.meth != assembly.geno){
     dataset.import <- match.assemblies(dataset.import)

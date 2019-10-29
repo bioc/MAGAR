@@ -6,7 +6,7 @@ ap$add_argument("-o","--output",action="store",help="Output directory")
 cmd.args <- ap$parse_args()
 
 logger.start("Combining results")
-methQTL.result.files <- list.files(cmd.args$output,pattern = "methQTLResult_")
+methQTL.result.files <- list.files(cmd.args$output,pattern = "methQTLResult_",full.names = T)
 methQTL.results <- lapply(methQTL.result.files,load.methQTLResult)
 methQTL.results <- join.methQTL(methQTL.results)
 unlink(methQTL.result.files,recursive = T)

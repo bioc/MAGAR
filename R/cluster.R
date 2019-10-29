@@ -34,7 +34,7 @@ submit.cluster.jobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir){
   }
   logger.completed()
   all.chroms <- unique(getAnno(methQTL.input)$Chromosome)
-  set.seed(42)
+  set.seed(Sys.time())
   id <- sample(1:10000,1)
   dep.tok <- ""
   req.res <- qtl.getOption("cluster.config")$cluster.config

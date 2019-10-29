@@ -12,5 +12,5 @@
 # require("methQTL")
 # test.import()
 #
-# devtools::install_local("/TL/deep/projects/work/mscherer/projects/methQTL/package/methQTL/",
-#                         INSTALL_opts="--no-staged-install",force=T)
+ devtools::install_local("/TL/deep/projects/work/mscherer/projects/methQTL/package/methQTL/",
+                         INSTALL_opts="--no-staged-install",force=T)
