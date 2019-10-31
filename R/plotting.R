@@ -77,7 +77,9 @@ qtl.plot.SNP.CpG.interaction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL
 #' @author Michael Scherer
 #' @export
 qtl.distance.scatterplot <- function(meth.qtl.result,out.dir=NULL,out.name=NULL){
-  requireNamespace("gridExtra")
+  if(!requireNamespace("gridExtra")){
+    stop("Please install the 'gridExtra' package")
+  }
   res <- getResult(meth.qtl.result)
   cori.pval <- round(cor(abs(res$Distance),res$P.value),2)
   cori.pval.pval <- round(cor.test(abs(res$Distance),res$P.value)$p.value,3)
@@ -98,7 +100,7 @@ qtl.distance.scatterplot <- function(meth.qtl.result,out.dir=NULL,out.name=NULL)
     g2 <- ggplot()+my_theme+annotate("text",y=0,x=0,label="No beta available")
     g3 <- ggplot()+my_theme+annotate("text",y=0,x=0,label="No beta available")
   }
-  ret <- grid.arrange(g1,g2,g3,ncol=1)
+  ret <- gridExtra::grid.arrange(g1,g2,g3,ncol=1)
   if(!is.null(out.dir)){
     if(file.exists(out.dir)){
       if(is.null(out.name)){
@@ -128,7 +130,9 @@ qtl.manhattan.plot <- function(meth.qtl.result,type="CpG",stat="p.val.adj.fdr"){
   if(!stat %in% c("P.value","Beta","p.val.adj.fdr")){
     stop("Invalid value for stat, needs to be 'P.value', 'Beta', or'p.val.adj.fdr'")
   }
-  requireNamespace("qqman")
+  if(!requireNamespace("qqman")){
+    stop("Please install the 'qqman' package")
+  }
   to.plot <- getResult(meth.qtl.result)
   colnames(to.plot)[c(5,ifelse(type=="CpG",6,7),ifelse(stat=="P.value",4,ifelse(stat=="Beta",3,9)))] <- c("CHR","BP","P")
   to.plot$CHR <- as.numeric(gsub("chr","",to.plot$CHR))
@@ -160,7 +164,9 @@ qtl.venn.plot <- function(meth.qtl.result.list,type="CpG",out.folder,out.name=NU
   if(!type %in% c("CpG","SNP")){
     stop("Invalid value for type, needs to be 'CpG' or 'SNP'")
   }
-  require("VennDiagram")
+  if(!requireNamespace("VennDiagram")){
+    stop("Please install the 'VennDiagram' package")
+  }
   res.all <- lapply(meth.qtl.result.list,function(res){
     getResult(res)[,type]
   })
@@ -171,7 +177,7 @@ qtl.venn.plot <- function(meth.qtl.result.list,type="CpG",out.folder,out.name=NU
   }else{
     out.file <- file.path(out.folder,out.name)
   }
-  ret <- venn.diagram(res.all,
+  ret <- VennDiagram::venn.diagram(res.all,
                       filename = out.file,
                       category.names = names(res.all),
                       fontfamily="sans",
@@ -197,12 +203,14 @@ qtl.upset.plot <- function(meth.qtl.result.list,type="CpG",...){
   if(!type %in% c("CpG","SNP")){
     stop("Invalid value for type, needs to be 'CpG' or 'SNP'")
   }
-  require("UpSetR")
+  if(!requireNamespace("UpSetR")){
+    stop("Please install the 'UpSetR' package")
+  }
   res.all <- lapply(meth.qtl.result.list,function(res){
     getResult(res)[,type]
   })
   names(res.all) <- names(meth.qtl.result.list)
-  upset(fromList(res.all),
+  UpSetR::upset(UpSetR::fromList(res.all),
                nsets = length(res.all),
                order.by = "freq",
                mainbar.y.label = paste("Number of overlapping",type),

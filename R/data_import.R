@@ -187,6 +187,10 @@ do.geno.import <- function(data.location,s.anno,s.id.col){
   system(cmd)
   snp.dat <- read.plink(bed=paste0(proc.data,".bed"),bim=paste0(proc.data,".bim"),fam=paste0(proc.data,".fam"))
   snp.mat <- t(as(snp.dat$genotypes,"numeric"))
+  # Recode snpStats calls, i.e. 0 = Alt/Alt, 2 = Ref/Ref to 0 = Ref/Ref and 2 = Alt/Alt
+  snp.mat[snp.mat==2] <- 3
+  snp.mat[snp.mat==0] <- 2
+  snp.mat[snp.mat==3] <- 0
   snp.mat <- snp.mat[,as.character(s.anno[,s.id.col])]
   if(qtl.getOption("hdf5dump")){
     snp.mat <- writeHDF5Array(snp.mat)

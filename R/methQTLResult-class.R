@@ -19,8 +19,10 @@
 #'   \item{\code{result.frame}}{The methQTL results as a \code{data.frame}}
 #'   \item{\code{anno.meth}}{Genomic annotation of the methylation sites as a \code{data.frame}.}
 #'   \item{\code{anno.geno}}{Genomic annotation of the SNPs as a \code{data.frame}.}
+#'   \item{\code{correlation.blocks}}{Correlation blocks determined from the methylation matrix.}
 #'   \item{\code{method}}{The method used to call methQTL.}
 #'   \item{\code{rep.type}}{Method used to determine representative CpGs from correlation blocks.}
+#'   \item{\code{chr}}{Optional argument specifying if methQTL were called on a single chromosome.}
 #' }
 #' @section Methods:
 #' \describe{
@@ -38,15 +40,19 @@ setClass("methQTLResult",
            result.frame="data.frame",
            anno.meth="data.frame",
            anno.geno="data.frame",
+           correlation.blocks="list",
            method="character",
-           rep.type="character"
+           rep.type="character",
+           chr="characterOrNULL"
          ),
          prototype(
            result.frame=data.frame(),
            anno.meth=data.frame(),
            anno.geno=data.frame(),
+           correlation.blocks=list(),
            method="classical.linear",
-           rep.type="row.medians"
+           rep.type="row.medians",
+           chr=NULL
          ),
          package="methQTL")
 
@@ -56,14 +62,18 @@ setMethod("initialize","methQTLResult",
             result.frame=data.frame(),
             anno.meth=data.frame(),
             anno.geno=data.frame(),
+            correlation.blocks=list(),
             method="classical.linear",
-            rep.type="row.medians"
+            rep.type="row.medians",
+            chr=NULL
           ){
             .Object@result.frame <- result.frame
             .Object@anno.meth <- anno.meth
             .Object@anno.geno <- anno.geno
+            .Object@correlation.blocks=correlation.blocks
             .Object@method <- method
             .Object@rep.type <- rep.type
+            .Object@chr <- chr
 
             .Object
           })
@@ -116,9 +126,17 @@ setMethod("show","methQTLResult",
           function(object){
             ret.str <- list()
             ret.str[1] <- "Object of class methQTLResult\n"
-            ret.str[2] <- paste("\t Contains",nrow(object@result.frame),"methQTL\n")
-            ret.str[3] <- paste("\t methQTL called using",object@method,"\n")
-            ret.str[4] <- paste("\t representative CpGs computed with",object@rep.type,"\n")
+            ret.str[2] <- paste("\t Contains",nrow(getResult(object)),"methQTL\n")
+            if(is.list(object@correlation.blocks[[1]])){
+              ret.str[3] <- paste("\t Contains",sum(lengths(object@correlation.blocks)),"correlation blocks\n")
+            }else{
+              ret.str[3] <- paste("\t Contains",length(object@correlation.blocks),"correlation blocks\n")
+            }
+            ret.str[4] <- paste("\t methQTL called using",object@method,"\n")
+            ret.str[5] <- paste("\t representative CpGs computed with",object@rep.type,"\n")
+            if(!is.null(object@chr)){
+              ret.str[6] <- paste("\t methQTL called for chromosome",object@chr,"\n")
+            }
             cat(do.call(paste0,ret.str))
           }
 )
@@ -176,9 +194,11 @@ setMethod("save.methQTLResult","methQTLResult",
             saveRDS(object@result.frame,file=file.path(path,"result_frame.RDS"))
             saveRDS(object@anno.meth,file=file.path(path,"anno_meth.RDS"))
             saveRDS(object@anno.geno,file=file.path(path,"anno_geno.RDS"))
+            saveRDS(object@correlation.blocks,file=file.path(path,"correlation_blocks.RDS"))
             object@result.frame <- data.frame()
             object@anno.meth <- data.frame()
             object@anno.geno <- data.frame()
+            object@correlation.blocks <- list()
             save(object,file=file.path(path,"methQTLResult.RData"))
           }
 )
@@ -194,7 +214,8 @@ setMethod("save.methQTLResult","methQTLResult",
 load.methQTLResult <- function(path){
   if(any(!(file.exists(file.path(path,"result_frame.RDS"))),
          !file.exists(file.path(path,"anno_meth.RDS")),
-         !file.exists(file.path(path,"anno_geno.RDS")))){
+         !file.exists(file.path(path,"anno_geno.RDS")),
+         !file.exists(file.path(path,"correlation_blocks.RDS")))){
     stop("Invalid value for path. Potentially not a directory saved with save.methQTLResult")
   }
   load_env<-new.env(parent=emptyenv())
@@ -203,9 +224,11 @@ load.methQTLResult <- function(path){
   result.frame <- readRDS(file.path(path,"result_frame.RDS"))
   anno.meth <- readRDS(file.path(path,"anno_meth.RDS"))
   anno.geno <- readRDS(file.path(path,"anno_geno.RDS"))
+  correlation.blocks <- readRDS(file.path(path,"correlation_blocks.RDS"))
   object@result.frame <- result.frame
   object@anno.meth <- anno.meth
   object@anno.geno <- anno.geno
+  object@correlation.blocks <- correlation.blocks
   return(object)
 }
 
@@ -224,12 +247,18 @@ join.methQTL <- function(obj.list){
   result.frame <- c()
   anno.meth <- c()
   anno.geno <- c()
+  correlation.blocks <- list()
   methods <- c()
   rep.types <- c()
   for(obj in obj.list){
     result.frame <- rbind(result.frame,getResult(obj))
     anno.meth <- rbind(anno.meth,getAnno(obj))
     anno.geno <- rbind(anno.geno,getAnno(obj,"geno"))
+    if(!is.null(obj@chr)){
+      correlation.blocks[[obj@chr]] <- obj@correlation.blocks
+    }else{
+      correlation.blocks <- c(correlation.blocks,obj@correlation.blocks)
+    }
     methods <- c(methods,obj@method)
     if(any(methods != obj@method)){
       logger.error("Incompatible methQTL calling methods")
@@ -246,7 +275,9 @@ join.methQTL <- function(obj.list){
                  result.frame=result.frame,
                  anno.meth=anno.meth,
                  anno.geno=anno.geno,
+                 correlation.blocks=correlation.blocks,
                  method=methods[1],
-                 rep.type=rep.types[1])
+                 rep.type=rep.types[1],
+                 chr=NULL)
   return(ret.obj)
 }

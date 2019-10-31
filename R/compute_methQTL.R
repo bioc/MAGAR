@@ -48,7 +48,7 @@ do.methQTL <- function(meth.qtl,sel.covariates=NULL,p.val.cutoff=1e-5,ncores=1,c
   res.all <- list()
   if(!cluster.submit){
     for(chrom in all.chroms){
-      res.chrom <- do.methQTL.chromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff)
+      res.chrom <- do.methQTL.chromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir)
       res.all[[chrom]] <- res.chrom
     }
     res.all <- join.methQTLResult(res.all)
@@ -68,6 +68,7 @@ do.methQTL <- function(meth.qtl,sel.covariates=NULL,p.val.cutoff=1e-5,ncores=1,c
 #' @param sel.covariates Covariates as column names of the sample annotation sheet stored in \code{meth.qtl} to be
 #'          used for covariate adjustment.
 #' @param p.val.cutoff The p-value used for methQTL calling
+#' @param out.dir Optional argument specifying the output directory
 #' @return A data frame with seven columns:
 #'        \describe{
 #'          \item{CpGs}{The CpG ID chosen to be the representative CpG in the methQTL}
@@ -81,7 +82,7 @@ do.methQTL <- function(meth.qtl,sel.covariates=NULL,p.val.cutoff=1e-5,ncores=1,c
 #'        }
 #' @author Michael Scherer
 #' @export
-do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff){
+do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir=NULL){
   logger.start(paste("Computing methQTL for chromosome",chrom))
   anno <- getAnno(meth.qtl,"meth")
   sel.meth <- which(anno$Chromosome %in% chrom)
@@ -89,6 +90,14 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff){
   sel.meth <- getMethData(meth.qtl)[sel.meth,]
   cor.blocks <- compute.correlation.blocks(sel.meth,sel.anno)
   cor.blocks <- lapply(cor.blocks,as.numeric)
+  if(!is.null(out.dir)){
+    to.plot <- data.frame(Size=lengths(cor.blocks))
+    plot <- ggplot(to.plot,aes(x=Size,y=..count..))+geom_histogram(binwidth = 1)+geom_vline(xintercept = mean(to.plot$Size,na.rm=T))+
+      theme_bw()+theme(panel.grid=element_blank(),text=element_text(size=18,color="black"),
+                                                                                       axis.ticks=element_line(color="black"),plot.title = element_text(size=18,color="black",hjust = .5),
+                                                                                       axis.text = element_text(size=15,color="black"))
+    ggsave(file.path(out.dir,paste0("CpG_cluster_sizes_",chrom,".pdf")),plot)
+  }
   anno.geno <- getAnno(meth.qtl,"geno")
   sel.geno <- which(anno.geno$Chromosome %in% chrom)
   sel.anno.geno <- anno.geno[sel.geno,]
@@ -132,13 +141,18 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff){
                             Position.SNP=as.numeric(as.character(res.chr.p.val$Position_SNP)))
     chrom.frame$Distance <- chrom.frame$Position.CpG - chrom.frame$Position.SNP
     chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,method="fdr",n=tests.performed)
+    meth.qtl.id <- paste(chrom.frame$CpG,chrom.frame$SNP,sep="_")
+    match.unique <- match(unique(meth.qtl.id),meth.qtl.id)
+    chrom.frame <- chrom.frame[match.unique,]
   }
   methQTL.result <- new("methQTLResult",
                         result.frame=chrom.frame,
                         anno.meth=sel.anno,
                         anno.geno=sel.anno.geno,
+                        correlation.blocks=cor.blocks,
                         method=qtl.getOption("linear.model.type"),
-                        rep.type=qtl.getOption("representative.cpg.computation"))
+                        rep.type=qtl.getOption("representative.cpg.computation"),
+                        chr=chrom)
   logger.completed()
   return(methQTL.result)
 }
@@ -184,12 +198,14 @@ compute.correlation.blocks <- function(meth.data,annotation,cor.threshold=qtl.ge
                                         sd.gauss = sd.gauss,
                                         absolute.cutoff = absolute.cutoff,
                                         max.cpgs = max.cpgs),
-             compute.correlation.blocks(meth.data=meth.data[(bin.split+1):nrow(annotation),],
+             lapply(compute.correlation.blocks(meth.data=meth.data[(bin.split+1):nrow(annotation),],
                                         annotation=annotation[(bin.split+1):nrow(annotation),],
                                         cor.threshold = cor.threshold,
                                         sd.gauss = sd.gauss,
                                         absolute.cutoff = absolute.cutoff,
-                                        max.cpgs = max.cpgs)
+                                        max.cpgs = max.cpgs),
+                    function(x) x+bin.split
+                    )
              ))
   }
   logger.start("Compute correlation matrix")
@@ -255,7 +271,7 @@ compute.correlation.blocks <- function(meth.data,annotation,cor.threshold=qtl.ge
   clust <- cluster_louvain(graph.ad)
   logger.completed()
   logger.completed()
-  return(groups(clust))
+  return(lapply(groups(clust),function(x)as.numeric(x)))
 }
 
 #' call.methQTL.block

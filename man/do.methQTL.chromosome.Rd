@@ -4,7 +4,8 @@
 \alias{do.methQTL.chromosome}
 \title{do.methQTL.chromosome}
 \usage{
-do.methQTL.chromosome(meth.qtl, chrom, sel.covariates, p.val.cutoff)
+do.methQTL.chromosome(meth.qtl, chrom, sel.covariates, p.val.cutoff,
+  out.dir = NULL)
 }
 \arguments{
 \item{meth.qtl}{An Object of type \code{\link{methQTLInput-class}}.}
@@ -15,6 +16,8 @@ do.methQTL.chromosome(meth.qtl, chrom, sel.covariates, p.val.cutoff)
 used for covariate adjustment.}
 
 \item{p.val.cutoff}{The p-value used for methQTL calling}
+
+\item{out.dir}{Optional argument specifying the output directory}
 }
 \value{
 A data frame with seven columns:
