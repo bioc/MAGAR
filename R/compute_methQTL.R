@@ -318,6 +318,8 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
                                repr.type=qtl.getOption("representative.cpg.computation")){
   sel.meth <- meth.data[cor.block,,drop=F]
   anno.meth <- anno.meth[cor.block,,drop=F]
+  # computing CpG-wise medians across the samples
+  # then order the CpGs by value and select the one in the middle
   if(repr.type == "row.medians"){
     reps <- apply(as.matrix(sel.meth),1,median,na.rm=T)
     order.reps <- order(reps,decreasing = T)
