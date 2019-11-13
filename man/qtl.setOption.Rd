@@ -15,7 +15,7 @@
   linear.model.type = "classial.linear",
   representative.cpg.computation = "row.medians", max.cpgs = 40000,
   rscript.path = "/usr/bin/R", cluster.config = c(h_vmem = "5G",
-  mem_free = "5G"))
+  mem_free = "5G"), n.permutations = 1000)
 }
 \arguments{
 \item{rnbeads.options}{Path to an XML file specifying the RnBeads options used for data import. The default options
@@ -65,6 +65,8 @@ for larger ones.}
 \item{rscript.path}{Path to an executable version of Rscript needed for submitting batch jobs to a cluster}
 
 \item{cluster.config}{Resource parameters needed to setup an SGE cluster job. Includes \code{h_vmem} and \code{mem_free}}
+
+\item{n.permutation}{The number of permutations used to correct the p-values for multiple testing.}
 }
 \description{
 Change global options for methQTL calculation

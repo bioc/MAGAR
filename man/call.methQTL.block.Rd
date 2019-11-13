@@ -6,7 +6,8 @@
 \usage{
 call.methQTL.block(cor.block, meth.data, geno.data, covs, anno.meth,
   anno.geno, model.type = qtl.getOption("linear.model.type"),
-  repr.type = qtl.getOption("representative.cpg.computation"))
+  repr.type = qtl.getOption("representative.cpg.computation"),
+  n.permutations = qtl.getOption("n.permutations"))
 }
 \arguments{
 \item{cor.block}{A single correlation block as determined by \code{\link{compute.correlation.blocks}}}

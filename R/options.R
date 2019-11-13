@@ -9,7 +9,8 @@ QTL.OPTIONS <- new.env()
 assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',
                'minor.allele.frequency','missing.values.samples','plink.path',
                'cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
-               'linear.model.type','representative.cpg.computation','max.cpgs','rscript.path','cluster.config'),QTL.OPTIONS)
+               'linear.model.type','representative.cpg.computation','max.cpgs','rscript.path','cluster.config',
+               'n.permutations'),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',system.file("extdata/rnbeads_options.xml",package="methQTL"),QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
 assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
@@ -27,6 +28,7 @@ assign("REPRESENTATIVE.CPG.COMPUTATION","row.medians",QTL.OPTIONS)
 assign("MAX.CPGS",40000,QTL.OPTIONS)
 assign("RSCRIPT.PATH","/usr/bin/Rscript",QTL.OPTIONS)
 assign("CLUSTER.CONFIG",list(c(h_vmem="5G",mem_free="5G")),QTL.OPTIONS)
+assign("N.PERMUTATIONS",1000,QTL.OPTIONS)
 
 #' qtl.setOption
 #'
@@ -63,6 +65,7 @@ assign("CLUSTER.CONFIG",list(c(h_vmem="5G",mem_free="5G")),QTL.OPTIONS)
 #'             for larger ones.
 #' @param cluster.config Resource parameters needed to setup an SGE cluster job. Includes \code{h_vmem} and \code{mem_free}
 #' @param rscript.path Path to an executable version of Rscript needed for submitting batch jobs to a cluster
+#' @param n.permutation The number of permutations used to correct the p-values for multiple testing.
 #' @export
 #' @author Michael Scherer
 #' @examples
@@ -87,7 +90,8 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        representative.cpg.computation="row.medians",
                        max.cpgs=40000,
                        rscript.path="/usr/bin/R",
-                       cluster.config=c(h_vmem="5G",mem_free="5G")){
+                       cluster.config=c(h_vmem="5G",mem_free="5G"),
+                       n.permutations=1000){
   if(length(rnbeads.options)!=1){
     stop("Please specify the options one by one, not as a vector or list.")
   }
@@ -197,6 +201,12 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['CLUSTER.CONFIG']] <- cluster.config
   }
+  if(!missing(n.permutations)){
+    if(!is.numeric(n.permutations)){
+      stop("Invalid value for n.permutations, needs to be numeric")
+    }
+    QTL.OPTIONS[['N.PERMUTATIONS']] <- n.permutations
+  }
 }
 
 #' qtl.getOption
@@ -262,6 +272,9 @@ qtl.getOption <- function(names){
   }
   if('cluster.config'%in%names){
     ret <- c(ret,cluster.config=list(QTL.OPTIONS[['CLUSTER.CONFIG']]))
+  }
+  if('n.permutations'%in%names){
+    ret <- c(ret,n.permutations=QTL.OPTIONS[['N.PERMUTATIONS']])
   }
   return(ret[names])
 }

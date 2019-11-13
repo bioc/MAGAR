@@ -12,7 +12,9 @@ do.import(data.location, s.anno = NULL, assembly.meth = "hg19",
 \item{data.location}{Named character vector specifying the data location. The names correspond to:
 \describe{
   \item{idat.dir}{Path to the idat-folder for raw DNA methylation data.}
-  \item{plink.dir}{Path to the PLINK file directory (i.e. with \code{bed}, \code{bim} and \code{fam} files)}
+  \item{geno.dir}{Path to the genotyping data file directory, either containing PLINK files
+   (i.e. with \code{bed}, \code{bim} and \code{fam} files), or imputed, dosage files (i.e. with
+   \code{dos} and \code{txt} files)}
 }}
 
 \item{s.anno}{Path to the sample annotation sheet. If \code{NULL}, the program searches for potential sample

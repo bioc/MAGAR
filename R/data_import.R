@@ -315,7 +315,7 @@ do.geno.import.imputed <- function(dos.file,
     anno.geno$Chromosome <- paste0("chr",anno.geno$Chromosome)
   }
   logger.completed()
-  return(list(data=snp.dat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
+  return(list(data=as.matrix(snp.dat),annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
 }
 
 match.assemblies <- function(meth.qtl){

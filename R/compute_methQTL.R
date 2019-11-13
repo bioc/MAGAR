@@ -131,7 +131,6 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
     logger.info(paste("No methQTL found for chromosome",chrom))
     chrom.frame <- data.frame()
   }else{
-    tests.performed <- length(cor.blocks)*nrow(sel.geno)
     chrom.frame <- data.frame(CpG=as.character(res.chr.p.val$CpG),
                             SNP=as.character(res.chr.p.val$SNP),
                             Beta=as.numeric(as.character(res.chr.p.val$Beta)),
@@ -140,7 +139,7 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
                             Position.CpG=as.numeric(as.character(res.chr.p.val$Position_CpG)),
                             Position.SNP=as.numeric(as.character(res.chr.p.val$Position_SNP)))
     chrom.frame$Distance <- chrom.frame$Position.CpG - chrom.frame$Position.SNP
-    chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,method="fdr",n=tests.performed)
+    chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,method="fdr")
     meth.qtl.id <- paste(chrom.frame$CpG,chrom.frame$SNP,sep="_")
     match.unique <- match(unique(meth.qtl.id),meth.qtl.id)
     chrom.frame <- chrom.frame[match.unique,]
@@ -315,7 +314,8 @@ compute.correlation.blocks <- function(meth.data,annotation,cor.threshold=qtl.ge
 #' @export
 call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno.geno,
                                model.type=qtl.getOption("linear.model.type"),
-                               repr.type=qtl.getOption("representative.cpg.computation")){
+                               repr.type=qtl.getOption("representative.cpg.computation"),
+                               n.permutations=qtl.getOption("n.permutations")){
   sel.meth <- meth.data[cor.block,,drop=F]
   anno.meth <- anno.meth[cor.block,,drop=F]
   # computing CpG-wise medians across the samples
@@ -409,6 +409,22 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
       }
       p.val <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
       beta <- summary(lm.model)$coefficients["SNP","Estimate"]
+      permuted.pvals <- matrix(nrow = n.permutations,ncol=2)
+      # determine number of independent tests
+      for(i in 1:n.permutations){
+        in.mat[,1] <- in.mat[sample(1:nrow(in.mat),nrow(in.mat)),1]
+        lm.model <- lm(form,data=in.mat)
+        p.value <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
+        p.value.adj <- log10(p.adjust(p.value,"bonferroni",n=n.permutations))
+        permuted.pvals[i,] <- c(log10(p.value),p.value.adj)
+      }
+      mod <- lm(permuted.pvals[,1]~permuted.pvals[,2])
+      if(is.na(coef(mod)[2])){
+        n.tests <- 1
+      }else{
+        n.tests <- round(summary(mod)$coefficients[2,"Estimate"])
+      }
+      p.val <- p.adjust(p.val,"bonferroni",n=n.tests)
      return(c(p.val=p.val,beta=beta))
     }
   })
