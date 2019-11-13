@@ -13,7 +13,9 @@
 #' @param data.location Named character vector specifying the data location. The names correspond to:
 #'          \describe{
 #'            \item{idat.dir}{Path to the idat-folder for raw DNA methylation data.}
-#'            \item{plink.dir}{Path to the PLINK file directory (i.e. with \code{bed}, \code{bim} and \code{fam} files)}
+#'            \item{geno.dir}{Path to the genotyping data file directory, either containing PLINK files
+#'             (i.e. with \code{bed}, \code{bim} and \code{fam} files), or imputed, dosage files (i.e. with
+#'             \code{dos} and \code{txt} files)}
 #'          }
 #' @param s.anno Path to the sample annotation sheet. If \code{NULL}, the program searches for potential sample
 #'          annotation sheets in the data location directories.
@@ -23,6 +25,7 @@
 #'          positions will be matched using liftOver.
 #' @param tab.sep The table separator used for the sample annotation sheet.
 #' @param s.id.col The column name of the sample annotation sheet that specifies the sample identifier.
+#' @param out.folder The output directory to store diagnostic plots
 #' @return An object of type \code{\link{methQTLInput-class}} with the methylation and genotyping information added.
 #' @details Import of DNA methylation and genotyping data is done separately:
 #'          \describe{
@@ -40,7 +43,13 @@
 #' @author Michael Scherer
 #' @export
 
-do.import <- function(data.location,s.anno=NULL,assembly.meth="hg19",assembly.geno="hg19",tab.sep=",",s.id.col="sample_id"){
+do.import <- function(data.location,
+                      s.anno=NULL,
+                      assembly.meth="hg19",
+                      assembly.geno="hg19",
+                      tab.sep=",",
+                      s.id.col="sample_id",
+                      out.folder=tempdir()){
   logger.start("Import methQTL data")
   if(is.null(s.anno)){
     for(i in 1:length(data.location)){
@@ -60,11 +69,11 @@ do.import <- function(data.location,s.anno=NULL,assembly.meth="hg19",assembly.ge
     }
   }
   pheno.data <- read.table(s.anno,sep=tab.sep,header = T)
-  geno.import <- do.geno.import(data.location,pheno.data,s.id.col)
+  geno.import <- do.geno.import(data.location,pheno.data,s.id.col,out.folder)
   pheno.data <- geno.import$pheno.data
-  s.anno <- file.path(tempdir(),ifelse(tab.sep==",","sample_annotation.csv","sample_annotation.tsv"))
+  s.anno <- file.path(out.folder,ifelse(tab.sep==",","sample_annotation.csv","sample_annotation.tsv"))
   write.table(pheno.data,s.anno,sep=tab.sep)
-  meth.import <- do.meth.import(data.location,assembly.meth,s.anno,s.id.col,tab.sep)
+  meth.import <- do.meth.import(data.location,assembly.meth,s.anno,s.id.col,tab.sep,snp.location=geno.import$annotation)
   s.names <- as.character(pheno.data[,s.id.col])
   if(is.null(s.names) || (length(unique(s.names)) < length(s.names))){
     stop("Invalid value for s.id.col, needs to specify unique identfiers in the sample annotation sheet")
@@ -101,6 +110,7 @@ do.import <- function(data.location,s.anno=NULL,assembly.meth="hg19",assembly.ge
 #' @param s.anno Path to the sample annotation sheet
 #' @param s.id.col Column name in the sample annotation sheet specifying the sample identifiers.
 #' @param tab.sep Table separator used.
+#' @param snp.location Locations of SNPs called in the genotyped processing to be removed from the list of CpGs.
 #' @return A list with three elements:
 #'          \describe{
 #'            \item{sample}{The samples used in the dataset as a character vector}
@@ -113,7 +123,7 @@ do.import <- function(data.location,s.anno=NULL,assembly.meth="hg19",assembly.ge
 #'          specify another XML file with custom RnBeads options.
 #' @author Michael Scherer
 #' @noRd
-do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep=","){
+do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep=",",snp.location=NULL){
   logger.start("Processing DNA methylation data")
   rnb.xml2options(qtl.getOption("rnbeads.options"))
   rnb.options(identifiers.column=s.id.col,
@@ -135,6 +145,17 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
     rnb.report <- file.path(tempdir(),"rnbeads_preprocessing")
   }
   rnb.imp <- rnb.run.preprocessing(rnb.imp,rnb.report)$rnb.set
+  if(!is.null(snp.location)){
+    snp.location <- GRanges(Rle(snp.location$Chromosome),IRanges(start=as.numeric(snp.location$Start),
+                                                                 end=as.numeric(snp.location$Start)))
+    cpg.annotation <- makeGRangesFromDataFrame(annotation(rnb.imp))
+    op <- findOverlaps(cpg.annotation,snp.location,ignore.strand=F,maxgap = 1)
+    rem.sites <- rep(FALSE,length(cpg.annotation))
+    rem.sites[queryHits(op)] <- TRUE
+    logger.start(paste("Removing",sum(rem.sites),"CpGs overlapping with SNPs"))
+    rnb.imp <- remove.sites(rnb.imp,rem.sites)
+    logger.completed()
+  }
   s.names <- samples(rnb.imp)
   meth.data <- meth(rnb.imp)
   if(qtl.getOption("hdf5dump")){
@@ -152,6 +173,8 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
 #' @param data.location Path to the directory, where the PLINK files are stored. For more information, see \code{\link{do.import}}
 #' @param s.anno The sample annotation sheet.
 #' @param s.id.col The column name of the sample annotation sheet specifying the sample identifiers.
+#' @param out.folder The output folder for storing diagnostic plots.
+#' @param ... Futher parameters passed to \code{\link{do.geno.import.imputed}}.
 #' @return A list of three elements:
 #'        \describe{
 #'          \item{data}{The processed genotyping data as a data.frame}
@@ -160,15 +183,20 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
 #'        }
 #' @author Michael Scherer
 #' @noRd
-do.geno.import <- function(data.location,s.anno,s.id.col){
+do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   logger.start("Processing genotyping data")
-  snp.loc <- data.location["plink.dir"]
+  snp.loc <- data.location["geno.dir"]
   all.files <- list.files(snp.loc,full.names=T)
   bed.file <- all.files[grepl(".bed",all.files)]
   bim.file <- all.files[grepl(".bim",all.files)]
   fam.file <- all.files[grepl(".fam",all.files)]
-  if(any(c(is.null(bed.file),is.null(bim.file),is.null(fam.file)))){
-    stop("Incompatible input to genotyping processing, needs to be in PLINK format (i.e. .bed, .bim and .fam files)")
+  if(any(c(length(bed.file)==0,length(bim.file)==0,length(fam.file)==0))){
+    dos.file <- all.files[grepl(".dos",all.files)]
+    id.map <- all.files[grepl(".txt",all.files)]
+    if(any(c(length(dos.file)==0,length(id.map)==0))){
+      stop("Incompatible input to genotyping processing, needs to be in PLINK format (i.e. .bed, .bim and .fam files)")
+    }
+    return(do.geno.import.imputed(dos.file,id.map,s.anno,s.id.col,out.folder,...))
   }
   snp.dat <- read.plink(bed = bed.file,bim = bim.file,fam = fam.file)
   fam <- snp.dat$fam
@@ -177,8 +205,8 @@ do.geno.import <- function(data.location,s.anno,s.id.col){
     stop("Sample ids and IDs of PLINK files do not match.")
   }
   keep.frame <- fam[as.character(s.anno[,s.id.col]),c("pedigree","member")]
-  keep.file <- file.path(tempdir(),"kept_samples.txt")
-  proc.data <- file.path(tempdir(),"processed_snp_data")
+  keep.file <- file.path(out.folder,"kept_samples.txt")
+  proc.data <- file.path(out.folder,"processed_snp_data")
   write.table(keep.frame,keep.file,sep="\t",row.names=F,col.names=F,quote=F)
   plink.file <- gsub(".bed","",bed.file)
   cmd <- paste(qtl.getOption("plink.path"),"--bfile",plink.file,"--keep",keep.file,"--hwe",qtl.getOption("hardy.weinberg.p"),
@@ -192,6 +220,17 @@ do.geno.import <- function(data.location,s.anno,s.id.col){
   snp.mat[snp.mat==0] <- 2
   snp.mat[snp.mat==3] <- 0
   snp.mat <- snp.mat[,as.character(s.anno[,s.id.col])]
+  pca.obj <- prcomp(t(na.omit(snp.mat)))
+  sum.pca <- summary(pca.obj)$importance
+  logger.start("Compute genotype PCA")
+  to.plot <- data.frame(PC1=pca.obj$x[,1],PC2=pca.obj$x[,2])
+  plot <- ggplot(to.plot,aes(x=PC1,y=PC2))+geom_point()+xlab(paste0("PC1 (",round(sum.pca[2,1],3)*100,"% variance explained)"))+
+    ylab(paste0("PC2 (",round(sum.pca[2,2],3)*100,"% variance explained)"))+theme_bw()+
+    theme(panel.grid=element_blank(),text=element_text(size=18,color="black"),
+          axis.ticks=element_line(color="black"),plot.title = element_text(size=18,color="black",hjust = .5),
+          axis.text = element_text(size=15,color="black"))
+  ggsave(file.path(out.folder,"genetics_PCA.pdf"),plot)
+  logger.completed()
   if(qtl.getOption("hdf5dump")){
     snp.mat <- writeHDF5Array(snp.mat)
   }
@@ -204,6 +243,79 @@ do.geno.import <- function(data.location,s.anno,s.id.col){
   }
   logger.completed()
   return(list(data=snp.mat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
+}
+
+#' do.geno.import.imputed
+#'
+#' This function executes import of imputed genotyping data
+#'
+#' @param dos.file A dosage file containing the dosage information for the imputed data. Can be gzipped.
+#' @param id.map A path to a file mapping the row names of the dosage file to SNP (rs) identifiers.
+#' @param s.anno The sample annotation sheet as a data frame.
+#' @param s.id.col A column name in the sample annotation sheet specifying the sample identifers.
+#' @param out.folder A path to a folder to which the results are to be stored.
+#' @param tab.sep The table separator used for \code{dos.file} and \code{id.map}.
+#' @return A list of three elements:
+#'        \describe{
+#'          \item{data}{The processed genotyping data as a data.frame}
+#'          \item{annotation}{The genomic annotation of the SNPs in \code{data}}
+#'          \item{pheno.data}{The, potentially modified, sample annotation sheet}
+#'        }
+#' @details Genotyping data can also be imported from imputed genotype data. However, data needs to be already
+#'  preprocessed, such that for instance SNPs outside of the Hardy-Weinberg equilibrium, sites with too many
+#'  missing values or SNPs with a minimum minor allele frequency are removed/kept, since the data cannot be further
+#'  processed by \code{plink}. We expect as input a tabular file that contains SNPs in the rows and samples in the
+#'  columns, where each entry is a continous numeric value containing the dosage.
+#' @author Michael Scherer
+#' @export
+do.geno.import.imputed <- function(dos.file,
+                            id.map,
+                            s.anno,
+                            s.id.col,
+                            out.folder,
+                            tab.sep=" "){
+  logger.start("Processing imputed data")
+  snp.dat <- read.table(dos.file,sep = tab.sep,header=T)
+  if(row.names(snp.dat)[1] == "1"){
+    row.names(snp.dat) <- as.character(snp.dat[,1])
+    snp.dat <- snp.dat[,-1]
+  }
+  ids.rows <- read.table(id.map,sep=tab.sep,header=T)
+  match.ids <- match(row.names(snp.dat),ids.rows$SNP)
+  r.names <- ids.rows$rs.id[match.ids]
+  match.unique <- match(unique(r.names),r.names)
+  snp.dat <- snp.dat[match.unique,]
+  anno.geno <- lapply(row.names(snp.dat),function(x)strsplit(x,"_"))
+  anno.geno <- t(as.data.frame(anno.geno))
+  colnames(anno.geno) <- c("Chromosome","Start","Allele.1","Allele.2")
+  anno.geno <- as.data.frame(anno.geno)
+  anno.geno$Name <- unique(r.names)
+  row.names(snp.dat) <- unique(r.names)
+  s.anno <- s.anno[as.character(s.anno[,s.id.col]) %in% colnames(snp.dat),]
+  if(is.null(s.anno)){
+    stop("Sample ids and IDs of genotypes do not match.")
+  }
+  # We do not use plink filtering for imputed data
+  snp.dat <- snp.dat[,as.character(s.anno[,s.id.col])]
+  pca.obj <- prcomp(t(na.omit(snp.dat)))
+  sum.pca <- summary(pca.obj)$importance
+  logger.start("Compute genotype PCA")
+  to.plot <- data.frame(PC1=pca.obj$x[,1],PC2=pca.obj$x[,2])
+  plot <- ggplot(to.plot,aes(x=PC1,y=PC2))+geom_point()+xlab(paste0("PC1 (",round(sum.pca[2,1],3)*100,"% variance explained)"))+
+    ylab(paste0("PC2 (",round(sum.pca[2,2],3)*100,"% variance explained)"))+theme_bw()+
+    theme(panel.grid=element_blank(),text=element_text(size=18,color="black"),
+         axis.ticks=element_line(color="black"),plot.title = element_text(size=18,color="black",hjust = .5),
+         axis.text = element_text(size=15,color="black"))
+  ggsave(file.path(out.folder,"genetics_PCA.pdf"),plot)
+  logger.completed()
+  if(qtl.getOption("hdf5dump")){
+    snp.mat <- writeHDF5Array(snp.dat)
+  }
+  if(!any(grepl("chr*",anno.geno$Chromosome))){
+    anno.geno$Chromosome <- paste0("chr",anno.geno$Chromosome)
+  }
+  logger.completed()
+  return(list(data=snp.dat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
 }
 
 match.assemblies <- function(meth.qtl){

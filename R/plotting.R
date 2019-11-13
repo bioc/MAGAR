@@ -45,24 +45,41 @@ qtl.plot.SNP.CpG.interaction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL
   sel.snp <- which(row.names(getAnno(meth.qtl,"geno")) %in% snp)
   sel.cpg <- getMethData(meth.qtl)[sel.cpg,]
   sel.snp <- getGeno(meth.qtl)[sel.snp,]
-  count.geno <- c(0,0,0)
-  for(gen in c(0,1,2)){
-    count.geno[gen+1] <- sum(sel.snp == gen,na.rm=T)
-  }
-  to.plot <- data.frame(SNP=factor(ifelse(sel.snp==0,paste0("ref/ref (",count.geno[1],")"),ifelse(sel.snp=="1",paste0("ref/alt (",count.geno[2],")"),paste0("alt/alt (",count.geno[3],")"))),c(paste0("ref/ref (",count.geno[1],")"),paste0("ref/alt (",count.geno[2],")"),paste0("alt/alt (",count.geno[3],")"))),CpG=sel.cpg)
-  plot <- ggplot(to.plot,aes(x=SNP,y=CpG))+geom_boxplot()+theme_bw()+
-    my_theme+
-    ylab(paste(cpg,"methylation"))+xlab(paste(snp,"genotype"))
-  if(!is.null(out.dir)){
-    if(file.exists(out.dir)){
-      if(is.null(out.name)){
-        ggsave(file.path(out.dir,paste0("SNP_CpG_interaction_",cpg,"_",snp,".pdf")),plot)
-      }else{
-        ggsave(file.path(out.dir,out.name),plot)
+  if(is.integer(sel.snp)){
+    count.geno <- c(0,0,0)
+    for(gen in c(0,1,2)){
+      count.geno[gen+1] <- sum(sel.snp == gen,na.rm=T)
+    }
+    to.plot <- data.frame(SNP=factor(ifelse(sel.snp==0,paste0("ref/ref (",count.geno[1],")"),ifelse(sel.snp=="1",paste0("ref/alt (",count.geno[2],")"),paste0("alt/alt (",count.geno[3],")"))),c(paste0("ref/ref (",count.geno[1],")"),paste0("ref/alt (",count.geno[2],")"),paste0("alt/alt (",count.geno[3],")"))),CpG=sel.cpg)
+    plot <- ggplot(to.plot,aes(x=SNP,y=CpG))+geom_boxplot()+theme_bw()+
+      my_theme+
+      ylab(paste(cpg,"methylation"))+xlab(paste(snp,"genotype"))
+    if(!is.null(out.dir)){
+      if(file.exists(out.dir)){
+        if(is.null(out.name)){
+          ggsave(file.path(out.dir,paste0("SNP_CpG_interaction_",cpg,"_",snp,".pdf")),plot)
+        }else{
+          ggsave(file.path(out.dir,out.name),plot)
+        }
       }
     }
+    return(plot)
+  }else{
+    to.plot <- data.frame(SNPDosage=sel.snp,CpG=sel.cpg)
+    plot <- ggplot(to.plot,aes(x=SNP,y=CpG))+geom_point()+geom_smooth(method="lm",se=F)+theme_bw()+
+      my_theme+
+      ylab(paste(cpg,"methylation"))+xlab(paste(snp,"genotype"))
+    if(!is.null(out.dir)){
+      if(file.exists(out.dir)){
+        if(is.null(out.name)){
+          ggsave(file.path(out.dir,paste0("SNP_CpG_interaction_",cpg,"_",snp,".pdf")),plot)
+        }else{
+          ggsave(file.path(out.dir,out.name),plot)
+        }
+      }
+    }
+    return(plot)
   }
-  return(plot)
 }
 
 #' qtl.distance.scatterplot

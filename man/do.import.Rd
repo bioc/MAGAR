@@ -5,7 +5,8 @@
 \title{do.import}
 \usage{
 do.import(data.location, s.anno = NULL, assembly.meth = "hg19",
-  assembly.geno = "hg19", tab.sep = ",", s.id.col = "sample_id")
+  assembly.geno = "hg19", tab.sep = ",", s.id.col = "sample_id",
+  out.folder = tempdir())
 }
 \arguments{
 \item{data.location}{Named character vector specifying the data location. The names correspond to:
@@ -26,6 +27,8 @@ positions will be matched using liftOver.}
 \item{tab.sep}{The table separator used for the sample annotation sheet.}
 
 \item{s.id.col}{The column name of the sample annotation sheet that specifies the sample identifier.}
+
+\item{out.folder}{The output directory to store diagnostic plots}
 }
 \value{
 An object of type \code{\link{methQTLInput-class}} with the methylation and genotyping information added.
