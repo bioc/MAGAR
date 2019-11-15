@@ -20,15 +20,16 @@ assign("HARDY.WEINBERG.P",0.001,QTL.OPTIONS)
 assign("MINOR.ALLELE.FREQUENCY",0.05,QTL.OPTIONS)
 assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
 assign("PLINK.PATH",system.file("bin/plink",package="methQTL"),QTL.OPTIONS)
-assign("CLUSTER.COR.THRESHOLD",0.2,QTL.OPTIONS)
-assign("STANDARD.DEVIATION.GAUSS",5000,QTL.OPTIONS)
-assign("ABSOLUTE.DISTANCE.CUTOFF",1e6,QTL.OPTIONS)
+assign("CLUSTER.COR.THRESHOLD",0.25,QTL.OPTIONS)
+assign("STANDARD.DEVIATION.GAUSS",100,QTL.OPTIONS)
+assign("ABSOLUTE.DISTANCE.CUTOFF",5e5,QTL.OPTIONS)
 assign("LINEAR.MODEL.TYPE","classical.linear",QTL.OPTIONS)
 assign("REPRESENTATIVE.CPG.COMPUTATION","row.medians",QTL.OPTIONS)
 assign("MAX.CPGS",40000,QTL.OPTIONS)
 assign("RSCRIPT.PATH","/usr/bin/Rscript",QTL.OPTIONS)
 assign("CLUSTER.CONFIG",list(c(h_vmem="5G",mem_free="5G")),QTL.OPTIONS)
 assign("N.PERMUTATIONS",1000,QTL.OPTIONS)
+assign("P.VALUE.CORRECTION","uncorrected.fdr",QTL.OPTIONS)
 
 #' qtl.setOption
 #'
@@ -65,7 +66,12 @@ assign("N.PERMUTATIONS",1000,QTL.OPTIONS)
 #'             for larger ones.
 #' @param cluster.config Resource parameters needed to setup an SGE cluster job. Includes \code{h_vmem} and \code{mem_free}
 #' @param rscript.path Path to an executable version of Rscript needed for submitting batch jobs to a cluster
-#' @param n.permutation The number of permutations used to correct the p-values for multiple testing.
+#' @param n.permutations The number of permutations used to correct the p-values for multiple testing.
+#' @param p.value.correction The p-value correction method for multiple testing correction. Can be one of
+#'              \code{"uncorrected.fdr"} or \code{"corrected.fdr}. \code{"uncorrected.fdr"} uses nominal p-values
+#'              per correlation block as a lenient filtering and then uses FDR with the number of tests performed.
+#'              \code{"corrected.fdr} corrects the p-values per correlation block for multiple testing, accounting
+#'              for the correlation structure of the p-values and then uses FDR-correction for all the interactions computed.
 #' @export
 #' @author Michael Scherer
 #' @examples
@@ -83,15 +89,16 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        minor.allele.frequency=0.05,
                        missing.values.samples=0.05,
                        plink.path=system.file("bin/plink",package="methQTL"),
-                       cluster.cor.threshold=0.2,
-                       standard.deviation.gauss=1000,
-                       absolute.distance.cutoff=1e6,
+                       cluster.cor.threshold=0.25,
+                       standard.deviation.gauss=100,
+                       absolute.distance.cutoff=5e5,
                        linear.model.type="classial.linear",
                        representative.cpg.computation="row.medians",
                        max.cpgs=40000,
                        rscript.path="/usr/bin/R",
                        cluster.config=c(h_vmem="5G",mem_free="5G"),
-                       n.permutations=1000){
+                       n.permutations=1000,
+                       p.value.correction="uncorrected.fdr"){
   if(length(rnbeads.options)!=1){
     stop("Please specify the options one by one, not as a vector or list.")
   }
@@ -207,6 +214,12 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['N.PERMUTATIONS']] <- n.permutations
   }
+  if(!missing(p.value.correction)){
+    if(!is.character(p.value.correction) || !p.value.correction %in% c("uncorrected.fdr","corrected.fdr")){
+      stop("Invalid value for p.value.correction, needs to be either 'uncorrected.fdr' or 'corrected.fdr'")
+    }
+    QTL.OPTIONS[['P.VALUE.CORRECTION']] <- p.value.correction
+  }
 }
 
 #' qtl.getOption
@@ -275,6 +288,9 @@ qtl.getOption <- function(names){
   }
   if('n.permutations'%in%names){
     ret <- c(ret,n.permutations=QTL.OPTIONS[['N.PERMUTATIONS']])
+  }
+  if('p.value.correction'%in%names){
+    ret <- c(ret,p.value.correction=QTL.OPTIONS[['P.VALUE.CORRECTION']])
   }
   return(ret[names])
 }

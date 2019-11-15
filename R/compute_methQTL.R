@@ -139,7 +139,12 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
                             Position.CpG=as.numeric(as.character(res.chr.p.val$Position_CpG)),
                             Position.SNP=as.numeric(as.character(res.chr.p.val$Position_SNP)))
     chrom.frame$Distance <- chrom.frame$Position.CpG - chrom.frame$Position.SNP
-    chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,method="fdr")
+    if(qtl.getOption("p.value.correction") == "corrected.fdr"){
+      chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,method="fdr")
+    }else{
+      tests.performed <- length(cor.blocks)*nrow(sel.geno)
+      chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,method="fdr",n=tests.performed)
+    }
     meth.qtl.id <- paste(chrom.frame$CpG,chrom.frame$SNP,sep="_")
     match.unique <- match(unique(meth.qtl.id),meth.qtl.id)
     chrom.frame <- chrom.frame[match.unique,]
@@ -215,17 +220,11 @@ compute.correlation.blocks <- function(meth.data,annotation,cor.threshold=qtl.ge
   if(qtl.getOption("hdf5dump")){
     cor.all <- writeHDF5Array(cor.all)
   }
-  logger.start("Compute correlation distance")
-  dist.all <- cor2dist(cor.all)
-  if(qtl.getOption("hdf5dump")){
-    dist.all <- writeHDF5Array(dist.all)
-  }
-  logger.completed()
   rep.vals <- cor.all<cor.threshold
   if(qtl.getOption("hdf5dump")){
     rep.vals <- writeHDF5Array(rep.vals)
   }
-  dist.all[rep.vals] <- 0
+  cor.all[rep.vals] <- 0
   genomic.positions <- annotation$Start
   logger.start("Compute pairwise distances")
   gc()
@@ -235,31 +234,30 @@ compute.correlation.blocks <- function(meth.data,annotation,cor.threshold=qtl.ge
   if(qtl.getOption("hdf5dump")){
     rep.vals <- writeHDF5Array(rep.vals)
   }
-  dist.all[rep.vals] <- 0
+  cor.all[rep.vals] <- 0
   gc()
   logger.start("Weight distances")
   if(qtl.getOption("hdf5dump")){
-    weighted.distances <- matrix(nrow=nrow(dist.all),ncol=ncol(dist.all))
+    weighted.distances <- matrix(nrow=nrow(cor.all),ncol=ncol(cor.all))
     weighted.distances <- writeHDF5Array(weighted.distances)
     chunk.size <- 10000
     i <- 1
-    while(i < nrow(dist.all)){
-      if((i + chunk.size)>nrow(dist.all)){
-        do.work <- i:nrow(dist.all)
-        weighted.distances[do.work,] <- as.matrix(dist.all[do.work,])*dnorm(as.matrix(pairwise.distance[do.work,]),0,sd.gauss)
+    while(i < nrow(cor.all)){
+      if((i + chunk.size)>nrow(cor.all)){
+        do.work <- i:nrow(cor.all)
+        weighted.distances[do.work,] <- as.matrix(cor.all[do.work,])*dnorm(as.matrix(pairwise.distance[do.work,]),0,sd.gauss)
         break
       }
       do.work <- i:(i+chunk.size)
-      weighted.distances[do.work,] <- as.matrix(dist.all[do.work,])*dnorm(as.matrix(pairwise.distance[do.work,]),0,sd.gauss)
+      weighted.distances[do.work,] <- as.matrix(cor.all[do.work,])*dnorm(as.matrix(pairwise.distance[do.work,]),0,sd.gauss)
       i <- i+chunk.size+1
     }
   }else{
-    weighted.distances <- dist.all*dnorm(as.matrix(pairwise.distance),0,sd.gauss)
+    weighted.distances <- cor.all*dnorm(as.matrix(pairwise.distance),0,sd.gauss)
   }
   logger.completed()
   colnames(weighted.distances) <- as.character(1:ncol(weighted.distances))
   rownames(weighted.distances) <- as.character(1:nrow(weighted.distances))
-  rm(dist.all)
   rm(rep.vals)
   rm(cor.all)
   gc()
@@ -409,22 +407,24 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
       }
       p.val <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
       beta <- summary(lm.model)$coefficients["SNP","Estimate"]
-      permuted.pvals <- matrix(nrow = n.permutations,ncol=2)
-      # determine number of independent tests
-      for(i in 1:n.permutations){
-        in.mat[,1] <- in.mat[sample(1:nrow(in.mat),nrow(in.mat)),1]
-        lm.model <- lm(form,data=in.mat)
-        p.value <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
-        p.value.adj <- log10(p.adjust(p.value,"bonferroni",n=n.permutations))
-        permuted.pvals[i,] <- c(log10(p.value),p.value.adj)
+      if(qtl.getOption("p.value.correction") == "corrected.fdr"){
+        permuted.pvals <- matrix(nrow = n.permutations,ncol=2)
+        # determine number of independent tests
+        for(i in 1:n.permutations){
+          in.mat[,1] <- in.mat[sample(1:nrow(in.mat),nrow(in.mat)),1]
+          lm.model <- lm(form,data=in.mat)
+          p.value <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
+          p.value.adj <- log10(1-p.adjust(p.value,"bonferroni",n=n.permutations))
+          permuted.pvals[i,] <- c(log10(1-p.value),p.value.adj)
+        }
+        mod <- lm(permuted.pvals[,1]~permuted.pvals[,2])
+        if(is.na(coef(mod)[2])){
+          n.tests <- 1
+        }else{
+          n.tests <- round(summary(mod)$coefficients[2,"Estimate"])
+        }
+        p.val <- p.adjust(p.val,"bonferroni",n=n.tests)
       }
-      mod <- lm(permuted.pvals[,1]~permuted.pvals[,2])
-      if(is.na(coef(mod)[2])){
-        n.tests <- 1
-      }else{
-        n.tests <- round(summary(mod)$coefficients[2,"Estimate"])
-      }
-      p.val <- p.adjust(p.val,"bonferroni",n=n.tests)
      return(c(p.val=p.val,beta=beta))
     }
   })

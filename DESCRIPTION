@@ -18,8 +18,7 @@ Depends: HDF5Array,
          bigstatsr,
          rjson,
          Matrix,
-         knitr,
-         ggfortify
+         knitr
 Suggests: gridExtra,
          VennDiagram,
          UpSetR,

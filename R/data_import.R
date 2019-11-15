@@ -314,6 +314,8 @@ do.geno.import.imputed <- function(dos.file,
   if(!any(grepl("chr*",anno.geno$Chromosome))){
     anno.geno$Chromosome <- paste0("chr",anno.geno$Chromosome)
   }
+  row.names(anno.geno) <- 1:nrow(anno.geno)
+  anno.geno$Start <- as.numeric(as.character(anno.geno$Start))
   logger.completed()
   return(list(data=as.matrix(snp.dat),annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
 }

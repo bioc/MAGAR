@@ -15,7 +15,8 @@
   linear.model.type = "classial.linear",
   representative.cpg.computation = "row.medians", max.cpgs = 40000,
   rscript.path = "/usr/bin/R", cluster.config = c(h_vmem = "5G",
-  mem_free = "5G"), n.permutations = 1000)
+  mem_free = "5G"), n.permutations = 1000,
+  p.value.correction = "uncorrected.fdr")
 }
 \arguments{
 \item{rnbeads.options}{Path to an XML file specifying the RnBeads options used for data import. The default options
@@ -66,7 +67,13 @@ for larger ones.}
 
 \item{cluster.config}{Resource parameters needed to setup an SGE cluster job. Includes \code{h_vmem} and \code{mem_free}}
 
-\item{n.permutation}{The number of permutations used to correct the p-values for multiple testing.}
+\item{n.permutations}{The number of permutations used to correct the p-values for multiple testing.}
+
+\item{p.value.correction}{The p-value correction method for multiple testing correction. Can be one of
+\code{"uncorrected.fdr"} or \code{"corrected.fdr}. \code{"uncorrected.fdr"} uses nominal p-values
+per correlation block as a lenient filtering and then uses FDR with the number of tests performed.
+\code{"corrected.fdr} corrects the p-values per correlation block for multiple testing, accounting
+for the correlation structure of the p-values and then uses FDR-correction for all the interactions computed.}
 }
 \description{
 Change global options for methQTL calculation
