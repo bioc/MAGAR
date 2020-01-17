@@ -122,15 +122,58 @@ setMethod("getAnno",signature(object="methQTLResult"),
           }
 )
 
+if(!isGeneric("getCorrelationBlocks")) setGeneric("getCorrelationBlocks",function(object,...) standardGeneric("getCorrelationBlocks"))
+
+#' getCorrelationBlocks
+#'
+#' Returns the correlation blocks defined for the given dataset
+#'
+#' @param object An object of class \code{\link{methQTLResult-class}}.
+#' @param meth.qtl An optional argument of class \code{\link{methQTLInput-class}} comprising CpG annotations
+#'            to be used to name the entries in the list.
+#' @return A \code{list} object containing the correlation blocks.
+#' @rdname getCorrelationBlocks
+#' @docType methods
+#' @aliases getCorrelationBlocks,methQTLResult-method
+#' @return
+setMethod("getCorrelationBlocks",signature(object="methQTLResult"),
+          function(object,meth.qtl=NULL){
+            cor.blocks <- object@correlation.blocks
+            if(is.null(meth.qtl)){
+              return(cor.blocks)
+            }else if(is.list(cor.blocks[[1]])){
+              anno <- getAnno(meth.qtl)
+              chr.id <- 1
+              cor.blocks <- lapply(cor.blocks,function(chr){
+                anno.chr <- anno[anno$Chromosome%in%paste0("chr",chr.id),]
+                lapply(chr,function(cg){
+                  row.names(anno.chr)[cg]
+                })
+                chr.id <- chr.id+1
+              })
+            }else{
+              anno.chr <- getAnno(meth.qtl)
+              anno.chr <- anno.chr[anno.chr$Chromosome%in%object@chr,]
+              cor.blocks <- lapply(cor.blocks,function(cg){
+                row.names(anno.chr)[cg]
+              })
+            }
+          }
+)
+
 setMethod("show","methQTLResult",
           function(object){
             ret.str <- list()
             ret.str[1] <- "Object of class methQTLResult\n"
             ret.str[2] <- paste("\t Contains",nrow(getResult(object)),"methQTL\n")
-            if(is.list(object@correlation.blocks[[1]])){
-              ret.str[3] <- paste("\t Contains",sum(lengths(object@correlation.blocks)),"correlation blocks\n")
+            if(length(object@correlation.blocks)>0){
+              if(is.list(object@correlation.blocks[[1]])){
+                ret.str[3] <- paste("\t Contains",sum(lengths(object@correlation.blocks)),"correlation blocks\n")
+              }else{
+                ret.str[3] <- paste("\t Contains",length(object@correlation.blocks),"correlation blocks\n")
+              }
             }else{
-              ret.str[3] <- paste("\t Contains",length(object@correlation.blocks),"correlation blocks\n")
+              ret.str[3] <- "\t Contains 0 correlation blocks\n"
             }
             ret.str[4] <- paste("\t methQTL called using",object@method,"\n")
             ret.str[5] <- paste("\t representative CpGs computed with",object@rep.type,"\n")
@@ -240,7 +283,7 @@ load.methQTLResult <- function(path){
 #' @return An object of type \code{\link{methQTLResult-class}} containing the combined information
 #' @author Michael Scherer
 #' @export
-join.methQTL <- function(obj.list){
+join.methQTLResult <- function(obj.list){
   if(any(!unlist(lapply(obj.list,function(x)inherits(x,"methQTLResult"))))){
     logger.error("Objects needs to be of type methQTLResult")
   }

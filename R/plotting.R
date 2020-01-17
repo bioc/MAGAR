@@ -66,9 +66,9 @@ qtl.plot.SNP.CpG.interaction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL
     return(plot)
   }else{
     to.plot <- data.frame(SNPDosage=sel.snp,CpG=sel.cpg)
-    plot <- ggplot(to.plot,aes(x=SNP,y=CpG))+geom_point()+geom_smooth(method="lm",se=F)+theme_bw()+
+    plot <- ggplot(to.plot,aes(x=SNPDosage,y=CpG))+geom_point()+geom_smooth(method="lm",se=F)+theme_bw()+
       my_theme+
-      ylab(paste(cpg,"methylation"))+xlab(paste(snp,"genotype"))
+      ylab(paste(cpg,"methylation"))+xlab(paste(snp,"dosage"))
     if(!is.null(out.dir)){
       if(file.exists(out.dir)){
         if(is.null(out.name)){
@@ -234,4 +234,58 @@ qtl.upset.plot <- function(meth.qtl.result.list,type="CpG",...){
                sets.x.label = "methQTL per class",
                text.scale = c(1,1,1.5,1.5,2,1.5),
                number.angles = 30)
+}
+
+#' qtl.correlate.cor.block.stat
+#'
+#' This function correlates the size of the correlation block, a particular CpG is part of, to the statistic
+#' that has been found for a methQTL this CpG is involved in.
+#'
+#' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} containing methQTLs and correlation blocks.
+#' @param meth.qtl An object of type \code{\link{meth.qtl}} containing CpG annotations.
+#' @param stat The statistic that is to be compared. Can be one of \code{'P.value'}, \code{'Beta'},
+#'          \code{'Distance'}, or \code{'p.val.adj.fdr'}(default).
+#' @return A scatterplot and associated correlations as an objec to type \code{ggplot}
+#' @author Michael Scherer
+#' @export
+qtl.correlate.cor.block.stat <- function(meth.qtl.res,meth.qtl,stat="p.val.adj.fdr"){
+  if(!inherits(meth.qtl.res,"methQTLResult")){
+    stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
+  }
+  if(!inherits(meth.qtl,"methQTLInput")){
+    stop("Invalid value for meth.qtl, need to be methQTLInput")
+  }
+  if(!(stat %in% c("P.value","Beta","Distance","p.val.adj.fdr"))){
+    stop("Invalid value for stat, needs to be one of 'P.value', 'Beta', 'Distance', 'p.val.adj.fdr'")
+  }
+  logger.start("Retriving correlation blocks")
+  cor.blocks <- getCorrelationBlocks(meth.qtl.res,meth.qtl)
+  logger.completed()
+  if(is.list(cor.blocks[[1]])) cor.blocks <- unlist(cor.blocks)
+  res.frame <- getResult(meth.qtl.res)
+  logger.start("Computing sizes of correlation blocks")
+  sizes <- apply(res.frame,1,function(r){
+    unlist(lapply(cor.blocks,function(cg){
+      if(r[1] %in% cg){
+        return(length(cg))
+      }
+    }))
+  })
+  res.frame$CorBlockSize <- sizes
+  logger.completed()
+  if(stat %in% c("P.value","p.val.adj.fdr")){
+    val <- -log10(res.frame[,stat])
+  }else if(stat%in%"Beta"){
+    val <- abs(res.frame[,stat])
+  }else{
+    val <- res.frame[,stat]
+  }
+  cori <- cor(res.frame$CorBlockSize,val)
+  cori.pval <- cor.test(res.frame$CorBlockSize,val)$p.value
+  res.frame$val <- val
+  plot <- ggplot(res.frame,aes_string(x="CorBlockSize",y=val))+geom_point()+geom_smooth(method="lm")+my_theme+
+    ggtitle(paste("Correlation btw correlation block size and",stat,round(cori,3),"p-value:",round(cori.pval,3)))+
+    ylab(paste0(ifelse(stat%in%c("P.value","p.val.adj.fdr"),"-log10(",ifelse(stat%in%"Beta","abs(","")),stat,
+                ifelse(stat%in%c("P.value","p.val.adj.fdr","Beta"),")","")))
+  return(plot)
 }

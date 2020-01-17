@@ -4,11 +4,14 @@
 \alias{compute.correlation.blocks}
 \title{compute.correlation.blocks}
 \usage{
-compute.correlation.blocks(meth.data, annotation,
+compute.correlation.blocks(
+  meth.data,
+  annotation,
   cor.threshold = qtl.getOption("cluster.cor.threshold"),
   sd.gauss = qtl.getOption("standard.deviation.gauss"),
   absolute.cutoff = qtl.getOption("absolute.distance.cutoff"),
-  max.cpgs = qtl.getOption("max.cpgs"))
+  max.cpgs = qtl.getOption("max.cpgs")
+)
 }
 \arguments{
 \item{meth.data}{A \code{data.frame} containing the methylation data with CpGs in the rows and samples in the columns.}

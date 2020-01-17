@@ -1,7 +1,7 @@
 ---
 title: "methQTL package"
 author: "Michael Scherer"
-date: "October 23, 2019"
+date: "January 16, 2020"
 header-includes:
   \usepackage{helvet}
   \hypersetup{colorlinks,
@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
-This vignette describes the *methQTL* R-package (https://github.com/MPIIComputationalEpigenetics/methQTL-package) available from GitHub. The package uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). Using a linear modeling strategy, *methQTL* computes statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs.
+This vignette describes the *methQTL* R-package (https://github.com/MPIIComputationalEpigenetics/methQTL-package) available from GitHub. The package uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). Using a linear modeling strategy, *methQTL* computes statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block is used for methQTL calling.
 
 # Installation
 
@@ -37,11 +37,11 @@ suppressPackageStartupMessages(library(methQTL))
 
 # Input data
 
-The *methQTL* package needs two types of data as input: DNA methylation data obtained using the Illumina Infinium BeadArrays and genotyping data obtained using genotyping microarrays or whole genome sequencing.
+The *methQTL* package requires two types of data as input: DNA methylation data obtained using the Illumina Infinium BeadArrays and genotyping data obtained using genotyping microarrays or whole genome sequencing.
 
 ## DNA methylation data
 
-The package uses the widely used [*RnBeads*](http://rnbeads.org/) software package for DNA methylation data import. It requires raw IDAT files as input, since critical preprocessing is to be perfomed within the package. In addition to the raw methylation data, a sample annotation sheet specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:
+The package utilizes the widely used [*RnBeads*](http://rnbeads.org/) software package for DNA methylation data import. It requires raw IDAT files as input, since critical preprocessing is to be perfomed within the package. In addition to the raw methylation data, a sample annotation sheet specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:
 
 ```{bash sample_annotation, eval=FALSE}
 SampleID,age,sex,barcode
@@ -62,7 +62,7 @@ qtl.setOption(rnbeads.options = xml.fi)
 
 ## Genotyping data
 
-We require that genotyping data has already been processed by *plink* and is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, or as variant calling files (*.vcf*). For further processing, we use the command line tool *plink*, which comes with this package, but is only applicable on Linux systems. For Windows and MacOS users, please install the *plink* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.
+We require that genotyping data has already been processed by *plink* and is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, as variant calling files (*.vcf*), or as imputed files in the dosage format (*.dos*). For further processing, we use the command line tool *plink*, which comes with this package, but is only applicable on Linux systems. For Windows and MacOS users, please install the *plink* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.
 
 ## Perform data import
 
@@ -79,9 +79,22 @@ imp.data <- do.import(data.location = c(idat.dir=idat.dir,plink.dir=plink.dir),
                       tab.sep = "\t")
 ```
 
+For imputed data, no further processing is performed on the genotyping data and the dosage values are used as they are:
+
+```{r imputed_import,eval=TRUE}
+idat.dir <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
+geno.dir <- "/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO_IMPUTED/"
+anno.sheet <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv"
+qtl.setOption(hdf5dump=TRUE)
+imp.data <- do.import(data.location = c(idat.dir=idat.dir,geno.dir=geno.dir),
+                      s.anno = anno.sheet,
+                      s.id.col = "ind_IPC",
+                      tab.sep = "\t")
+```
+
 # methQTL calling
 
-Although *methQTL* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter.
+Although *methQTL* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter, or as global parameters using ```?qtl.setOption```.
 
 ```{r call_methQTL, eval=TRUE}
 meth.qtl.res <- do.methQTL(imp.data)
@@ -95,12 +108,12 @@ Since neighboring CpGs are often highly correlated, using each CpG independently
 
 1. Compute the (Pearson) correlation matrix between all CpGs
 2. Construct the distance matrix from the correlation matrix
-3. Discard all interactions with a correlation lower than a given threshold (option: ```cluster.cor.threshold```, default: 0.2)
-4. Weight the distance according to the genomic distance between the two CpGs with a Gaussian (option: ```standard.deviation.gauss```, default: 5000)
-5. Discard all interactions further than the option ```absolute.distance.cutoff``` (default: 1,000,000)
+3. Discard all interactions with a correlation lower than a given threshold (option: ```cluster.cor.threshold```, default: 0.25)
+4. Weight the distance according to the genomic distance between the two CpGs with a Gaussian (option: ```standard.deviation.gauss```, default: 100)
+5. Discard all interactions ranging longer than the option ```absolute.distance.cutoff``` (default: 500,000)
 6. Compute the Louvain clustering on the undirected, weighted graph induced by the distance matrix
 
-This will return a clustering according to the correlation structure between neighboring CpGs that we will use for later methQTL calling.
+This will return a clustering according to the correlation structure between neighboring CpGs that we will later use for methQTL calling.
 
 ## Call methQTL per correlation block
 

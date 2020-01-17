@@ -4,8 +4,7 @@
 \alias{qtl.manhattan.plot}
 \title{qtl.manhattan.plot}
 \usage{
-qtl.manhattan.plot(meth.qtl.result, type = "CpG",
-  stat = "p.val.adj.fdr")
+qtl.manhattan.plot(meth.qtl.result, type = "CpG", stat = "p.val.adj.fdr")
 }
 \arguments{
 \item{meth.qtl.result}{An object of type \code{\link{methQTLResult-class}} containing the methQTL}

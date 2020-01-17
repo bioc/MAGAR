@@ -6,8 +6,7 @@
 \alias{getMethData,methQTL-method}
 \title{getMethData}
 \usage{
-\S4method{getMethData}{methQTLInput}(object, site = NULL,
-  sample = NULL)
+\S4method{getMethData}{methQTLInput}(object, site = NULL, sample = NULL)
 }
 \arguments{
 \item{object}{An object of class \code{\link{methQTLInput-class}}.}

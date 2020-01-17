@@ -4,8 +4,7 @@
 \alias{qtl.distance.scatterplot}
 \title{qtl.distance.scatterplot}
 \usage{
-qtl.distance.scatterplot(meth.qtl.result, out.dir = NULL,
-  out.name = NULL)
+qtl.distance.scatterplot(meth.qtl.result, out.dir = NULL, out.name = NULL)
 }
 \arguments{
 \item{meth.qtl.result}{An object of type \code{\link{methQTLResult-class}} containing called methQTL}

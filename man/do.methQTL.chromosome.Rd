@@ -4,8 +4,13 @@
 \alias{do.methQTL.chromosome}
 \title{do.methQTL.chromosome}
 \usage{
-do.methQTL.chromosome(meth.qtl, chrom, sel.covariates, p.val.cutoff,
-  out.dir = NULL)
+do.methQTL.chromosome(
+  meth.qtl,
+  chrom,
+  sel.covariates,
+  p.val.cutoff,
+  out.dir = NULL
+)
 }
 \arguments{
 \item{meth.qtl}{An Object of type \code{\link{methQTLInput-class}}.}

@@ -4,19 +4,27 @@
 \alias{qtl.setOption}
 \title{qtl.setOption}
 \usage{
-
-  qtl.setOption(rnbeads.options = system.file("extdata/rnbeads_options.xml",
-  package = "methQTL"), meth.data.type = "idat.dir",
-  rnbeads.report = "temp", rnbeads.qc = F, hdf5dump = F,
-  hardy.weinberg.p = 0.001, minor.allele.frequency = 0.05,
-  missing.values.samples = 0.05, plink.path = system.file("bin/plink",
-  package = "methQTL"), cluster.cor.threshold = 0.2,
-  standard.deviation.gauss = 1000, absolute.distance.cutoff = 1e+06,
+qtl.setOption(
+  rnbeads.options = system.file("extdata/rnbeads_options.xml", package = "methQTL"),
+  meth.data.type = "idat.dir",
+  rnbeads.report = "temp",
+  rnbeads.qc = F,
+  hdf5dump = F,
+  hardy.weinberg.p = 0.001,
+  minor.allele.frequency = 0.05,
+  missing.values.samples = 0.05,
+  plink.path = system.file("bin/plink", package = "methQTL"),
+  cluster.cor.threshold = 0.25,
+  standard.deviation.gauss = 100,
+  absolute.distance.cutoff = 5e+05,
   linear.model.type = "classial.linear",
-  representative.cpg.computation = "row.medians", max.cpgs = 40000,
-  rscript.path = "/usr/bin/R", cluster.config = c(h_vmem = "5G",
-  mem_free = "5G"), n.permutations = 1000,
-  p.value.correction = "uncorrected.fdr")
+  representative.cpg.computation = "row.medians",
+  max.cpgs = 40000,
+  rscript.path = "/usr/bin/R",
+  cluster.config = c(h_vmem = "5G", mem_free = "5G"),
+  n.permutations = 1000,
+  p.value.correction = "uncorrected.fdr"
+)
 }
 \arguments{
 \item{rnbeads.options}{Path to an XML file specifying the RnBeads options used for data import. The default options

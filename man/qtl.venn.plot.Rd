@@ -4,8 +4,13 @@
 \alias{qtl.venn.plot}
 \title{qtl.venn.plot}
 \usage{
-qtl.venn.plot(meth.qtl.result.list, type = "CpG", out.folder,
-  out.name = NULL, ...)
+qtl.venn.plot(
+  meth.qtl.result.list,
+  type = "CpG",
+  out.folder,
+  out.name = NULL,
+  ...
+)
 }
 \arguments{
 \item{meth.qtl.result.list}{A named list with each entry being an object of type \code{\link{methQTLResult-class}}.

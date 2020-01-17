@@ -4,8 +4,14 @@
 \alias{do.methQTL}
 \title{do.methQTL}
 \usage{
-do.methQTL(meth.qtl, sel.covariates = NULL, p.val.cutoff = 1e-05,
-  ncores = 1, cluster.submit = F, out.dir = getwd())
+do.methQTL(
+  meth.qtl,
+  sel.covariates = NULL,
+  p.val.cutoff = 1e-05,
+  ncores = 1,
+  cluster.submit = F,
+  out.dir = getwd()
+)
 }
 \arguments{
 \item{meth.qtl}{An object of type \code{\link{methQTLInput-class}} on which methQTL computation is to be performed}

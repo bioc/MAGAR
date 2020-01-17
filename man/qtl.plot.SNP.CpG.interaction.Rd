@@ -4,8 +4,14 @@
 \alias{qtl.plot.SNP.CpG.interaction}
 \title{qtl.plot.SNP.CpG.interaction}
 \usage{
-qtl.plot.SNP.CpG.interaction(meth.qtl, cpg = NULL, snp = NULL,
-  out.dir = NULL, meth.qtl.res = NULL, out.name = NULL)
+qtl.plot.SNP.CpG.interaction(
+  meth.qtl,
+  cpg = NULL,
+  snp = NULL,
+  out.dir = NULL,
+  meth.qtl.res = NULL,
+  out.name = NULL
+)
 }
 \arguments{
 \item{meth.qtl}{An object of type \code{\link{methQTLInput-class}} containing the methylation and genotype information

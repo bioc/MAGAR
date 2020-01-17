@@ -4,9 +4,15 @@
 \alias{do.import}
 \title{do.import}
 \usage{
-do.import(data.location, s.anno = NULL, assembly.meth = "hg19",
-  assembly.geno = "hg19", tab.sep = ",", s.id.col = "sample_id",
-  out.folder = tempdir())
+do.import(
+  data.location,
+  s.anno = NULL,
+  assembly.meth = "hg19",
+  assembly.geno = "hg19",
+  tab.sep = ",",
+  s.id.col = "sample_id",
+  out.folder = tempdir()
+)
 }
 \arguments{
 \item{data.location}{Named character vector specifying the data location. The names correspond to:

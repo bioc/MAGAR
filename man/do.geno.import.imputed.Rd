@@ -4,8 +4,14 @@
 \alias{do.geno.import.imputed}
 \title{do.geno.import.imputed}
 \usage{
-do.geno.import.imputed(dos.file, id.map, s.anno, s.id.col, out.folder,
-  tab.sep = " ")
+do.geno.import.imputed(
+  dos.file,
+  id.map,
+  s.anno,
+  s.id.col,
+  out.folder,
+  tab.sep = " "
+)
 }
 \arguments{
 \item{dos.file}{A dosage file containing the dosage information for the imputed data. Can be gzipped.}

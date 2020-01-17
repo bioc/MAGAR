@@ -126,7 +126,9 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
   }
   res.chr.p.val <- as.data.frame(apply(res.chr.p.val,2,unlist))
   logger.completed()
-  res.chr.p.val <- res.chr.p.val[as.numeric(as.character(res.chr.p.val$P.value))<p.val.cutoff,]
+  if(qtl.getOption("p.value.correction")=="uncorrected.fdr"){
+    res.chr.p.val <- res.chr.p.val[as.numeric(as.character(res.chr.p.val$P.value))<p.val.cutoff,]
+  }
   if(nrow(res.chr.p.val)==0){
     logger.info(paste("No methQTL found for chromosome",chrom))
     chrom.frame <- data.frame()
@@ -139,10 +141,11 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
                             Position.CpG=as.numeric(as.character(res.chr.p.val$Position_CpG)),
                             Position.SNP=as.numeric(as.character(res.chr.p.val$Position_SNP)))
     chrom.frame$Distance <- chrom.frame$Position.CpG - chrom.frame$Position.SNP
-    if(qtl.getOption("p.value.correction") == "corrected.fdr"){
-      chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,method="fdr")
-    }else{
+    if(qtl.getOption("p.value.correction") == "uncorrected.fdr"){
       tests.performed <- length(cor.blocks)*nrow(sel.geno)
+      if(is.na(tests.performed)){
+        tests.performed <- .Machine$integer.max
+      }
       chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,method="fdr",n=tests.performed)
     }
     meth.qtl.id <- paste(chrom.frame$CpG,chrom.frame$SNP,sep="_")
@@ -297,6 +300,8 @@ compute.correlation.blocks <- function(meth.data,annotation,cor.threshold=qtl.ge
 #'            correlation block (for ties a random selection is performed), \code{"mean.center"} for an artifical site in the geometric center of the block with
 #'            the average methylation level or \code{"best.all"} for the CpG with the best p-value across all of the
 #'            CpGs in the correlation block.
+#' @param n.permutations  Number of permutations used to correct the p-values. Only has an influence, if the parameter
+#'            \code{"p.value.correction"="permutation".}
 #' @return A vector of three elements:
 #'    \describe{
 #'      \item{1}{The p-value of the best methQTL}

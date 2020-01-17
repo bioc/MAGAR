@@ -4,10 +4,17 @@
 \alias{call.methQTL.block}
 \title{call.methQTL.block}
 \usage{
-call.methQTL.block(cor.block, meth.data, geno.data, covs, anno.meth,
-  anno.geno, model.type = qtl.getOption("linear.model.type"),
+call.methQTL.block(
+  cor.block,
+  meth.data,
+  geno.data,
+  covs,
+  anno.meth,
+  anno.geno,
+  model.type = qtl.getOption("linear.model.type"),
   repr.type = qtl.getOption("representative.cpg.computation"),
-  n.permutations = qtl.getOption("n.permutations"))
+  n.permutations = qtl.getOption("n.permutations")
+)
 }
 \arguments{
 \item{cor.block}{A single correlation block as determined by \code{\link{compute.correlation.blocks}}}
@@ -37,6 +44,9 @@ options are \code{"row.medians"} for the site that is the row median across the 
 correlation block (for ties a random selection is performed), \code{"mean.center"} for an artifical site in the geometric center of the block with
 the average methylation level or \code{"best.all"} for the CpG with the best p-value across all of the
 CpGs in the correlation block.}
+
+\item{n.permutations}{Number of permutations used to correct the p-values. Only has an influence, if the parameter
+\code{"p.value.correction"="permutation".}}
 }
 \value{
 A vector of three elements:

@@ -10,7 +10,7 @@ assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc',
                'minor.allele.frequency','missing.values.samples','plink.path',
                'cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
                'linear.model.type','representative.cpg.computation','max.cpgs','rscript.path','cluster.config',
-               'n.permutations'),QTL.OPTIONS)
+               'n.permutations','p.value.correction'),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',system.file("extdata/rnbeads_options.xml",package="methQTL"),QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
 assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
@@ -21,7 +21,7 @@ assign("MINOR.ALLELE.FREQUENCY",0.05,QTL.OPTIONS)
 assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
 assign("PLINK.PATH",system.file("bin/plink",package="methQTL"),QTL.OPTIONS)
 assign("CLUSTER.COR.THRESHOLD",0.25,QTL.OPTIONS)
-assign("STANDARD.DEVIATION.GAUSS",100,QTL.OPTIONS)
+assign("STANDARD.DEVIATION.GAUSS",250,QTL.OPTIONS)
 assign("ABSOLUTE.DISTANCE.CUTOFF",5e5,QTL.OPTIONS)
 assign("LINEAR.MODEL.TYPE","classical.linear",QTL.OPTIONS)
 assign("REPRESENTATIVE.CPG.COMPUTATION","row.medians",QTL.OPTIONS)
@@ -90,7 +90,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        missing.values.samples=0.05,
                        plink.path=system.file("bin/plink",package="methQTL"),
                        cluster.cor.threshold=0.25,
-                       standard.deviation.gauss=100,
+                       standard.deviation.gauss=250,
                        absolute.distance.cutoff=5e5,
                        linear.model.type="classial.linear",
                        representative.cpg.computation="row.medians",
