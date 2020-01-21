@@ -15,7 +15,7 @@ qtl.setOption(
   missing.values.samples = 0.05,
   plink.path = system.file("bin/plink", package = "methQTL"),
   cluster.cor.threshold = 0.25,
-  standard.deviation.gauss = 100,
+  standard.deviation.gauss = 250,
   absolute.distance.cutoff = 5e+05,
   linear.model.type = "classial.linear",
   representative.cpg.computation = "row.medians",
@@ -23,7 +23,8 @@ qtl.setOption(
   rscript.path = "/usr/bin/R",
   cluster.config = c(h_vmem = "5G", mem_free = "5G"),
   n.permutations = 1000,
-  p.value.correction = "uncorrected.fdr"
+  p.value.correction = "uncorrected.fdr",
+  compute.cor.blocks = TRUE
 )
 }
 \arguments{
@@ -82,6 +83,9 @@ for larger ones.}
 per correlation block as a lenient filtering and then uses FDR with the number of tests performed.
 \code{"corrected.fdr} corrects the p-values per correlation block for multiple testing, accounting
 for the correlation structure of the p-values and then uses FDR-correction for all the interactions computed.}
+
+\item{compute.cor.blocks}{Flag indicating if correlation blocks are to be called. If \code{FALSE}, each CpG is considered
+separately.}
 }
 \description{
 Change global options for methQTL calculation

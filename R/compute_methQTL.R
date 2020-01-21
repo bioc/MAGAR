@@ -17,6 +17,9 @@
 #' @param ncores The number of cores used.
 #' @param cluster.submit Flag indicating if jobs are to be distributed among a SGE compute cluster
 #' @param out.dir Output directory
+#' @param default.options Flag indicating if default options for \code{cluster.cor.threshold},
+#'          \code{standard.deviation.gauss}, and \code{absolute.distance.cutoff} should be loaded for the
+#'          data set used. See the option settings in \code{'inst/extdata'}.
 #' @return An object of type \code{\link{methQTLResult-class}} containing the called methQTL interactions.
 #' @details The process is split into 4 steps:
 #'          \describe{
@@ -30,9 +33,26 @@
 #'          }
 #' @author Michael Scherer
 #' @export
-do.methQTL <- function(meth.qtl,sel.covariates=NULL,p.val.cutoff=1e-5,ncores=1,cluster.submit=F,out.dir=getwd()){
+do.methQTL <- function(meth.qtl,
+                       sel.covariates=NULL,
+                       p.val.cutoff=1e-5,
+                       ncores=1,
+                       cluster.submit=F,
+                       out.dir=getwd(),
+                       default.options=TRUE){
   if(!inherits(meth.qtl,"methQTLInput")){
     stop("Invalid value for meth.qtl, needs to be of type methQTLInput")
+  }
+  if(default.options){
+    logger.info("Loading default option setting")
+    if(meth.qtl@platform %in% "CpG"){
+      logger.info("Keeping default setting for sequencing based assays")
+    }else{
+      if(meth.qtl@platform %in% "probes27"){
+        stop("This package does not support Illumina Infinium 27k arrays.")
+      }
+      qtl.json2options(paste0(system.file("extdata/",package="methQTL"),"qtl_options_",meth.qtl@platform,".json"))
+    }
   }
   if(!meth.qtl@imputed){
     meth.qtl <- impute.meth(meth.qtl)
@@ -88,15 +108,19 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
   sel.meth <- which(anno$Chromosome %in% chrom)
   sel.anno <- anno[sel.meth,]
   sel.meth <- getMethData(meth.qtl)[sel.meth,]
-  cor.blocks <- compute.correlation.blocks(sel.meth,sel.anno)
-  cor.blocks <- lapply(cor.blocks,as.numeric)
-  if(!is.null(out.dir)){
-    to.plot <- data.frame(Size=lengths(cor.blocks))
-    plot <- ggplot(to.plot,aes(x=Size,y=..count..))+geom_histogram(binwidth = 1)+geom_vline(xintercept = mean(to.plot$Size,na.rm=T))+
-      theme_bw()+theme(panel.grid=element_blank(),text=element_text(size=18,color="black"),
-                                                                                       axis.ticks=element_line(color="black"),plot.title = element_text(size=18,color="black",hjust = .5),
-                                                                                       axis.text = element_text(size=15,color="black"))
-    ggsave(file.path(out.dir,paste0("CpG_cluster_sizes_",chrom,".pdf")),plot)
+  if(qtl.getOption('compute.cor.blocks')){
+    cor.blocks <- compute.correlation.blocks(sel.meth,sel.anno)
+    cor.blocks <- lapply(cor.blocks,as.numeric)
+    if(!is.null(out.dir)){
+      to.plot <- data.frame(Size=lengths(cor.blocks))
+      plot <- ggplot(to.plot,aes(x=Size,y=..count..))+geom_histogram(binwidth = 1)+geom_vline(xintercept = mean(to.plot$Size,na.rm=T))+
+        theme_bw()+theme(panel.grid=element_blank(),text=element_text(size=18,color="black"),
+                                                                                         axis.ticks=element_line(color="black"),plot.title = element_text(size=18,color="black",hjust = .5),
+                                                                                         axis.text = element_text(size=15,color="black"))
+      ggsave(file.path(out.dir,paste0("CpG_cluster_sizes_",chrom,".pdf")),plot)
+    }
+  }else{
+    cor.blocks <- as.list(1:nrow(sel.meth))
   }
   anno.geno <- getAnno(meth.qtl,"geno")
   sel.geno <- which(anno.geno$Chromosome %in% chrom)
@@ -338,6 +362,9 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
     reps <- apply(as.matrix(sel.meth),2,mean,na.rm=T)
     sel.anno <- data.frame(Chromosome=unique(anno.meth$Chromosome),Start=mean(anno.meth$Start))
     row.names(sel.anno) <- paste0("mean_of_",nrow(sel.meth))
+  }else{
+    sel.anno <- anno.meth
+    reps <- t(as.matrix(sel.meth))
   }
   distances <- abs(anno.geno$Start - sel.anno$Start)
   if(all(distances>=qtl.getOption("absolute.distance.cutoff"))){
@@ -384,6 +411,9 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
       form <- as.formula(paste0("CpG~SNP+",paste0(colnames(covs),collapse="+")))
     }
     if(model.type == "categorical.anova"){
+      if(length(unique(snp))==1){
+        return(c(p.val=NA,beta=NA))
+      }
       in.mat <- data.frame(CpG=reps,SNP=as.factor(snp))
       if(!is.null(covs)){
         in.mat <- data.frame(in.mat,covs)
@@ -419,7 +449,9 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
           in.mat[,1] <- in.mat[sample(1:nrow(in.mat),nrow(in.mat)),1]
           lm.model <- lm(form,data=in.mat)
           p.value <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
-          p.value.adj <- log10(1-p.adjust(p.value,"bonferroni",n=n.permutations))
+          p.value.adj <- p.value*n.permutations
+          if(p.value.adj>=1) p.value.adj <- 0.99999999999
+          p.value.adj <- log10(1-(p.value.adj))
           permuted.pvals[i,] <- c(log10(1-p.value),p.value.adj)
         }
         mod <- lm(permuted.pvals[,1]~permuted.pvals[,2])
@@ -428,7 +460,7 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
         }else{
           n.tests <- round(summary(mod)$coefficients[2,"Estimate"])
         }
-        p.val <- p.adjust(p.val,"bonferroni",n=n.tests)
+        p.val <- p.adjust(p.val,"bonferroni",n=ifelse(n.tests<1,1,n.tests))
       }
      return(c(p.val=p.val,beta=beta))
     }
@@ -436,7 +468,7 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
   all.snps <- t(all.snps)
   is.min <- which.min(all.snps[,'p.val'])
   if(length(is.min)==0){
-    logger.info(paste("No methQTL found for block",cor.block))
+    #logger.info(paste("No methQTL found for block",cor.block))
     ret <- data.frame(as.character(row.names(sel.anno)),
                       NA,
                       NA,

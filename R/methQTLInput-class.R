@@ -35,6 +35,7 @@ setClassUnion("characterOrNULL",c("character","NULL"))
 #'   \item{\code{samples}}{The sample identifiers used both for \code{meth.data} and \code{geno.data}, and as the rownames of
 #'       \code{pheno.data}.}
 #'   \item{\code{assembly}}{The genome assembly used.}
+#'   \item{\code{platform}}{The platform used to compute the methylation data.}
 #'   \item{\code{disk.dump}}{Flag indicating if the matrices are stored on disk rather than in memory.}
 #'   \item{\code{imputed}}{Flag indicating if DNA methylation dataset has been imputed.}
 #' }
@@ -62,7 +63,8 @@ setClass("methQTLInput",
            samples="characterOrNULL",
            assembly="character",
            disk.dump="logical",
-           imputed="logical"
+           imputed="logical",
+           platform="character"
          ),
          prototype(
            meth.data=matrix(nrow=0,ncol=0),
@@ -73,7 +75,8 @@ setClass("methQTLInput",
            samples=c(),
            assembly="hg19",
            disk.dump=F,
-           imputed=F
+           imputed=F,
+           platform="probesEPIC"
          ),
          package="methQTL")
 
@@ -88,7 +91,8 @@ setMethod("initialize","methQTLInput",
             samples=c(),
             assembly="hg19",
             disk.dump=F,
-            imputed=F
+            imputed=F,
+            platform="probesEPIC"
           ){
             if(length(samples) != ncol(meth.data) | length(samples) != ncol(geno.data) | length(samples) != nrow(pheno.data)){
               stop("Samples do not match dimension of the matrices.")
@@ -102,6 +106,7 @@ setMethod("initialize","methQTLInput",
             .Object@assembly <- assembly
             .Object@disk.dump <- disk.dump
             .Object@imputed <- imputed
+            .Object@platform <- platform
 
             .Object
           })

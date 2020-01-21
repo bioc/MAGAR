@@ -92,7 +92,8 @@ do.import <- function(data.location,
     samples=s.names,
     assembly=assembly.meth,
     disk.dump=qtl.getOption("hdf5dump"),
-    imputed=ifelse(rnb.getOption("imputation.method")=="none",FALSE,TRUE)
+    imputed=ifelse(rnb.getOption("imputation.method")=="none",FALSE,TRUE),
+    platform=meth.import$platform
   )
   if(assembly.meth != assembly.geno){
     dataset.import <- match.assemblies(dataset.import)
@@ -163,7 +164,7 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
   }
   anno.meth <- annotation(rnb.imp)
   logger.completed()
-  return(list(samples=s.names,data=meth.data,annotation=anno.meth))
+  return(list(samples=s.names,data=meth.data,annotation=anno.meth,platform=rnb.imp@target))
 }
 
 #' do.geno.import

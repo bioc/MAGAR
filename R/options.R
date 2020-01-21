@@ -10,7 +10,7 @@ assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc',
                'minor.allele.frequency','missing.values.samples','plink.path',
                'cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
                'linear.model.type','representative.cpg.computation','max.cpgs','rscript.path','cluster.config',
-               'n.permutations','p.value.correction'),QTL.OPTIONS)
+               'n.permutations','p.value.correction','compute.cor.blocks'),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',system.file("extdata/rnbeads_options.xml",package="methQTL"),QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
 assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
@@ -30,6 +30,7 @@ assign("RSCRIPT.PATH","/usr/bin/Rscript",QTL.OPTIONS)
 assign("CLUSTER.CONFIG",list(c(h_vmem="5G",mem_free="5G")),QTL.OPTIONS)
 assign("N.PERMUTATIONS",1000,QTL.OPTIONS)
 assign("P.VALUE.CORRECTION","uncorrected.fdr",QTL.OPTIONS)
+assign("COMPUTE.COR.BLOCKS",TRUE,QTL.OPTIONS)
 
 #' qtl.setOption
 #'
@@ -72,6 +73,8 @@ assign("P.VALUE.CORRECTION","uncorrected.fdr",QTL.OPTIONS)
 #'              per correlation block as a lenient filtering and then uses FDR with the number of tests performed.
 #'              \code{"corrected.fdr} corrects the p-values per correlation block for multiple testing, accounting
 #'              for the correlation structure of the p-values and then uses FDR-correction for all the interactions computed.
+#' @param compute.cor.blocks Flag indicating if correlation blocks are to be called. If \code{FALSE}, each CpG is considered
+#'              separately.
 #' @export
 #' @author Michael Scherer
 #' @examples
@@ -98,7 +101,8 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        rscript.path="/usr/bin/R",
                        cluster.config=c(h_vmem="5G",mem_free="5G"),
                        n.permutations=1000,
-                       p.value.correction="uncorrected.fdr"){
+                       p.value.correction="uncorrected.fdr",
+                       compute.cor.blocks=TRUE){
   if(length(rnbeads.options)!=1){
     stop("Please specify the options one by one, not as a vector or list.")
   }
@@ -220,6 +224,12 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['P.VALUE.CORRECTION']] <- p.value.correction
   }
+  if(!missing(compute.cor.blocks)){
+    if(!is.logical(compute.cor.blocks)){
+      stop("Invalid value for compute.cor.blocks, needs to be logical.")
+    }
+    QTL.OPTIONS[['COMPUTE.COR.BLOCKS']] <- compute.cor.blocks
+  }
 }
 
 #' qtl.getOption
@@ -291,6 +301,9 @@ qtl.getOption <- function(names){
   }
   if('p.value.correction'%in%names){
     ret <- c(ret,p.value.correction=QTL.OPTIONS[['P.VALUE.CORRECTION']])
+  }
+  if('compute.cor.blocks'%in%names){
+    ret <- c(ret,compute.cor.blocks=QTL.OPTIONS[['COMPUTE.COR.BLOCKS']])
   }
   return(ret[names])
 }

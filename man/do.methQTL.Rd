@@ -10,7 +10,8 @@ do.methQTL(
   p.val.cutoff = 1e-05,
   ncores = 1,
   cluster.submit = F,
-  out.dir = getwd()
+  out.dir = getwd(),
+  default.options = TRUE
 )
 }
 \arguments{
@@ -26,6 +27,10 @@ used for covariate adjustment.}
 \item{cluster.submit}{Flag indicating if jobs are to be distributed among a SGE compute cluster}
 
 \item{out.dir}{Output directory}
+
+\item{default.options}{Flag indicating if default options for \code{cluster.cor.threshold},
+\code{standard.deviation.gauss}, and \code{absolute.distance.cutoff} should be loaded for the
+data set used. See the option settings in \code{'inst/extdata'}.}
 }
 \value{
 An object of type \code{\link{methQTLResult-class}} containing the called methQTL interactions.
