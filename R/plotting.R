@@ -82,6 +82,54 @@ qtl.plot.SNP.CpG.interaction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL
   }
 }
 
+#' qtl.plot.SNP.correlation.block
+#'
+#' This functions creates a multi-facet plot with a panel for each CpG in the correlation block that has
+#' a methQTL interaction with the SNP of interest.
+#'
+#' @param meth.qtl.res An object of type \code{\link{methQTLResult}} containing the methQTL interactions
+#'           and the CpG correlation blocks.
+#' @param meth.qtl An object of type \code{\link{methQTLInput}} containing genotyping, methylation and
+#'           annotation information.
+#' @param snp The SNP identifier, for which the methQTL interaction is to be visualized.
+#' @return The plot as an \code{ggplot} object, containing a facet with a scatterplot between the CpG
+#'    methylation state and the SNP dosage. Discrete genotypes are currently not supported.
+#' @export
+#' @author Michael Scherer
+qtl.plot.SNP.correlation.block <- function(meth.qtl.res,meth.qtl,snp=NULL){
+  if(!inherits(meth.qtl.res,"methQTLResult")){
+    stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
+  }
+  if(!inherits(meth.qtl,"methQTLInput")){
+    stop("Invalid value for meth.qtl, needs to be methQTLInput")
+  }
+  cor.blocks <- getCorrelationBlocks(meth.qtl.res,meth.qtl)
+  res <- getResult(meth.qtl.res,cor.blocks)
+  if(is.null(snp)){
+    snp <- as.character(res[order(abs(res$Beta),decreasing = T),]$SNP[1])
+  }
+  sel.row <- res[res$SNP%in%snp,,drop=F]
+  to.plot <- c()
+  meth.data <- getMethData(meth.qtl)
+  anno.meth <- getAnno(meth.qtl)
+  anno.geno <- getAnno(meth.qtl,"geno")
+  snp.data <- as.numeric(getGeno(meth.qtl)[row.names(anno.geno)%in%snp,,drop=F])
+  for(i in 1:length(unlist(sel.row$CorrelationBlock))){
+    cpg <- unlist(sel.row$CorrelationBlock)[i]
+    add.mat <- cbind(SNP=snp.data,CpG=as.numeric(meth.data[row.names(anno.meth)%in%cpg,,drop=F]),ID=rep(cpg,length(snp.data)))
+    to.plot <- rbind(to.plot,add.mat)
+  }
+  to.plot <- as.data.frame(to.plot)
+  to.plot$CpG <- as.numeric(as.character(to.plot$CpG))
+  to.plot$SNP <- as.numeric(as.character(to.plot$SNP))
+  to.plot$Representative <- rep("No",nrow(to.plot))
+  to.plot$Representative[to.plot$ID%in%sel.row$CpG] <- "Yes"
+  plot <- ggplot(to.plot,aes(x=SNP,y=CpG))+geom_point(aes(color=Representative))+
+    geom_smooth(method="lm",aes(color=Representative))+facet_grid(ID~.)+
+    my_theme+theme(legend.position="none")+scale_color_manual(values=c("black","firebrick4"))
+  return(plot)
+}
+
 #' qtl.distance.scatterplot
 #'
 #' Computes a scatterplot between CpG-SNP distance with both effect size and p-value
@@ -167,14 +215,14 @@ qtl.manhattan.plot <- function(meth.qtl.result,type="CpG",stat="p.val.adj.fdr"){
 #'
 #' @param meth.qtl.result.list A named list with each entry being an object of type \code{\link{methQTLResult-class}}.
 #'                       The names are used in the visualization.
-#' @param type Determines if either the CpG (default) or the SNP is to be visualized
 #' @param out.folder Required argument specifying the location to store the resulting plot
+#' @param type Determines if either the CpG (default) or the SNP is to be visualized
 #' @param out.name Optional argument for the name of the plot on disk (ending needs to be .png)
 #' @param ... Further argument passed to \code{\link[VennDiagram]{venn.diagram}}
 #' @return The venn plot object
 #' @export
 #' @author Michael Scherer
-qtl.venn.plot <- function(meth.qtl.result.list,type="CpG",out.folder,out.name=NULL,...){
+qtl.venn.plot <- function(meth.qtl.result.list,out.folder,type="CpG",out.name=NULL,...){
   if(length(meth.qtl.result.list)>4){
     stop("Venn plot only supports up to 4 results, consider using qtl.upset.plot")
   }
@@ -261,17 +309,9 @@ qtl.correlate.cor.block.stat <- function(meth.qtl.res,meth.qtl,stat="p.val.adj.f
   logger.start("Retriving correlation blocks")
   cor.blocks <- getCorrelationBlocks(meth.qtl.res,meth.qtl)
   logger.completed()
-  if(is.list(cor.blocks[[1]])) cor.blocks <- unlist(cor.blocks)
-  res.frame <- getResult(meth.qtl.res)
-  logger.start("Computing sizes of correlation blocks")
-  sizes <- apply(res.frame,1,function(r){
-    unlist(lapply(cor.blocks,function(cg){
-      if(r[1] %in% cg){
-        return(length(cg))
-      }
-    }))
-  })
-  res.frame$CorBlockSize <- sizes
+  logger.start("Retrieving methQTL information")
+  res.frame <- getResult(meth.qtl.res,cor.blocks)
+  res.frame$CorBlockSize <- sapply(res.frame$CorrelationBlock,length)
   logger.completed()
   if(stat %in% c("P.value","p.val.adj.fdr")){
     val <- -log10(res.frame[,stat])

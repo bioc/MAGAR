@@ -5,10 +5,14 @@
 \alias{getResult,methQTLResult-method}
 \title{getResult}
 \usage{
-\S4method{getResult}{methQTLResult}(object)
+\S4method{getResult}{methQTLResult}(object, cor.blocks = NULL)
 }
 \arguments{
 \item{object}{An of type \code{\link{methQTLResult-class}}.}
+
+\item{cor.blocks}{Correlation blocks as obtained using \code{getCorrelationBlocks}. Please note that the
+correlation blocks need to contain the CpG identifiers, so the \code{\link{methQTLInput-class}} object
+needs to be provided to \code{getCorrelationBlocks}.}
 }
 \value{
 The methQTL results as a \code{data.frame} with each row being a methQTL.

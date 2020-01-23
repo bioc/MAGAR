@@ -81,25 +81,54 @@ setMethod("initialize","methQTLResult",
 ##########################################################################################
 # GETTERS
 ##########################################################################################
-if(!isGeneric("getResult")) setGeneric("getResult",function(object) standardGeneric("getResult"))
+if(!isGeneric("getResult")) setGeneric("getResult",function(object,...) standardGeneric("getResult"))
 
 #' getResult
 #'
 #' Returns the methQTL results stores in the object.
 #'
 #' @param object An of type \code{\link{methQTLResult-class}}.
+#' @param cor.blocks Correlation blocks as obtained using \code{getCorrelationBlocks}. Please note that the
+#'          correlation blocks need to contain the CpG identifiers, so the \code{\link{methQTLInput-class}} object
+#'          needs to be provided to \code{getCorrelationBlocks}.
 #' @return The methQTL results as a \code{data.frame} with each row being a methQTL.
 #' @rdname getResult
 #' @docType methods
 #' @aliases getResult,methQTLResult-method
 #' @export
 setMethod("getResult",signature(object="methQTLResult"),
-          function(object){
+          function(object,cor.blocks=NULL){
             ret <- object@result.frame
             keep.lines <- apply(ret,1,function(line){
               any(!is.na(line))
             })
-            return(ret[keep.lines,])
+            ret <- ret[keep.lines,]
+            if(!is.null(cor.blocks)){
+              if(is.list(cor.blocks[[1]])){
+                cor.blocks.assigned <- list()
+                for(i in 1:length(cor.blocks)){
+                  chr <- cor.blocks[[i]]
+                  for(j in 1:length(chr)){
+                    block <- chr[[j]]
+                    cpg <- as.character(ret$CpG)[as.character(ret$CpG) %in% block]
+                    if(length(cpg)>0){
+                      cor.blocks.assigned[[cpg]] <- block
+                    }
+                  }
+                }
+              }else{
+                cor.blocks.assigned <- list()
+                for(i in 1:length(cor.blocks)){
+                  block <- cor.blocks[[i]]
+                  cpg <- as.character(ret$CpG)[as.character(ret$CpG) %in% block]
+                  if(length(cpg)>0){
+                    cor.blocks.assigned[[cpg]] <- block
+                  }
+                }
+              }
+              ret$CorrelationBlock <- cor.blocks.assigned[as.character(ret$CpG)]
+            }
+            return(ret)
           }
 )
 
@@ -143,21 +172,30 @@ setMethod("getCorrelationBlocks",signature(object="methQTLResult"),
               return(cor.blocks)
             }else if(is.list(cor.blocks[[1]])){
               anno <- getAnno(meth.qtl)
-              chr.id <- 1
-              cor.blocks <- lapply(cor.blocks,function(chr){
-                anno.chr <- anno[anno$Chromosome%in%paste0("chr",chr.id),]
-                lapply(chr,function(cg){
+              ret <- list()
+              if("chr1"%in%names(cor.blocks)){
+                chr.ids <- names(cor.blocks)
+              }else{
+                chr.ids <- paste0("chr:",1:length(cor.blocks))
+              }
+              for(chr.id in chr.ids){
+                chr <- cor.blocks[[chr.id]]
+                chr.id <- ifelse(chr.id=="chr23","X",ifelse(chr.id=="chr24","Y",chr.id))
+                anno.chr <- anno[anno$Chromosome%in%chr.id,]
+                res <- lapply(chr,function(cg){
                   row.names(anno.chr)[cg]
                 })
-                chr.id <- chr.id+1
-              })
+                ret[[chr.id]] <- res
+              }
+              ret <- ret[order(as.numeric(gsub("chr","",names(ret))))]
             }else{
               anno.chr <- getAnno(meth.qtl)
               anno.chr <- anno.chr[anno.chr$Chromosome%in%object@chr,]
-              cor.blocks <- lapply(cor.blocks,function(cg){
+              ret <- lapply(cor.blocks,function(cg){
                 row.names(anno.chr)[cg]
               })
             }
+            return(ret)
           }
 )
 
