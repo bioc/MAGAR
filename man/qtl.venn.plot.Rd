@@ -6,9 +6,10 @@
 \usage{
 qtl.venn.plot(
   meth.qtl.result.list,
-  type = "CpG",
   out.folder,
+  type = "SNP",
   out.name = NULL,
+  meth.qtl.list = NULL,
   ...
 )
 }
@@ -16,11 +17,15 @@ qtl.venn.plot(
 \item{meth.qtl.result.list}{A named list with each entry being an object of type \code{\link{methQTLResult-class}}.
 The names are used in the visualization.}
 
-\item{type}{Determines if either the CpG (default) or the SNP is to be visualized}
-
 \item{out.folder}{Required argument specifying the location to store the resulting plot}
 
+\item{type}{Determines if either the SNP (default), the CpG, or the correlation block
+\code{'cor.block'} is to be visualized}
+
 \item{out.name}{Optional argument for the name of the plot on disk (ending needs to be .png)}
+
+\item{meth.qtl.list}{If \code{type}=\code{'cor.block'}, a list of \code{\link{methQTLInput-class}} object
+in the same order as \code{meth.qtl.result.list} to obtain correlation block annotations from.}
 
 \item{...}{Further argument passed to \code{\link[VennDiagram]{venn.diagram}}}
 }

@@ -4,13 +4,17 @@
 \alias{qtl.upset.plot}
 \title{qtl.upset.plot}
 \usage{
-qtl.upset.plot(meth.qtl.result.list, type = "CpG", ...)
+qtl.upset.plot(meth.qtl.result.list, type = "SNP", meth.qtl.list = NULL, ...)
 }
 \arguments{
 \item{meth.qtl.result.list}{A named list with each entry being an object of type \code{\link{methQTLResult-class}}.
 The names are used in the visualization.}
 
-\item{type}{Determines if either the CpG (default) or the SNP is to be visualized}
+\item{type}{Determines if either the SNP (default), the CpG, or the correlation block
+\code{'cor.block'} is to be visualized}
+
+\item{meth.qtl.list}{If \code{type}=\code{'cor.block'}, a list of \code{\link{methQTLInput-class}} object
+in the same order as \code{meth.qtl.result.list} to obtain correlation block annotations from.}
 
 \item{...}{Further argument passed to \code{\link[UpSetR]{upset}}}
 }
