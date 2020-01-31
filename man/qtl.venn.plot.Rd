@@ -30,10 +30,13 @@ in the same order as \code{meth.qtl.result.list} to obtain correlation block ann
 \item{...}{Further argument passed to \code{\link[VennDiagram]{venn.diagram}}}
 }
 \value{
-The venn plot object
+The data that is visualized as a list with \code{length(meth.qtl.result.list)} elements.
 }
 \description{
 This function creates a venn plot from a list of methQTL results, showing the overlap between the interactions
+}
+\details{
+The plot can be stored on disk using \code{out.folder} and \code{out.name}
 }
 \author{
 Michael Scherer

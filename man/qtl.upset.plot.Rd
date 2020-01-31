@@ -18,6 +18,9 @@ in the same order as \code{meth.qtl.result.list} to obtain correlation block ann
 
 \item{...}{Further argument passed to \code{\link[UpSetR]{upset}}}
 }
+\value{
+The data that is visualized as a list with \code{length(meth.qtl.result.list)} elements.
+}
 \description{
 This function creates an UpSet plot from the given methQTL results
 }
