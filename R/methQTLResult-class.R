@@ -151,27 +151,23 @@ setMethod("getAnno",signature(object="methQTLResult"),
           }
 )
 
-if(!isGeneric("getCorrelationBlocks")) setGeneric("getCorrelationBlocks",function(object,...) standardGeneric("getCorrelationBlocks"))
+if(!isGeneric("getCorrelationBlocks")) setGeneric("getCorrelationBlocks",function(object) standardGeneric("getCorrelationBlocks"))
 
 #' getCorrelationBlocks
 #'
 #' Returns the correlation blocks defined for the given dataset
 #'
 #' @param object An object of class \code{\link{methQTLResult-class}}.
-#' @param meth.qtl An optional argument of class \code{\link{methQTLInput-class}} comprising CpG annotations
-#'            to be used to name the entries in the list.
 #' @return A \code{list} object containing the correlation blocks.
 #' @rdname getCorrelationBlocks
 #' @docType methods
 #' @aliases getCorrelationBlocks,methQTLResult-method
 #' @return
 setMethod("getCorrelationBlocks",signature(object="methQTLResult"),
-          function(object,meth.qtl=NULL){
+          function(object){
             cor.blocks <- object@correlation.blocks
-            if(is.null(meth.qtl)){
-              return(cor.blocks)
-            }else if(is.list(cor.blocks[[1]])){
-              anno <- getAnno(meth.qtl)
+            if(is.list(cor.blocks[[1]])){
+              anno <- getAnno(object)
               ret <- list()
               if("chr1"%in%names(cor.blocks)){
                 chr.ids <- names(cor.blocks)
@@ -189,7 +185,7 @@ setMethod("getCorrelationBlocks",signature(object="methQTLResult"),
               }
               ret <- ret[order(as.numeric(gsub("chr","",names(ret))))]
             }else{
-              anno.chr <- getAnno(meth.qtl)
+              anno.chr <- getAnno(object)
               anno.chr <- anno.chr[anno.chr$Chromosome%in%object@chr,]
               ret <- lapply(cor.blocks,function(cg){
                 row.names(anno.chr)[cg]

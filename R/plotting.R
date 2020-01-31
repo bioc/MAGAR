@@ -103,7 +103,7 @@ qtl.plot.SNP.correlation.block <- function(meth.qtl.res,meth.qtl,snp=NULL){
   if(!inherits(meth.qtl,"methQTLInput")){
     stop("Invalid value for meth.qtl, needs to be methQTLInput")
   }
-  cor.blocks <- getCorrelationBlocks(meth.qtl.res,meth.qtl)
+  cor.blocks <- getCorrelationBlocks(meth.qtl.res)
   res <- getResult(meth.qtl.res,cor.blocks)
   if(is.null(snp)){
     snp <- as.character(res[order(abs(res$Beta),decreasing = T),]$SNP[1])
@@ -219,10 +219,7 @@ qtl.manhattan.plot <- function(meth.qtl.result,type="CpG",stat="p.val.adj.fdr"){
 #' @param type Determines if either the SNP (default), the CpG, or the correlation block
 #'     \code{'cor.block'} is to be visualized
 #' @param out.name Optional argument for the name of the plot on disk (ending needs to be .png)
-#' @param meth.qtl.list If \code{type}=\code{'cor.block'}, a list of \code{\link{methQTLInput-class}} object
-#'     in the same order as \code{meth.qtl.result.list} to obtain correlation block annotations from.
 #' @param ... Further argument passed to \code{\link[VennDiagram]{venn.diagram}}
-#' @return The data that is visualized as a list with \code{length(meth.qtl.result.list)} elements.
 #' @details The plot can be stored on disk using \code{out.folder} and \code{out.name}
 #' @export
 #' @author Michael Scherer
@@ -234,7 +231,7 @@ qtl.venn.plot <- function(meth.qtl.result.list,out.folder,type="SNP",out.name=NU
   if(!requireNamespace("VennDiagram")){
     stop("Please install the 'VennDiagram' package")
   }
-  res.all <- overlap.QTLs(meth.qtl.result.list,type=type,meth.qtl.list=meth.qtl.list)
+  res.all <- overlap.QTLs(meth.qtl.result.list,type=type)
   venn.colors <- rnb.getOption("colors.category")
   if(is.null(out.name)){
     out.file <- file.path(out.folder,"vennplot.tiff")
@@ -248,8 +245,6 @@ qtl.venn.plot <- function(meth.qtl.result.list,out.folder,type="SNP",out.name=NU
                       fill=venn.colors[1:length(res.all)],
                       cat.cex=0.5,
                       ...)
-
-  return(res.all)
 }
 
 #' qtl.upset.plot
@@ -260,19 +255,15 @@ qtl.venn.plot <- function(meth.qtl.result.list,out.folder,type="SNP",out.name=NU
 #'                       The names are used in the visualization.
 #' @param type Determines if either the SNP (default), the CpG, or the correlation block
 #'     \code{'cor.block'} is to be visualized
-#' @param meth.qtl.list If \code{type}=\code{'cor.block'}, a list of \code{\link{methQTLInput-class}} object
-#'     in the same order as \code{meth.qtl.result.list} to obtain correlation block annotations from.
 #' @param ... Further argument passed to \code{\link[UpSetR]{upset}}
-#' @return The data that is visualized as a list with \code{length(meth.qtl.result.list)} elements.
 #' @details The plot is directly drawn and can be stored on disk using the known R graphic devices
 #' @export
 #' @author Michael Scherer
-qtl.upset.plot <- function(meth.qtl.result.list,type="SNP",
-                           meth.qtl.list=NULL,...){
+qtl.upset.plot <- function(meth.qtl.result.list,type="SNP",...){
   if(!requireNamespace("UpSetR")){
     stop("Please install the 'UpSetR' package")
   }
-  res.all <- overlap.QTLs(meth.qtl.result.list,type=type,meth.qtl.list=meth.qtl.list)
+  res.all <- overlap.QTLs(meth.qtl.result.list,type=type)
   UpSetR::upset(UpSetR::fromList(res.all),
                nsets = length(res.all),
                order.by = "freq",
@@ -280,7 +271,6 @@ qtl.upset.plot <- function(meth.qtl.result.list,type="SNP",
                sets.x.label = "methQTL per class",
                text.scale = c(1,1,1.5,1.5,2,1.5),
                number.angles = 30)
-  return(res.all)
 }
 
 #' qtl.correlate.cor.block.stat
@@ -289,7 +279,6 @@ qtl.upset.plot <- function(meth.qtl.result.list,type="SNP",
 #' that has been found for a methQTL this CpG is involved in.
 #'
 #' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} containing methQTLs and correlation blocks.
-#' @param meth.qtl An object of type \code{\link{meth.qtl}} containing CpG annotations.
 #' @param stat The statistic that is to be compared. Can be one of \code{'P.value'}, \code{'Beta'},
 #'          \code{'Distance'}, or \code{'p.val.adj.fdr'}(default).
 #' @param size.type The size of correlation block to be used. Can be either \code{'num.CpGs'} (default)
@@ -297,12 +286,9 @@ qtl.upset.plot <- function(meth.qtl.result.list,type="SNP",
 #' @return A scatterplot and associated correlations as an objec to type \code{ggplot}
 #' @author Michael Scherer
 #' @export
-qtl.correlate.cor.block.stat <- function(meth.qtl.res,meth.qtl,stat="p.val.adj.fdr",size.type='num.CpGs'){
+qtl.correlate.cor.block.stat <- function(meth.qtl.res,stat="p.val.adj.fdr",size.type='num.CpGs'){
   if(!inherits(meth.qtl.res,"methQTLResult")){
     stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
-  }
-  if(!inherits(meth.qtl,"methQTLInput")){
-    stop("Invalid value for meth.qtl, need to be methQTLInput")
   }
   if(!(stat %in% c("P.value","Beta","Distance","p.val.adj.fdr"))){
     stop("Invalid value for stat, needs to be one of 'P.value', 'Beta', 'Distance', 'p.val.adj.fdr'")
@@ -311,14 +297,14 @@ qtl.correlate.cor.block.stat <- function(meth.qtl.res,meth.qtl,stat="p.val.adj.f
     stop("Invalid value for size.type, needs to be 'num.CpGs' or 'genomic'")
   }
   logger.start("Retriving correlation blocks")
-  cor.blocks <- getCorrelationBlocks(meth.qtl.res,meth.qtl)
+  cor.blocks <- getCorrelationBlocks(meth.qtl.res)
   logger.completed()
   logger.start("Retrieving methQTL information")
   res.frame <- getResult(meth.qtl.res,cor.blocks)
   if(size.type%in%"num.CpGs"){
     res.frame$CorBlockSize <- sapply(res.frame$CorrelationBlock,length)
   }else{
-    anno.meth <- getAnno(meth.qtl)
+    anno.meth <- getAnno(meth.qtl.res)
     res.frame$CorBlockSize <- sapply(res.frame$CorrelationBlock,function(block){
       if(length(block)==1){
         return(1)

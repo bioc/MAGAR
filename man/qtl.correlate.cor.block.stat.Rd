@@ -6,15 +6,12 @@
 \usage{
 qtl.correlate.cor.block.stat(
   meth.qtl.res,
-  meth.qtl,
   stat = "p.val.adj.fdr",
   size.type = "num.CpGs"
 )
 }
 \arguments{
 \item{meth.qtl.res}{An object of type \code{\link{methQTLResult-class}} containing methQTLs and correlation blocks.}
-
-\item{meth.qtl}{An object of type \code{\link{meth.qtl}} containing CpG annotations.}
 
 \item{stat}{The statistic that is to be compared. Can be one of \code{'P.value'}, \code{'Beta'},
 \code{'Distance'}, or \code{'p.val.adj.fdr'}(default).}

@@ -24,9 +24,6 @@ The names are used in the visualization.}
 
 \item{out.name}{Optional argument for the name of the plot on disk (ending needs to be .png)}
 
-\item{meth.qtl.list}{If \code{type}=\code{'cor.block'}, a list of \code{\link{methQTLInput-class}} object
-in the same order as \code{meth.qtl.result.list} to obtain correlation block annotations from.}
-
 \item{...}{Further argument passed to \code{\link[VennDiagram]{venn.diagram}}}
 }
 \value{

@@ -5,13 +5,10 @@
 \alias{getCorrelationBlocks,methQTLResult-method}
 \title{getCorrelationBlocks}
 \usage{
-\S4method{getCorrelationBlocks}{methQTLResult}(object, meth.qtl = NULL)
+\S4method{getCorrelationBlocks}{methQTLResult}(object)
 }
 \arguments{
 \item{object}{An object of class \code{\link{methQTLResult-class}}.}
-
-\item{meth.qtl}{An optional argument of class \code{\link{methQTLInput-class}} comprising CpG annotations
-to be used to name the entries in the list.}
 }
 \value{
 A \code{list} object containing the correlation blocks.

@@ -4,7 +4,7 @@
 \alias{overlap.QTLs}
 \title{overlap.QTLs}
 \usage{
-overlap.QTLs(meth.qtl.result.list, type, meth.qtl.list = NULL)
+overlap.QTLs(meth.qtl.result.list, type)
 }
 \arguments{
 \item{meth.qtl.result.list}{A named list with each entry being an object of type \code{\link{methQTLResult-class}}.
@@ -12,9 +12,6 @@ The names are used in the visualization.}
 
 \item{type}{Determines if either the SNP (default), the CpG, or the correlation block
 \code{'cor.block'} is to be visualized}
-
-\item{meth.qtl.list}{If \code{type}=\code{'cor.block'}, a list of \code{\link{methQTLInput-class}} object
-in the same order as \code{meth.qtl.result.list} to obtain correlation block annotations from.}
 }
 \value{
 A list with \code{length(meth.qtl.result.list)} elements, containing IDs of methQTL
