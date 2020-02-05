@@ -4,22 +4,29 @@
 \alias{qtl.lola.enrichment}
 \title{qtl.lola.enrichment}
 \usage{
-qtl.lola.enrichment(meth.qtl.result.list, type = "SNP", lola.db = NULL)
+qtl.lola.enrichment(
+  meth.qtl.res,
+  type = "SNP",
+  lola.db = NULL,
+  assembly = "hg19"
+)
 }
 \arguments{
-\item{meth.qtl.result.list}{A list containing objects of type \code{\link{methQTLResult-class}}}
+\item{meth.qtl.res}{An object of type \code{\link{methQTLResult-class}} or a list of such objects}
 
 \item{type}{The type of methQTL to be visualized. Can be either \code{'SNP'}, \code{'CpG'},
 or \code{'cor.block'}}
 
 \item{lola.db}{The location of a LOLA DB already downloaded}
+
+\item{assembly}{The assembly used (defaul \code{'hg19'})}
 }
 \value{
 The LOLA enrichment result
 }
 \description{
-This functions performn LOLA enrichment analysis for the sites that are shared across all
-methQTLs in the input list.
+This functions performn LOLA enrichment analysis for the methQTL sites or the sites that are
+shared across all methQTLs in the input list.
 }
 \author{
 Michael Scherer

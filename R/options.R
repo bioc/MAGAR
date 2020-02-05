@@ -9,9 +9,10 @@ QTL.OPTIONS <- new.env()
 assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',
                'minor.allele.frequency','missing.values.samples','plink.path',
                'cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
-               'linear.model.type','representative.cpg.computation','max.cpgs','rscript.path','cluster.config',
+               'linear.model.type','representative.cpg.computation','meth.qtl.type',
+               'max.cpgs','rscript.path','cluster.config',
                'n.permutations','p.value.correction','compute.cor.blocks'),QTL.OPTIONS)
-assign('RNBEADS.OPTIONS',system.file("extdata/rnbeads_options.xml",package="methQTL"),QTL.OPTIONS)
+assign('RNBEADS.OPTIONS',NULL,QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
 assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
 assign('RNBEADS.QC',FALSE,QTL.OPTIONS)
@@ -19,12 +20,13 @@ assign('HDF5DUMP',FALSE,QTL.OPTIONS)
 assign("HARDY.WEINBERG.P",0.001,QTL.OPTIONS)
 assign("MINOR.ALLELE.FREQUENCY",0.05,QTL.OPTIONS)
 assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
-assign("PLINK.PATH",system.file("bin/plink",package="methQTL"),QTL.OPTIONS)
+assign("PLINK.PATH",NULL,QTL.OPTIONS)
 assign("CLUSTER.COR.THRESHOLD",0.25,QTL.OPTIONS)
 assign("STANDARD.DEVIATION.GAUSS",250,QTL.OPTIONS)
 assign("ABSOLUTE.DISTANCE.CUTOFF",5e5,QTL.OPTIONS)
 assign("LINEAR.MODEL.TYPE","classical.linear",QTL.OPTIONS)
 assign("REPRESENTATIVE.CPG.COMPUTATION","row.medians",QTL.OPTIONS)
+assign("METH.QTL.TYPE","oneVSall",QTL.OPTIONS)
 assign("MAX.CPGS",40000,QTL.OPTIONS)
 assign("RSCRIPT.PATH","/usr/bin/Rscript",QTL.OPTIONS)
 assign("CLUSTER.CONFIG",list(c(h_vmem="5G",mem_free="5G")),QTL.OPTIONS)
@@ -62,6 +64,9 @@ assign("COMPUTE.COR.BLOCKS",TRUE,QTL.OPTIONS)
 #'            correlation block (for ties a random selection is performed), \code{"mean.center"} for an artifical site in the geometric center of the block with
 #'            the average methylation level or \code{"best.all"} for the CpG with the best p-value across all of the
 #'            CpGs in the correlation block.
+#' @param meth.qtl.type Option specifying how a methQTL interaction is computed. Since the package is based on correlation
+#'            blocks, a single correlation block can be associated with either one SNP (\code{meth.qtl.type='oneVSall'}),
+#'            or with multiple SNPs (\code{meth.qtl.type='allVSall'}).
 #' @param max.cpgs Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
 #'             default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
 #'             for larger ones.
@@ -97,6 +102,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        absolute.distance.cutoff=5e5,
                        linear.model.type="classial.linear",
                        representative.cpg.computation="row.medians",
+                       meth.qtl.type="oneVSall",
                        max.cpgs=40000,
                        rscript.path="/usr/bin/R",
                        cluster.config=c(h_vmem="5G",mem_free="5G"),
@@ -191,6 +197,12 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['REPRESENTATIVE.CPG.COMPUTATION']] <- representative.cpg.computation
   }
+  if(!missing(meth.qtl.type)){
+    if(!meth.qtl.type%in%c("oneVSall","allVSall")){
+      stop("Invalid value for meth.qtl.type. Needs to be 'oneVSall', or 'allVSall'")
+    }
+    QTL.OPTIONS[['METH.QTL.TYPE']] <- meth.qtl.type
+  }
   if(!missing(max.cpgs)){
     if(!is.numeric(max.cpgs)){
       stop("Invalid value for max.cpgs. Needs to be numeric.")
@@ -246,6 +258,10 @@ qtl.getOption <- function(names){
   }
   ret <- c()
   if('rnbeads.options'%in%names){
+    if(is.null(QTL.OPTIONS[['RNBEADS.OPTIONS']])){
+      logger.info("Loading system default for option 'rnbeads.options'")
+      qtl.setOption('rnbeads.options'=system.file("extdata/rnbeads_options.xml",package="methQTL"))
+    }
     ret <- c(ret,rnbeads.options=QTL.OPTIONS[['RNBEADS.OPTIONS']])
   }
   if('meth.data.type'%in%names){
@@ -270,6 +286,10 @@ qtl.getOption <- function(names){
     ret <- c(ret,missing.values.samples=QTL.OPTIONS[['MISSING.VALUES.SAMPLES']])
   }
   if('plink.path'%in%names){
+    if(is.null(QTL.OPTIONS[['PLINK.PATH']])){
+      logger.info("Loading system default for option 'plink.path'")
+      qtl.setOption('plink.path'=system.file("bin/plink",package="methQTL"))
+    }
     ret <- c(ret,plink.path=QTL.OPTIONS[['PLINK.PATH']])
   }
   if('cluster.cor.threshold'%in%names){
@@ -286,6 +306,9 @@ qtl.getOption <- function(names){
   }
   if('representative.cpg.computation'%in%names){
     ret <- c(ret,representative.cpg.computation=QTL.OPTIONS[['REPRESENTATIVE.CPG.COMPUTATION']])
+  }
+  if('meth.qtl.type'%in%names){
+    ret <- c(ret,meth.qtl.type=QTL.OPTIONS[['METH.QTL.TYPE']])
   }
   if('max.cpgs'%in%names){
     ret <- c(ret,max.cpgs=QTL.OPTIONS[['MAX.CPGS']])

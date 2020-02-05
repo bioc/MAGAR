@@ -332,3 +332,22 @@ qtl.correlate.cor.block.stat <- function(meth.qtl.res,stat="p.val.adj.fdr",size.
                 ifelse(stat%in%c("P.value","p.val.adj.fdr","Beta"),")","")))
   return(plot)
 }
+
+#' qtl.lola.plot
+#'
+#' This function plots the LOLA enrichment results using the \code{\link{lolaBarPlot}} routine.
+#'
+#' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects
+#' @param type The type of methQTL to be visualized. Can be either \code{'SNP'}, \code{'CpG'},
+#'     or \code{'cor.block'}
+#' @param lola.db The location of a LOLA DB already downloaded
+#' @param assembly The assembly used (defaul \code{'hg19'})
+#' @param pvalCut The p-value cutoff employed
+#' @return The LOLA enrichment bar plot as a \code{ggplot} object
+#' @author Michael Scherer
+#' @export
+qtl.lola.plot <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19",pvalCut=0.01){
+  res <- qtl.lola.enrichment(meth.qtl.res,type=type,assembly=assembly,lola.db=lola.db)
+  plot <- lolaBarPlot(lolaDb=res$lola.db,lolaRes=res$lola.res,pvalCut=pvalCut)+my_theme
+  return(plot)
+}

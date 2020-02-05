@@ -466,7 +466,11 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
     }
   })
   all.snps <- t(all.snps)
-  is.min <- which.min(all.snps[,'p.val'])
+  if(qtl.getOption("meth.qtl.type")%in%"oneVSall"){
+    is.min <- which.min(all.snps[,'p.val'])
+  }else if(qtl.getOption("meth.qtl.type")%in%"allVSall"){
+    is.min <- 1:nrow(all.snps)
+  }
   if(length(is.min)==0){
     #logger.info(paste("No methQTL found for block",cor.block))
     ret <- data.frame(as.character(row.names(sel.anno)),

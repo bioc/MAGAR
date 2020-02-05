@@ -15,23 +15,25 @@
 #' @param type The type of methQTL to be visualized. Can be either \code{'SNP'}, \code{'CpG'},
 #'     or \code{'cor.block'}
 #' @param lola.db The location of a LOLA DB already downloaded
+#' @param assembly The assembly used (defaul \code{'hg19'})
 #' @return The LOLA enrichment result
 #' @author Michael Scherer
 #' @export
-qtl.lola.enrichment <- function(meth.qtl.res,type="SNP",lola.db=NULL){
+qtl.lola.enrichment <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19"){
   if(!requireNamespace("LOLA")){
     stop("Please install the 'LOLA' R package")
+  }else{
+    library(LOLA)
   }
   stats <- get.overlap.universe(meth.qtl.res,type)
   all.input <- stats$all.input
   all.qtl <- stats$all.qtl
   if(is.null(lola.db)){
-    assembly <- ifelse(inherits(meth.qtl.res,"methQTLResult"),meth.qtl.res@assmbly,meth.qtl.res[[1]]@assembly)
     lola.db <- downloadLolaDbs(tempdir())[[assembly]]
   }
   lola.db <- loadRegionDB(lola.db)
   lola.res <- runLOLA(all.input,all.qtl,lola.db)
-  return(lola.res)
+  return(list(lola.res=lola.res,lola.db=lola.db))
 }
 
 #' qtl.annotation.enrichment

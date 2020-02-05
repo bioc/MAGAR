@@ -15,9 +15,6 @@ The names are used in the visualization.}
 
 \item{...}{Further argument passed to \code{\link[UpSetR]{upset}}}
 }
-\value{
-The data that is visualized as a list with \code{length(meth.qtl.result.list)} elements.
-}
 \description{
 This function creates an UpSet plot from the given methQTL results
 }

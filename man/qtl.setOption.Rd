@@ -19,6 +19,7 @@ qtl.setOption(
   absolute.distance.cutoff = 5e+05,
   linear.model.type = "classial.linear",
   representative.cpg.computation = "row.medians",
+  meth.qtl.type = "oneVSall",
   max.cpgs = 40000,
   rscript.path = "/usr/bin/R",
   cluster.config = c(h_vmem = "5G", mem_free = "5G"),
@@ -67,6 +68,10 @@ options are \code{"row.medians"} for the site that is the row median across the 
 correlation block (for ties a random selection is performed), \code{"mean.center"} for an artifical site in the geometric center of the block with
 the average methylation level or \code{"best.all"} for the CpG with the best p-value across all of the
 CpGs in the correlation block.}
+
+\item{meth.qtl.type}{Option specifying how a methQTL interaction is computed. Since the package is based on correlation
+blocks, a single correlation block can be associated with either one SNP (\code{meth.qtl.type='oneVSall'}),
+or with multiple SNPs (\code{meth.qtl.type='allVSall'}).}
 
 \item{max.cpgs}{Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
 default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
