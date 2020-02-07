@@ -28,6 +28,13 @@ The LOLA enrichment result
 This functions performn LOLA enrichment analysis for the methQTL sites or the sites that are
 shared across all methQTLs in the input list.
 }
+\details{
+We use all data points that have been used to calculate methQTLs as the background
+ and compare the overlaps with the annotation of interest in comparison to the methQTLs that
+ have been computed in case a \code{\link{methQTLResult-class}} is provided. If a list of \code{\link{methQTLResult-class}} objects
+ is provided, the intersection between the methQTLs from all objects in the list is compared with the union of all interactions
+ that have been tested.
+}
 \author{
 Michael Scherer
 }

@@ -33,7 +33,6 @@ overlap.QTLs <- function(meth.qtl.result.list,type){
       logger.start(paste("Obtaining correlation blocks for object",i))
       cor.blocks <- getCorrelationBlocks(meth.qtl.result.list[[i]])
       res <- getResult(meth.qtl.result.list[[i]],cor.blocks)
-      logger.completed()
       res.all.class <- c()
       for(j in 1:nrow(res)){
         snp <- res$SNP[j]
@@ -54,6 +53,7 @@ overlap.QTLs <- function(meth.qtl.result.list,type){
           res.all.vec <- c(res.all.vec,paste(snp,paste(cor.block[[1]],collapse = "_"),sep="_"))
         }
       }
+      logger.completed()
       res.all[[i]] <- res.all.class
     }
   }
@@ -80,12 +80,19 @@ overlap.inputs <- function(meth.qtl.list,type){
   type <- ifelse(type%in%c("CpG","cor.block"),"meth","geno")
   all.input <- c()
   for(i in 1:length(meth.qtl.list)){
-    anno <- getAnno(meth.qtl.list[[1]],type)
-    all.input <- cbind(all.input,anno[!(row.names(anno)%in%row.names(all.input)),])
+    anno <- getAnno(meth.qtl.list[[i]],type)
+    all.input <- rbind(all.input,anno[!(row.names(anno)%in%row.names(all.input)),])
   }
   all.input <- as.data.frame(all.input)
   if(type%in%"SNP"){
     all.input$End <- as.numeric(as.character(all.input$Start))
+    input.ranges <- makeGRangesFromDataFrame(all.input)
+    sel.input <- rep(FALSE,nrow(all.input))
+    all.cpgs <- makeGRangesFromDataFrame(overlap.inputs(meth.qtl.list,"CpG"))
+    for(i in 1:length(all.cpgs)){
+      sel.input[distance(all.cpgs[i],input.ranges)<qtl.getOption("absolute.distance.cutoff")] <- TRUE
+    }
+    all.input <- all.input[sel.input,]
   }
   return(all.input)
 }
@@ -93,9 +100,9 @@ overlap.inputs <- function(meth.qtl.list,type){
 #' get.overlap.universe
 #'
 #' This function overlaps results from a list of methQTLResults and returns the union of all
-#' the inpute data points used.
+#' the input data points used.
 #'
-#' @param meth.qtl.res An objec of type \code{\link{methQTLResult-class}} or a list of such objects
+#' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects
 #' @param type The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}
 #' @return A list with two GRanges objects, one containing the overlapped set and the other the
 #'    union of input data points as elements \code{'all.qtl'} and \code{'all.input'}
@@ -107,10 +114,23 @@ get.overlap.universe <- function(meth.qtl.res,type){
     all.input <- getAnno(meth.qtl.res,type.anno)
     if(type%in%"SNP"){
       all.input$End <- as.numeric(as.character(all.input$Start))
+      input.ranges <- makeGRangesFromDataFrame(all.input)
+      sel.input <- rep(TRUE,nrow(all.input))
+      all.cpgs <- makeGRangesFromDataFrame(getAnno(meth.qtl.res,"meth"))
+      print(Sys.time())
+#      for(i in 1:length(all.cpgs)){
+#        if((i%%10000)==0)print(i)
+#        pot.input <- seqnames(input.ranges)%in%seqnames(all.cpgs[i])
+#        sel.input[as.logical(pot.input)][distance(all.cpgs[i],input.ranges[as.logical(pot.input)])<qtl.getOption("absolute.distance.cutoff")] <- TRUE
+#      }
+      print(Sys.time())
+      all.input <- all.input[sel.input,]
     }
     if(type%in%"cor.block"){
       cor.blocks <- getCorrelationBlocks(meth.qtl.res)
-      all.qtl <- paste(getResult(meth.qtl.res)[,"SNP"],paste(getResult(meth.qtl.res,cor.blocks)[,"CorrelationBlock"],collapse = "_"),sep="_")
+      all.qtl <- apply(getResult(meth.qtl.res,cor.blocks),1,function(ro){
+        paste(ro["SNP"],paste(ro["CorrelationBlock"][[1]],collapse = "_"),sep="_")
+      })
     }else{
       all.qtl <- as.character(getResult(meth.qtl.res)[,type])
     }
@@ -121,12 +141,20 @@ get.overlap.universe <- function(meth.qtl.res,type){
     }
     all.input <- overlap.inputs(meth.qtl.res,type=type)
     all.qtl <- overlap.QTLs(meth.qtl.res = meth.qtl.res,type=type)
+    res <- all.qtl[[1]]
+    for(i in 2:length(all.qtl)){
+      res <- intersect(res,all.qtl[[i]])
+    }
+    all.qtl <- res
   }
   if(type%in%"cor.block"){
     all.qtl <- unlist(sapply(all.qtl,function(qtl){
       strsplit(qtl,"_")
     }))
     all.qtl <- all.qtl[!grepl("rs",all.qtl)]
+  }
+  if(type%in%"SNP"){
+    all.input$End <- all.input$Start+1
   }
   all.qtl <- all.input[all.qtl,]
   all.input <- makeGRangesFromDataFrame(all.input)

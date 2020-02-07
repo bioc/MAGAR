@@ -58,22 +58,23 @@ do.methQTL <- function(meth.qtl,
     meth.qtl <- impute.meth(meth.qtl)
   }
   all.chroms <- unique(getAnno(meth.qtl)$Chromosome)
-  if(ncores>1){
-    parallel.setup(ncores)
-  }
-  logger.start("Computing methQTLs")
-  # res.all <- foreach(chrom=all.chroms,.combine="cbind",.export=c()) %dopar%{
-  #   res.chrom <- do.methQTL.chromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff)
-  # }
   res.all <- list()
+  logger.start("Computing methQTLs")
   if(!cluster.submit){
-    for(chrom in all.chroms){
-      res.chrom <- do.methQTL.chromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir)
-      res.all[[chrom]] <- res.chrom
+    if(ncores>1){
+      parallel.setup(ncores)
+      res.all <- foreach(chrom=all.chroms,.combine="list") %dopar%{
+        do.methQTL.chromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff)
+      }
+    }else{
+      for(chrom in all.chroms){
+        res.chrom <- do.methQTL.chromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir)
+        res.all[[chrom]] <- res.chrom
+      }
     }
     res.all <- join.methQTLResult(res.all)
   }else{
-    res.all <- submit.cluster.jobs(meth.qtl,sel.covariates,p.val.cutoff,out.dir)
+    res.all <- submit.cluster.jobs(meth.qtl,sel.covariates,p.val.cutoff,out.dir,ncores = ncores)
   }
   logger.completed()
   return(res.all)
@@ -89,6 +90,7 @@ do.methQTL <- function(meth.qtl,
 #'          used for covariate adjustment.
 #' @param p.val.cutoff The p-value used for methQTL calling
 #' @param out.dir Optional argument specifying the output directory
+#' @param ncores The number of cores to be used
 #' @return A data frame with seven columns:
 #'        \describe{
 #'          \item{CpGs}{The CpG ID chosen to be the representative CpG in the methQTL}
@@ -102,7 +104,7 @@ do.methQTL <- function(meth.qtl,
 #'        }
 #' @author Michael Scherer
 #' @export
-do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir=NULL){
+do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir=NULL,ncores=1){
   logger.start(paste("Computing methQTL for chromosome",chrom))
   anno <- getAnno(meth.qtl,"meth")
   sel.meth <- which(anno$Chromosome %in% chrom)
@@ -140,15 +142,36 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
     ph.dat <- ph.dat[,sel.covariates,drop=FALSE]
   }
   logger.start("Compute methQTL per correlation block")
-  res.chr.p.val <- t(sapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno))
-  for(j in 1:ncol(res.chr.p.val)){
-    if(j %in% c(1,2,5)){
-      res.chr.p.val[,j] <- unlist(lapply(res.chr.p.val[,j],as.character))
-    }else{
-      res.chr.p.val[,j] <- unlist(lapply(res.chr.p.val[,j],as.numeric))
+  if(ncores>1){
+    parallel.setup(ncores)
+    res.chr.p.val <- mclapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno,mc.cores = ncores)
+    res.all <- c()
+    for(i in 1:length(res.chr.p.val)){
+      res.all <- rbind(res.all,res.chr.p.val[[i]])
     }
+    res.chr.p.val <- as.data.frame(res.all)
+    rm(res.all)
+  }else{
+    res.chr.p.val <- t(sapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno))
+    ret <- c()
+    for(j in 1:ncol(res.chr.p.val)){
+      if(j %in% c(1,2,5)){
+        ret <- cbind(ret,unlist(lapply(res.chr.p.val[,j],as.character)))
+      }else{
+        ret <- cbind(ret,unlist(lapply(res.chr.p.val[,j],as.numeric)))
+      }
+    }
+    ret <- as.data.frame(ret)
+    for(j in 1:ncol(ret)){
+      if(j %in% c(1,2,5)){
+        ret[,j] <- as.character(ret[,j])
+      }else{
+        ret[,j] <- as.numeric(as.character(ret[,j]))
+      }
+    }
+    ret <- as.data.frame(ret)
+    colnames(ret) <- colnames(res.chr.p.val)
   }
-  res.chr.p.val <- as.data.frame(apply(res.chr.p.val,2,unlist))
   logger.completed()
   if(qtl.getOption("p.value.correction")=="uncorrected.fdr"){
     res.chr.p.val <- res.chr.p.val[as.numeric(as.character(res.chr.p.val$P.value))<p.val.cutoff,]
@@ -470,6 +493,11 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
     is.min <- which.min(all.snps[,'p.val'])
   }else if(qtl.getOption("meth.qtl.type")%in%"allVSall"){
     is.min <- 1:nrow(all.snps)
+  }else if(qtl.getOption("meth.qtl.type")%in%"twoVSall"){
+    all.inds <- rep(FALSE,nrow(all.snps))
+    all.inds[all.snps[,"beta"]>0][which.min(all.snps[all.snps[,"beta"]>0,"p.val"])] <- TRUE
+    all.inds[all.snps[,"beta"]<0][which.min(all.snps[all.snps[,"beta"]<0,"p.val"])] <- TRUE
+    is.min <- which(all.inds)
   }
   if(length(is.min)==0){
     #logger.info(paste("No methQTL found for block",cor.block))

@@ -66,7 +66,8 @@ assign("COMPUTE.COR.BLOCKS",TRUE,QTL.OPTIONS)
 #'            CpGs in the correlation block.
 #' @param meth.qtl.type Option specifying how a methQTL interaction is computed. Since the package is based on correlation
 #'            blocks, a single correlation block can be associated with either one SNP (\code{meth.qtl.type='oneVSall'}),
-#'            or with multiple SNPs (\code{meth.qtl.type='allVSall'}).
+#'            with multiple SNPs (\code{meth.qtl.type='allVSall'}), or each correlation block can once be positively and once
+#'            negatively correlated with a SNP genotype (\code{meth.qtl.type='twoVSall'}).
 #' @param max.cpgs Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
 #'             default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
 #'             for larger ones.
@@ -113,6 +114,10 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     stop("Please specify the options one by one, not as a vector or list.")
   }
   if(!missing(rnbeads.options)){
+    if(is.null(rnbeads.options)){
+      logger.info("Loading system default for option 'rnbeads.options'")
+      rnbeads.options=system.file("extdata/rnbeads_options.xml",package="methQTL")
+    }
     if(!grepl(".xml",rnbeads.options)){
       stop("Invalid value for rnbeads.options: needs to be a path to a XML configuration file")
     }
@@ -161,6 +166,10 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     QTL.OPTIONS[['MISSING.VALUES.SAMPLES']] <- missing.values.samples
   }
   if(!missing(plink.path)){
+    if(is.null(plink.path)){
+      logger.info("Loading system default for option 'plink.path'")
+      plink.path=system.file("bin/plink",package="methQTL")
+    }
     er <- tryCatch(system(plink.path),error=function(x)x)
     if(inherits(er,"error")){
       stop("Invalid value for plink.path, needs to be path to an executable")
@@ -198,8 +207,8 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     QTL.OPTIONS[['REPRESENTATIVE.CPG.COMPUTATION']] <- representative.cpg.computation
   }
   if(!missing(meth.qtl.type)){
-    if(!meth.qtl.type%in%c("oneVSall","allVSall")){
-      stop("Invalid value for meth.qtl.type. Needs to be 'oneVSall', or 'allVSall'")
+    if(!meth.qtl.type%in%c("oneVSall","allVSall","twoVSall")){
+      stop("Invalid value for meth.qtl.type. Needs to be 'oneVSall', 'allVSall', or 'twoVSall'")
     }
     QTL.OPTIONS[['METH.QTL.TYPE']] <- meth.qtl.type
   }

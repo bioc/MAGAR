@@ -7,7 +7,7 @@
 get.overlap.universe(meth.qtl.res, type)
 }
 \arguments{
-\item{meth.qtl.res}{An objec of type \code{\link{methQTLResult-class}} or a list of such objects}
+\item{meth.qtl.res}{An object of type \code{\link{methQTLResult-class}} or a list of such objects}
 
 \item{type}{The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}}
 }
@@ -17,7 +17,7 @@ A list with two GRanges objects, one containing the overlapped set and the other
 }
 \description{
 This function overlaps results from a list of methQTLResults and returns the union of all
-the inpute data points used.
+the input data points used.
 }
 \author{
 Michael Scherer

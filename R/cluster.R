@@ -15,12 +15,13 @@
 #' @param covariates The selected covariates as a character vector
 #' @param p.val.cutoff The p-value cutoff employed
 #' @param out.dir The output directory
+#' @param ncores The number of cores to be used
 #' @return A list containing \code{\link{methQTLResult-class}} objects for each chromosome
 #' @details The function was specifically created for a Sun Grid Engine (SGE) cluster, but can be extendend, to
 #'  e.g. a SLURM architecture.
 #' @author Michael Scherer
 #' @noRd
-submit.cluster.jobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir){
+submit.cluster.jobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncores=1){
   logger.start("Prepare cluster submission")
   json.path <- file.path(out.dir,"methQTL_configuration.json")
   qtl.options2json(json.path)
@@ -53,7 +54,8 @@ submit.cluster.jobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir){
                      "-j",json.path,
                      "-c",chr,
                      "-p",p.val.cutoff,
-                     "-o",paste0(out.dir,"'")
+                     "-o",paste0(out.dir,"'"),
+                     "-n",ncores
                      )
     if(!is.null(covariates)){
       cmd.tok <- paste(cmd.tok,"-u",cov.file)

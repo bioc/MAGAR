@@ -11,15 +11,16 @@ qtl.annotation.enrichment(
 )
 }
 \arguments{
-\item{meth.qtl.res}{An object of type \code{\link{methQTLResult}} or a list of such objects.}
+\item{meth.qtl.res}{An object of type \code{\link{methQTLResult-class}} or a list of such objects.}
 
 \item{type}{The type of methQTL to be visualized. Can be either \code{'SNP'}, \code{'CpG'},
 or \code{'cor.block'}}
 
-\item{annotation}{The genomic annotation to be used. Can be the ones available in \code{\link{region.types()}}}
+\item{annotation}{The genomic annotation to be used. Can be the ones available in \code{\link{region.types()}} or
+\code{"ctcf", "distal", "dnase", "proximal", "tfbs", "tss"}}
 }
 \value{
-The p-value of the Fisher exact test for enrichment
+A list of two p-values named \code{'enrichment'} for overrepresentation and \code{'depletion'} for underrepresentation
 }
 \description{
 This functions performs enrichment analysis using the Fisher's test for the methQTLs detected
@@ -28,7 +29,9 @@ with respect to different genomic annotations.
 \details{
 We use all data points that have been used to calculate methQTLs as the background
    and compare the overlaps with the annotation of interest in comparison to the methQTLs that
-   have been computed.
+   have been computed in case a \code{\link{methQTLResult-class}} is provided. If a list of \code{\link{methQTLResult-class}} objects
+   is provided, the intersection between the methQTLs from all objects in the list is compared with the union of all interactions
+   that have been tested.
 }
 \author{
 Michael Scherer

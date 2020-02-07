@@ -8,6 +8,7 @@ ap$add_argument("-c","--chr",action="store",help="chromosome to be used")
 ap$add_argument("-u","--covariates",action="store",default=NULL,help="covariates to be included")
 ap$add_argument("-p","--p.val",action="store",default=1e-5,help="p-value cutoff")
 ap$add_argument("-o","--output",action="store",help="Output directory")
+ap$add_argument("-n","--ncores",action="store",default=1,help="Number of cores to be used")
 cmd.args <- ap$parse_args()
 
 logger.start(paste("Running on:",Sys.info()["nodename"]))
@@ -29,8 +30,10 @@ if(!is.null(cmd.args$covariates)){
 }
 
 p.val <- as.numeric(cmd.args$p.val)
+ncores <- as.numeric(cmd.args$ncores)
 
-methQTL.res <- do.methQTL.chromosome(meth.qtl,cmd.args$chr,sel.covariates = covs,p.val.cutoff = p.val, out.dir=cmd.args$output)
+methQTL.res <- do.methQTL.chromosome(meth.qtl,cmd.args$chr,sel.covariates = covs,p.val.cutoff = p.val, out.dir=cmd.args$output,
+                                     ncores=ncores)
 
 logger.start("Saving results")
 path.save <- file.path(cmd.args$output,paste0("methQTLResult_",cmd.args$chr))

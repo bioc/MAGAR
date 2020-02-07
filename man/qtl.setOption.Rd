@@ -71,7 +71,8 @@ CpGs in the correlation block.}
 
 \item{meth.qtl.type}{Option specifying how a methQTL interaction is computed. Since the package is based on correlation
 blocks, a single correlation block can be associated with either one SNP (\code{meth.qtl.type='oneVSall'}),
-or with multiple SNPs (\code{meth.qtl.type='allVSall'}).}
+with multiple SNPs (\code{meth.qtl.type='allVSall'}), or each correlation block can once be positively and once
+negatively correlated with a SNP genotype (\code{meth.qtl.type='twoVSall'}).}
 
 \item{max.cpgs}{Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
 default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger

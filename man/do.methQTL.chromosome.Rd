@@ -9,7 +9,8 @@ do.methQTL.chromosome(
   chrom,
   sel.covariates,
   p.val.cutoff,
-  out.dir = NULL
+  out.dir = NULL,
+  ncores = 1
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ used for covariate adjustment.}
 \item{p.val.cutoff}{The p-value used for methQTL calling}
 
 \item{out.dir}{Optional argument specifying the output directory}
+
+\item{ncores}{The number of cores to be used}
 }
 \value{
 A data frame with seven columns:
