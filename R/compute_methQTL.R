@@ -142,7 +142,7 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
     ph.dat <- ph.dat[,sel.covariates,drop=FALSE]
   }
   logger.start("Compute methQTL per correlation block")
-  if(ncores>1){
+#  if(ncores>1){
     parallel.setup(ncores)
     res.chr.p.val <- mclapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno,mc.cores = ncores)
     res.all <- c()
@@ -151,27 +151,27 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
     }
     res.chr.p.val <- as.data.frame(res.all)
     rm(res.all)
-  }else{
-    res.chr.p.val <- t(sapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno))
-    ret <- c()
-    for(j in 1:ncol(res.chr.p.val)){
-      if(j %in% c(1,2,5)){
-        ret <- cbind(ret,unlist(lapply(res.chr.p.val[,j],as.character)))
-      }else{
-        ret <- cbind(ret,unlist(lapply(res.chr.p.val[,j],as.numeric)))
-      }
-    }
-    ret <- as.data.frame(ret)
-    for(j in 1:ncol(ret)){
-      if(j %in% c(1,2,5)){
-        ret[,j] <- as.character(ret[,j])
-      }else{
-        ret[,j] <- as.numeric(as.character(ret[,j]))
-      }
-    }
-    ret <- as.data.frame(ret)
-    colnames(ret) <- colnames(res.chr.p.val)
-  }
+  # }else{
+  #   res.chr.p.val <- t(sapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno))
+  #   ret <- c()
+  #   for(j in 1:ncol(res.chr.p.val)){
+  #     if(j %in% c(1,2,5)){
+  #       ret <- cbind(ret,unlist(lapply(res.chr.p.val[,j],as.character)))
+  #     }else{
+  #       ret <- cbind(ret,unlist(lapply(res.chr.p.val[,j],as.numeric)))
+  #     }
+  #   }
+  #   ret <- as.data.frame(ret)
+  #   for(j in 1:ncol(ret)){
+  #     if(j %in% c(1,2,5)){
+  #       ret[,j] <- as.character(ret[,j])
+  #     }else{
+  #       ret[,j] <- as.numeric(as.character(ret[,j]))
+  #     }
+  #   }
+  #   ret <- as.data.frame(ret)
+  #   colnames(ret) <- colnames(res.chr.p.val)
+  # }
   logger.completed()
   if(qtl.getOption("p.value.correction")=="uncorrected.fdr"){
     res.chr.p.val <- res.chr.p.val[as.numeric(as.character(res.chr.p.val$P.value))<p.val.cutoff,]

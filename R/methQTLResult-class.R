@@ -112,7 +112,7 @@ setMethod("getResult",signature(object="methQTLResult"),
                     block <- chr[[j]]
                     cpg <- as.character(ret$CpG)[as.character(ret$CpG) %in% block]
                     if(length(cpg)>0){
-                      cor.blocks.assigned[[cpg]] <- block
+                      cor.blocks.assigned[[unique(cpg)]] <- block
                     }
                   }
                 }

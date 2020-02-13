@@ -49,6 +49,8 @@ overlap.QTLs <- function(meth.qtl.result.list,type){
           res.all.class <- c(res.all.class,res.all.vec[map.qtl[1]])
           res.all.vec <- c(res.all.vec,res.all.vec[map.qtl[1]])
         }else{
+          #Caveat: only first interaction of a SNP with a correlation block will be considered, thus 'trans' effects
+          #are not considered
           res.all.class <- c(res.all.class,paste(snp,paste(cor.block[[1]],collapse = "_"),sep="_"))
           res.all.vec <- c(res.all.vec,paste(snp,paste(cor.block[[1]],collapse = "_"),sep="_"))
         }
@@ -84,16 +86,16 @@ overlap.inputs <- function(meth.qtl.list,type){
     all.input <- rbind(all.input,anno[!(row.names(anno)%in%row.names(all.input)),])
   }
   all.input <- as.data.frame(all.input)
-  if(type%in%"SNP"){
-    all.input$End <- as.numeric(as.character(all.input$Start))
-    input.ranges <- makeGRangesFromDataFrame(all.input)
-    sel.input <- rep(FALSE,nrow(all.input))
-    all.cpgs <- makeGRangesFromDataFrame(overlap.inputs(meth.qtl.list,"CpG"))
-    for(i in 1:length(all.cpgs)){
-      sel.input[distance(all.cpgs[i],input.ranges)<qtl.getOption("absolute.distance.cutoff")] <- TRUE
-    }
-    all.input <- all.input[sel.input,]
-  }
+#  if(type%in%"SNP"){
+#    all.input$End <- as.numeric(as.character(all.input$Start))
+#    input.ranges <- makeGRangesFromDataFrame(all.input)
+#    sel.input <- rep(FALSE,nrow(all.input))
+#    all.cpgs <- makeGRangesFromDataFrame(overlap.inputs(meth.qtl.list,"CpG"))
+#    for(i in 1:length(all.cpgs)){
+#      sel.input[distance(all.cpgs[i],input.ranges)<qtl.getOption("absolute.distance.cutoff")] <- TRUE
+#    }
+#    all.input <- all.input[sel.input,]
+#  }
   return(all.input)
 }
 
@@ -112,20 +114,20 @@ get.overlap.universe <- function(meth.qtl.res,type){
   if(inherits(meth.qtl.res,"methQTLResult")){
     type.anno <- ifelse(type%in%c("CpG","cor.block"),"meth","geno")
     all.input <- getAnno(meth.qtl.res,type.anno)
-    if(type%in%"SNP"){
-      all.input$End <- as.numeric(as.character(all.input$Start))
-      input.ranges <- makeGRangesFromDataFrame(all.input)
-      sel.input <- rep(TRUE,nrow(all.input))
-      all.cpgs <- makeGRangesFromDataFrame(getAnno(meth.qtl.res,"meth"))
-      print(Sys.time())
+#    if(type%in%"SNP"){
+#      all.input$End <- as.numeric(as.character(all.input$Start))
+#      input.ranges <- makeGRangesFromDataFrame(all.input)
+#      sel.input <- rep(TRUE,nrow(all.input))
+#      all.cpgs <- makeGRangesFromDataFrame(getAnno(meth.qtl.res,"meth"))
+#      print(Sys.time())
 #      for(i in 1:length(all.cpgs)){
 #        if((i%%10000)==0)print(i)
 #        pot.input <- seqnames(input.ranges)%in%seqnames(all.cpgs[i])
 #        sel.input[as.logical(pot.input)][distance(all.cpgs[i],input.ranges[as.logical(pot.input)])<qtl.getOption("absolute.distance.cutoff")] <- TRUE
 #      }
-      print(Sys.time())
-      all.input <- all.input[sel.input,]
-    }
+#      print(Sys.time())
+#      all.input <- all.input[sel.input,]
+#    }
     if(type%in%"cor.block"){
       cor.blocks <- getCorrelationBlocks(meth.qtl.res)
       all.qtl <- apply(getResult(meth.qtl.res,cor.blocks),1,function(ro){
@@ -160,4 +162,62 @@ get.overlap.universe <- function(meth.qtl.res,type){
   all.input <- makeGRangesFromDataFrame(all.input)
   all.qtl <- makeGRangesFromDataFrame(all.qtl)
   return(list("all.qtl"=all.qtl,"all.input"=all.input))
+}
+
+#' get.specific.qtl
+#'
+#' This function returns the methQTL interactions specific for a result
+#' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} for which specific QTLs are to be obtained.
+#' @param meth.qtl.background The background set as a list of \code{\linke{methQTLResult-class}} objects.
+#' @param type The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}
+#' @return A \code{data.frame} of methQTL interactions sorted by the effect size.
+#' @author Michael Scherer
+#' @export
+get.specific.qtl <- function(meth.qtl.res,meth.qtl.background,type="SNP"){
+  if(!inherits(meth.qtl.res,"methQTLResult")){
+    stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
+  }
+  #shared.qtl <- unique(unlist(lapply(meth.qtl.background,function(qtl.obj){
+  #  ret <- overlap.QTLs(c(meth.qtl.res,qtl.obj),type=type)
+  #  intersect(ret[[1]],ret[[2]])
+  #})))
+  #if(type%in%"cor.block"){
+  #  cor.blocks <- getCorrelationBlocks(meth.qtl.res)
+  #  res <- getResult(meth.qtl.res,cor.blocks)
+  #  type <- "CorrelationBlock"
+  #  sel.qtl <- !(sapply(res[,type],function(cori){
+  #    any(sapply(cori,function(qtl){
+  #      grepl(qtl,shared.qtl)}))
+  #  }))
+  #}else{
+  #  res <- getResult(meth.qtl.res)
+  #  sel.qtl <- !(res[,type] %in% shared.qtl)
+  #}
+  #res <- res[sel.qtl,]
+  op.qtl <- overlap.QTLs(c(meth.qtl.res,meth.qtl.background),type=type)
+  op.qtl <- lapply(op.qtl,as.character)
+  my.qtls <- op.qtl[[1]]
+  if(length(op.qtl)>2){
+    other.qtls <- unique(do.call(c,op.qtl[-1]))
+  }else{
+    other.qtls <- op.qtl[[2]]
+  }
+  spec.qtls <- setdiff(my.qtls,other.qtls)
+  res <- getResult(meth.qtl.res)
+  if(type%in%"cor.block"){
+    snp.ids <- unlist(lapply(strsplit(spec.qtls,"_"),function(x)x[1]))
+    cpg.ids <- lapply(strsplit(spec.qtls,"_"),function(x)x[-1])
+    sel.qtls <- apply(res,1,function(r){
+      pot.qtl <- which(snp.ids%in%r["SNP"])
+      if(length(pot.qtl)>0){
+        r["CpG"]%in%cpg.ids[[pot.qtl]]
+      }else{
+        FALSE
+      }
+    })
+    res <- res[sel.qtls,]
+  }else{
+    res <- res[res[,type]%in%spec.qtls,]
+  }
+  return(res[order(abs(res$P.value),decreasing=F),])
 }

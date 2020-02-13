@@ -88,7 +88,8 @@ qtl.annotation.enrichment <- function(meth.qtl.res,
   tns <- length(all.input)-fns
   gr <- fisher.test(matrix(c(tps,fns,fps,tns),2,2),alternative="greater")$p.value
   le <- fisher.test(matrix(c(tps,fns,fps,tns),2,2),alternative="less")$p.value
-  return(list(enrichment=gr,depletion=le))
+  or <- (tps/fps)/(fns/tns)
+  return(list(enrichment=gr,depletion=le,OddsRatio=or))
 }
 
 #' qtl.base.substitution.enrichment
@@ -104,7 +105,11 @@ qtl.annotation.enrichment <- function(meth.qtl.res,
 #' @export
 qtl.base.substitution.enrichment <- function(meth.qtl.res){
   stats <- get.overlap.universe(meth.qtl.res,type="SNP")
-  anno.cpgs <- getAnno(meth.qtl.res,"geno")
+  if(is.list(meth.qtl.res)){
+    anno.cpgs <- overlap.inputs(meth.qtl.res,type="SNP")
+  }else{
+    anno.cpgs <- getAnno(meth.qtl.res,"geno")
+  }
   sel.anno <- anno.cpgs[names(stats$all.qtl),]
   subs.qtl <- paste(sel.anno[,"Allele.1"],sel.anno[,"Allele.2"],sep="_")
   cu.qtl <- plyr::count(subs.qtl)
@@ -115,11 +120,13 @@ qtl.base.substitution.enrichment <- function(meth.qtl.res){
     paste(c("A","C","G","T")[!c("A","C","G","T")%in%b],b,sep ="_")
   }))
   enr.all <- sapply(all.interactions, function(int){
-    tps <- cu.qtl[cu.qtl$x%in%int,"count"]
-    fps <- sum(cu.qtl[!(cu.qtl$x%in%int),"count"])
-    fns <- cu.input[cu.input$x%in%int,"count"]
-    tns <- sum(cu.input[!(cu.input$x%in%int),"count"])
-    fisher.test(matrix(c(tps,fns,fps,tns),2,2),alternative="greater")$p.value
+    tps <- cu.qtl[cu.qtl$x%in%int,"freq"]
+    fps <- sum(cu.qtl[!(cu.qtl$x%in%int),"freq"])
+    fns <- cu.input[cu.input$x%in%int,"freq"]
+    tns <- sum(cu.input[!(cu.input$x%in%int),"freq"])
+    p.val <- fisher.test(matrix(c(tps,fns,fps,tns),2,2),alternative="greater")$p.value
+    or <- (tps/fps)/(fns/tns)
+    return(c(p.value=p.val,OddsRatio=or))
   })
   return(enr.all)
 }
