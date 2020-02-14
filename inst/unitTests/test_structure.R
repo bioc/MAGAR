@@ -36,15 +36,16 @@ test.options <- function(){
 }
 
 execute.unit.tests <- function(){
-  require("RUnit")
-  logger.start("Unit Testing")
-    logger.start("Testing constructors")
-      test.constructors()
+  if(requireNamespace("RUnit")){
+    logger.start("Unit Testing")
+      logger.start("Testing constructors")
+        test.constructors()
+      logger.completed()
+      logger.start("Testing options")
+        test.options()
+      logger.completed()
     logger.completed()
-    logger.start("Testing options")
-      test.options()
-    logger.completed()
-  logger.completed()
+  }
 }
 
 execute.unit.tests()

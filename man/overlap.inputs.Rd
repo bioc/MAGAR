@@ -7,7 +7,7 @@
 overlap.inputs(meth.qtl.list, type)
 }
 \arguments{
-\item{meth.qtl.list}{A list of \code{\link{methQTLInput}} or \code{\link{methQTLResult}} objects to be overlapped}
+\item{meth.qtl.list}{A list of \code{\link{methQTLInput-class}} or \code{\link{methQTLResult-class}} objects to be overlapped}
 
 \item{type}{The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}}
 }

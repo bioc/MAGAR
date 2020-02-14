@@ -25,20 +25,17 @@
 #' @author Michael Scherer
 #' @export
 qtl.lola.enrichment <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19"){
-  if(!requireNamespace("LOLA")){
-    stop("Please install the 'LOLA' R package")
-  }else{
-    library(LOLA)
+  if(requireNamespace("LOLA")){
+    stats <- get.overlap.universe(meth.qtl.res,type)
+    all.input <- stats$all.input
+    all.qtl <- stats$all.qtl
+    if(is.null(lola.db)){
+      lola.db <- downloadLolaDbs(tempdir())[[assembly]]
+    }
+    lola.db <- loadRegionDB(lola.db)
+    lola.res <- runLOLA(userSets=all.qtl,userUniverse = all.qtl,lola.db)
+    return(list(lola.res=lola.res,lola.db=lola.db))
   }
-  stats <- get.overlap.universe(meth.qtl.res,type)
-  all.input <- stats$all.input
-  all.qtl <- stats$all.qtl
-  if(is.null(lola.db)){
-    lola.db <- downloadLolaDbs(tempdir())[[assembly]]
-  }
-  lola.db <- loadRegionDB(lola.db)
-  lola.res <- runLOLA(userSets=all.qtl,userUniverse = all.qtl,lola.db)
-  return(list(lola.res=lola.res,lola.db=lola.db))
 }
 
 #' qtl.annotation.enrichment
@@ -49,7 +46,7 @@ qtl.lola.enrichment <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="h
 #' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
 #' @param type The type of methQTL to be visualized. Can be either \code{'SNP'}, \code{'CpG'},
 #'     or \code{'cor.block'}
-#' @param annotation The genomic annotation to be used. Can be the ones available in \code{\link{region.types()}} or
+#' @param annotation The genomic annotation to be used. Can be the ones available in \code{\link{rnb.region.types}} or
 #'     \code{"ctcf", "distal", "dnase", "proximal", "tfbs", "tss"}
 #' @return A list of two p-values named \code{'enrichment'} for overrepresentation and \code{'depletion'} for underrepresentation
 #' @details We use all data points that have been used to calculate methQTLs as the background
@@ -112,10 +109,10 @@ qtl.base.substitution.enrichment <- function(meth.qtl.res){
   }
   sel.anno <- anno.cpgs[names(stats$all.qtl),]
   subs.qtl <- paste(sel.anno[,"Allele.1"],sel.anno[,"Allele.2"],sep="_")
-  cu.qtl <- plyr::count(subs.qtl)
+  cu.qtl <- count(subs.qtl)
   sel.anno <- anno.cpgs[names(stats$all.input),]
   subs.input <- paste(sel.anno[,"Allele.1"],sel.anno[,"Allele.2"],sep="_")
-  cu.input <- plyr::count(subs.input)
+  cu.input <- count(subs.input)
   all.interactions <- as.character(sapply(c("A","C","G","T"),function(b){
     paste(c("A","C","G","T")[!c("A","C","G","T")%in%b],b,sep ="_")
   }))

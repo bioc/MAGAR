@@ -24,4 +24,4 @@
 #  require("methQTL")
 #  test.import.imputed()
 # #
- devtools::install_local("/TL/deep/projects/work/mscherer/projects/methQTL/package/methQTL/",force=T)
+# devtools::install_local("/TL/deep/projects/work/mscherer/projects/methQTL/package/methQTL/",force=T)

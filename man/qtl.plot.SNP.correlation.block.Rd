@@ -7,10 +7,10 @@
 qtl.plot.SNP.correlation.block(meth.qtl.res, meth.qtl, snp = NULL)
 }
 \arguments{
-\item{meth.qtl.res}{An object of type \code{\link{methQTLResult}} containing the methQTL interactions
+\item{meth.qtl.res}{An object of type \code{\link{methQTLResult-class}} containing the methQTL interactions
 and the CpG correlation blocks.}
 
-\item{meth.qtl}{An object of type \code{\link{methQTLInput}} containing genotyping, methylation and
+\item{meth.qtl}{An object of type \code{\link{methQTLInput-class}} containing genotyping, methylation and
 annotation information.}
 
 \item{snp}{The SNP identifier, for which the methQTL interaction is to be visualized.}

@@ -16,7 +16,7 @@ qtl.annotation.enrichment(
 \item{type}{The type of methQTL to be visualized. Can be either \code{'SNP'}, \code{'CpG'},
 or \code{'cor.block'}}
 
-\item{annotation}{The genomic annotation to be used. Can be the ones available in \code{\link{region.types()}} or
+\item{annotation}{The genomic annotation to be used. Can be the ones available in \code{\link{rnb.region.types}} or
 \code{"ctcf", "distal", "dnase", "proximal", "tfbs", "tss"}}
 }
 \value{

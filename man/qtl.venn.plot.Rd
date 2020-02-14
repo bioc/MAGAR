@@ -9,7 +9,6 @@ qtl.venn.plot(
   out.folder,
   type = "SNP",
   out.name = NULL,
-  meth.qtl.list = NULL,
   ...
 )
 }

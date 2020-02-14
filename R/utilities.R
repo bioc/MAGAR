@@ -67,7 +67,7 @@ overlap.QTLs <- function(meth.qtl.result.list,type){
 #'
 #' Overlaps the input annotations
 #'
-#' @param meth.qtl.list A list of \code{\link{methQTLInput}} or \code{\link{methQTLResult}} objects to be overlapped
+#' @param meth.qtl.list A list of \code{\link{methQTLInput-class}} or \code{\link{methQTLResult-class}} objects to be overlapped
 #' @param type The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}
 #' @return A data frame containing the annotations of the unique input values.
 #' @author Michael Scherer
@@ -168,7 +168,7 @@ get.overlap.universe <- function(meth.qtl.res,type){
 #'
 #' This function returns the methQTL interactions specific for a result
 #' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} for which specific QTLs are to be obtained.
-#' @param meth.qtl.background The background set as a list of \code{\linke{methQTLResult-class}} objects.
+#' @param meth.qtl.background The background set as a list of \code{\link{methQTLResult-class}} objects.
 #' @param type The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}
 #' @return A \code{data.frame} of methQTL interactions sorted by the effect size.
 #' @author Michael Scherer
@@ -210,7 +210,7 @@ get.specific.qtl <- function(meth.qtl.res,meth.qtl.background,type="SNP"){
     sel.qtls <- apply(res,1,function(r){
       pot.qtl <- which(snp.ids%in%r["SNP"])
       if(length(pot.qtl)>0){
-        r["CpG"]%in%cpg.ids[[pot.qtl]]
+        r["CpG"]%in%unlist(cpg.ids[pot.qtl])
       }else{
         FALSE
       }
@@ -220,4 +220,42 @@ get.specific.qtl <- function(meth.qtl.res,meth.qtl.background,type="SNP"){
     res <- res[res[,type]%in%spec.qtls,]
   }
   return(res[order(abs(res$P.value),decreasing=F),])
+}
+
+#' get.overlapping.qtl
+#'
+#' This function merges the QTLs given and returns the methQTL table in a merged format.
+#'
+#' @param meth.qtl.list A list of \code{\link{methQTLResult-class}} objects to be merged
+#' @param type The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}
+#' @return A \code{data.frame} with the methQTL interactions and an additional column specifying where the interaction
+#'    displayed has been found. This value is generated from the \code{names()} argument of \code{meth.qtl.list}.
+#' @author Michael Scherer
+#' @export
+get.overlapping.qtl <- function(meth.qtl.list,type="SNP"){
+  op.qtl <- overlap.QTLs(meth.qtl.list,type=type)
+  all.ops <- intersect(op.qtl[[1]],intersect(op.qtl[[2]],intersect(op.qtl[[3]],op.qtl[[4]])))
+  res.all <- c()
+  for(i in 1:length(meth.qtl.list)){
+    qtl <- meth.qtl.list[[i]]
+    res <- getResult(qtl)
+    if(type%in%"cor.block"){
+      snp.ids <- unlist(lapply(strsplit(all.ops,"_"),function(x)x[1]))
+      cpg.ids <- lapply(strsplit(all.ops,"_"),function(x)x[-1])
+      sel.qtls <- apply(res,1,function(r){
+        pot.qtl <- which(snp.ids%in%r["SNP"])
+        if(length(pot.qtl)>0){
+          r["CpG"]%in%unlist(cpg.ids[pot.qtl])
+        }else{
+          FALSE
+        }
+      })
+      res <- res[sel.qtls,]
+    }else{
+      res <- res[res[,type]%in%all.ops,]
+    }
+    res$Type <- rep(names(meth.qtl.list)[i],nrow(res))
+    res.all <- rbind(res.all,res)
+  }
+  return(res.all)
 }

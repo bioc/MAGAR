@@ -1,8 +1,8 @@
 Package: methQTL
 Type: Package
 Title: Package to compute methylation Quantitative Trait Loci (methQTL) from DNA methylation and genotyping data
-Version: 0.3.1
-Date: 2020-01-17
+Version: 0.3.2
+Date: 2020-02-14
 Author: Michael Scherer
 Maintainer: Michael Scherer <mscherer@mpi-inf.mpg.de>
 Description: This package computes methQTL from DNA methylation and genotyping data from matched samples. It uses a
@@ -18,11 +18,17 @@ Depends: HDF5Array,
          bigstatsr,
          rjson,
          Matrix,
-         knitr
+         knitr,
+         plyr
 Suggests: gridExtra,
          VennDiagram,
          UpSetR,
-         qqman
+         qqman,
+         LOLA,
+         RUnit,
+         rmutil,
+         knitr,
+         rmarkdown
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

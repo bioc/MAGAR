@@ -51,7 +51,7 @@ do.methQTL <- function(meth.qtl,
       if(meth.qtl@platform %in% "probes27"){
         stop("This package does not support Illumina Infinium 27k arrays.")
       }
-      qtl.json2options(paste0(system.file("extdata/",package="methQTL"),"qtl_options_",meth.qtl@platform,".json"))
+      qtl.json2options(file.path(system.file("extdata/",package="methQTL"),paste0("qtl_options_",meth.qtl@platform,".json")))
     }
   }
   if(!meth.qtl@imputed){

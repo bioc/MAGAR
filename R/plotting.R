@@ -87,9 +87,9 @@ qtl.plot.SNP.CpG.interaction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL
 #' This functions creates a multi-facet plot with a panel for each CpG in the correlation block that has
 #' a methQTL interaction with the SNP of interest.
 #'
-#' @param meth.qtl.res An object of type \code{\link{methQTLResult}} containing the methQTL interactions
+#' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} containing the methQTL interactions
 #'           and the CpG correlation blocks.
-#' @param meth.qtl An object of type \code{\link{methQTLInput}} containing genotyping, methylation and
+#' @param meth.qtl An object of type \code{\link{methQTLInput-class}} containing genotyping, methylation and
 #'           annotation information.
 #' @param snp The SNP identifier, for which the methQTL interaction is to be visualized.
 #' @return The plot as an \code{ggplot} object, containing a facet with a scatterplot between the CpG
@@ -223,8 +223,7 @@ qtl.manhattan.plot <- function(meth.qtl.result,type="CpG",stat="p.val.adj.fdr"){
 #' @details The plot can be stored on disk using \code{out.folder} and \code{out.name}
 #' @export
 #' @author Michael Scherer
-qtl.venn.plot <- function(meth.qtl.result.list,out.folder,type="SNP",out.name=NULL,
-                          meth.qtl.list=NULL,...){
+qtl.venn.plot <- function(meth.qtl.result.list,out.folder,type="SNP",out.name=NULL,...){
   if(length(meth.qtl.result.list)>4){
     stop("Venn plot only supports up to 4 results, consider using qtl.upset.plot")
   }
