@@ -216,10 +216,15 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   system(cmd)
   snp.dat <- read.plink(bed=paste0(proc.data,".bed"),bim=paste0(proc.data,".bim"),fam=paste0(proc.data,".fam"))
   snp.mat <- t(as(snp.dat$genotypes,"numeric"))
-  # Recode snpStats calls, i.e. 0 = Alt/Alt, 2 = Ref/Ref to 0 = Ref/Ref and 2 = Alt/Alt
-  snp.mat[snp.mat==2] <- 3
-  snp.mat[snp.mat==0] <- 2
-  snp.mat[snp.mat==3] <- 0
+  allele.frequencies <- count(as.vector(snp.mat))
+  if(qtl.getOption("recode.allele.frequencies")){
+    allele.frequencies <- apply(snp.dat,1,function(x)sum(x==2)>sum(x==0))
+    snp.mat[allele.frequencies,] <- 2-(snp.mat[allele.frequencies,])
+  }else{
+    snp.mat[snp.mat==2] <- 3
+    snp.mat[snp.mat==0] <- 2
+    snp.mat[snp.mat==3] <- 0
+  }
   snp.mat <- snp.mat[,as.character(s.anno[,s.id.col])]
   pca.obj <- prcomp(t(na.omit(snp.mat)))
   sum.pca <- summary(pca.obj)$importance
@@ -317,8 +322,14 @@ do.geno.import.imputed <- function(dos.file,
   }
   row.names(anno.geno) <- anno.geno$Name
   anno.geno$Start <- as.numeric(as.character(anno.geno$Start))
+  # Recode major and minor alleles
+  snp.dat <- as.matrix(snp.dat)
+  if(qtl.getOption("recode.allele.frequencies")){
+    allele.frequencies <- apply(snp.dat,1,function(x)sum(x==2)>sum(x==0))
+    snp.dat[allele.frequencies,] <- 2-(snp.dat[allele.frequencies,])
+  }
   logger.completed()
-  return(list(data=as.matrix(snp.dat),annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
+  return(list(data=snp.dat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
 }
 
 match.assemblies <- function(meth.qtl){

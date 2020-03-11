@@ -108,6 +108,9 @@ qtl.plot.SNP.correlation.block <- function(meth.qtl.res,meth.qtl,snp=NULL){
   if(is.null(snp)){
     snp <- as.character(res[order(abs(res$Beta),decreasing = T),]$SNP[1])
   }
+  if(!(snp%in%res$SNP)){
+    stop("Specified SNP is not a valid methQTL")
+  }
   sel.row <- res[res$SNP%in%snp,,drop=F]
   to.plot <- c()
   meth.data <- getMethData(meth.qtl)
@@ -116,7 +119,7 @@ qtl.plot.SNP.correlation.block <- function(meth.qtl.res,meth.qtl,snp=NULL){
   snp.data <- as.numeric(getGeno(meth.qtl)[row.names(anno.geno)%in%snp,,drop=F])
   for(i in 1:length(unlist(sel.row$CorrelationBlock))){
     cpg <- unlist(sel.row$CorrelationBlock)[i]
-    add.mat <- cbind(SNP=snp.data,CpG=as.numeric(meth.data[row.names(anno.meth)%in%cpg,,drop=F]),ID=rep(cpg,length(snp.data)))
+    add.mat <- cbind(SNP=snp.data,CpG=as.numeric(meth.data[row.names(anno.meth)%in%as.character(cpg),,drop=F]),ID=rep(cpg,length(snp.data)))
     to.plot <- rbind(to.plot,add.mat)
   }
   to.plot <- as.data.frame(to.plot)

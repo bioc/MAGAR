@@ -25,7 +25,8 @@ qtl.setOption(
   cluster.config = c(h_vmem = "5G", mem_free = "5G"),
   n.permutations = 1000,
   p.value.correction = "uncorrected.fdr",
-  compute.cor.blocks = TRUE
+  compute.cor.blocks = TRUE,
+  recode.allele.frequencies = FALSE
 )
 }
 \arguments{
@@ -92,6 +93,9 @@ for the correlation structure of the p-values and then uses FDR-correction for a
 
 \item{compute.cor.blocks}{Flag indicating if correlation blocks are to be called. If \code{FALSE}, each CpG is considered
 separately.}
+
+\item{recode.allele.frequencies}{Flag indicating if the reference allele is to be redefined according to the frequenciess
+found in the cohort investigated.}
 }
 \description{
 Change global options for methQTL calculation

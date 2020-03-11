@@ -10,7 +10,7 @@ assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc',
                'minor.allele.frequency','missing.values.samples','plink.path',
                'cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
                'linear.model.type','representative.cpg.computation','meth.qtl.type',
-               'max.cpgs','rscript.path','cluster.config',
+               'max.cpgs','rscript.path','cluster.config','recode.allele.frequencies',
                'n.permutations','p.value.correction','compute.cor.blocks'),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',NULL,QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
@@ -33,6 +33,7 @@ assign("CLUSTER.CONFIG",list(c(h_vmem="5G",mem_free="5G")),QTL.OPTIONS)
 assign("N.PERMUTATIONS",1000,QTL.OPTIONS)
 assign("P.VALUE.CORRECTION","uncorrected.fdr",QTL.OPTIONS)
 assign("COMPUTE.COR.BLOCKS",TRUE,QTL.OPTIONS)
+assign("RECODE.ALLELE.FREQUENCIES",TRUE,QTL.OPTIONS)
 
 #' qtl.setOption
 #'
@@ -81,6 +82,8 @@ assign("COMPUTE.COR.BLOCKS",TRUE,QTL.OPTIONS)
 #'              for the correlation structure of the p-values and then uses FDR-correction for all the interactions computed.
 #' @param compute.cor.blocks Flag indicating if correlation blocks are to be called. If \code{FALSE}, each CpG is considered
 #'              separately.
+#' @param recode.allele.frequencies Flag indicating if the reference allele is to be redefined according to the frequenciess
+#'              found in the cohort investigated.
 #' @export
 #' @author Michael Scherer
 #' @examples
@@ -109,8 +112,9 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        cluster.config=c(h_vmem="5G",mem_free="5G"),
                        n.permutations=1000,
                        p.value.correction="uncorrected.fdr",
-                       compute.cor.blocks=TRUE){
-  if(length(rnbeads.options)!=1){
+                       compute.cor.blocks=TRUE,
+                       recode.allele.frequencies=FALSE){
+  if(length(rnbeads.options)!=1 & !is.null(rnbeads.options)){
     stop("Please specify the options one by one, not as a vector or list.")
   }
   if(!missing(rnbeads.options)){
@@ -251,6 +255,12 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['COMPUTE.COR.BLOCKS']] <- compute.cor.blocks
   }
+  if(!missing(recode.allele.frequencies)){
+    if(!is.logical(compute.cor.blocks)){
+      stop("Invalid value for recode.allele.frequencies, needs to be logical.")
+    }
+    QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']] <- recode.allele.frequencies
+  }
 }
 
 #' qtl.getOption
@@ -336,6 +346,9 @@ qtl.getOption <- function(names){
   }
   if('compute.cor.blocks'%in%names){
     ret <- c(ret,compute.cor.blocks=QTL.OPTIONS[['COMPUTE.COR.BLOCKS']])
+  }
+  if('recode.allele.frequencies'%in%names){
+    ret <- c(ret,recode.allele.frequencies=QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']])
   }
   return(ret[names])
 }
