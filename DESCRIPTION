@@ -28,7 +28,8 @@ Suggests: gridExtra,
          RUnit,
          rmutil,
          knitr,
-         rmarkdown
+         rmarkdown,
+         motifRG
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

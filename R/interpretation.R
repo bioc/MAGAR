@@ -127,3 +127,83 @@ qtl.base.substitution.enrichment <- function(meth.qtl.res){
   })
   return(enr.all)
 }
+
+#' qtl.tfbs.motif.enrichment
+#'
+#' This function performs TFBS enrichment analysis for the methQTL SNPs/CpGs detected and returns overrepresented
+#' binding motifs.
+#'
+#' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects
+#' @param type The type of methQTL to be visualized. Can be either \code{'SNP'}, \code{'CpG'},
+#'     or \code{'cor.block'}
+#' @param size Motif enrichment is only supported for genomic regions. Therefore, we resize the invididual methQTL to
+#'     genomic regions using a width of this size around the site of interest.
+#' @param assembly The assembly used. Only \code{"hg19"} and \code{"hg38"} supported
+#' @param subsample Integer specifying how many of the regions are to be subsamples from the universe.
+#' @param out.dir The output directory in which resulting plots will be stored.
+#' @param ... Further parameters passed to \code{\link{findMotifFgBg}}
+#' @return A plot describing the TFB motif enrichment
+#' @details This function is in part based on the tutorial for Motif discovery in https://compgenomr.github.io/book/motif-discovery.html. 
+#' We use all data points that have been used to calculate methQTLs as the background
+#'  and compare the overlaps with the annotation of interest in comparison to the methQTLs that
+#'  have been computed in case a \code{\link{methQTLResult-class}} is provided. If a list of \code{\link{methQTLResult-class}} objects
+#'  is provided, the intersection between the methQTLs from all objects in the list is compared with the union of all interactions
+#'  that have been tested.
+#' @author Michael Scherer
+#' @export
+qtl.tfbs.motif.enrichment <- function(meth.qtl.res,
+	type="SNP",
+	size=500,
+	assembly="hg19",
+	subsample=100000,
+	out.dir=getwd(),
+	...){
+  if(!assembly%in%c("hg19","hg38")){
+    stop("Motif enrichment only supported for 'hg19' and 'hg38'")
+  }
+  if(requireNamespace("motifRG")&requireNamespace("TFBSTools")&requireNamespace("JASPAR2018")){
+    stats <- get.overlap.universe(meth.qtl.res,type)
+    all.input <- stats$all.input
+    all.input <- resize(all.input,width=size,fix="center")
+    all.qtl <- stats$all.qtl
+    all.qtl <- resize(all.qtl,width=size,fix="center")
+    if(assembly%in%"hg19"){
+	all.input <- getSeq(BSgenome.Hsapiens.UCSC.hg19, all.input)
+	all.qtl <- getSeq(BSgenome.Hsapiens.UCSC.hg19, all.qtl)
+    }else{
+	all.input <- getSeq(BSgenome.Hsapiens.UCSC.hg38, all.input)
+	all.qtl <- getSeq(BSgenome.Hsapiens.UCSC.hg38, all.qtl)
+    }
+    all.input <- all.input[sample(1:length(all.input),subsample)]
+    motifs <- findMotifFgBg(
+      fg.seq = all.qtl,
+      bg.seq = all.input,
+      ...
+    )
+    refined.motifs = lapply(motifs$motifs, function(x){
+      refinePWMMotifExtend(motifs = x@match$pattern, seqs = all.qtl)
+    })
+    for(i in 1:length(refined.motifs)){
+      mot <- refined.motifs[[i]]
+      motif.name <- names(refined.motifs)[i]
+      pwm.mot <- PWMatrix(ID='unk',
+			profileMatrix=mot$model$prob)
+      pwm.mot.lib <- getMatrixSet(
+			JASPAR2018,
+			opts=list(collection="CORE",species="Homo sapiens",matrixtype="PWM")
+		)
+      pwm.mot.sim <- PWMSimilarity(pwm.mot.lib,pwm.mot,method="Pearson")
+      info.mat <- t(as.data.frame(lapply(pwm.mot.lib,function(x){
+         c(ID(x),name(x))
+      })))
+      info.mat <- data.frame(info.mat,similarity=pwm.mot.sim[info.mat[,1]])
+      info.mat <- info.mat[order(info.mat$similarity,decreasing=T),]
+      pdf(file.path(out.dir,paste0(motif.name,".pdf")))
+      plot.new()
+      seqLogo::seqLogo(mot$model$prob)
+      text(x=0.5,y=1,label=paste("Most similar to",info.mat$X2[1],"Similarity:",round(info.mat$similarity[1],3)))
+      dev.off()
+    }    
+    return(NULL)
+  }
+}

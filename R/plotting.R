@@ -353,3 +353,38 @@ qtl.lola.plot <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19",p
   plot <- lolaBarPlot(lolaDb=res$lola.db,lolaRes=res$lola.res,pvalCut=pvalCut)+my_theme
   return(plot)
 }
+
+#' qtl.plot.cluster.size
+#' 
+#' This functions returns a histogram comprising the (genomic) sizes of the correlation blocks
+#' in the given objet.
+#'
+#' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}}
+#' @param type Either \code{"genomic"} or \code{"count"}, for genomic size of the correlation
+#'               block in base pairs or as the number of CpGs
+#' @return An objec of type ggplot containing the histogram as a plot
+#' @author Michael Scherer
+#' @export
+qtl.plot.cluster.size <- function(meth.qtl.res,type="count"){
+	if(!inherits(meth.qtl.res,"methQTLResult")){
+		stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
+	}
+	if(!(type%in%c("count","genomic"))){
+		stop("Invalid value for type, needs to be 'genomic' or 'count'")
+	}
+	cor.blocks <- unlist(getCorrelationBlocks(meth.qtl.res),recursive=F)
+	to.plot <- data.frame(CorrelationBlock=I(cor.blocks),Size=lengths(cor.blocks))
+	if(type%in%"genomic"){
+		anno.meth <- getAnno(meth.qtl.res,"meth")
+		sizes <- unlist(lapply(to.plot$CorrelationBlock,function(bl){
+			if(length(bl)==1){
+				return(1)
+			}else{
+				return(anno.meth[bl[length(bl)],"Start"]-anno.meth[bl[1],"Start"])
+			}
+		}))
+		to.plot$Size <- sizes
+	}
+	plot <- ggplot(to.plot,aes(x=Size,y=..count..))+geom_histogram()+my_theme
+	return(plot)
+}

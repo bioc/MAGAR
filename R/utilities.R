@@ -29,6 +29,37 @@ overlap.QTLs <- function(meth.qtl.result.list,type){
   }else{
     res.all.vec <- c()
     res.all <- list()
+    logger.start("Constructing universe")
+    for(i in 1:length(meth.qtl.result.list)){
+      logger.start(paste("Obtaining correlation blocks for object",i))
+      cor.blocks <- getCorrelationBlocks(meth.qtl.result.list[[i]])
+      res <- getResult(meth.qtl.result.list[[i]],cor.blocks)
+      for(j in 1:nrow(res)){
+        snp <- res$SNP[j]
+        cor.block <- res$CorrelationBlock[j]
+        map.qtl <- unlist(sapply(cor.block[[1]],function(cpg){
+          matched <- unlist(grepl(cpg,res.all.vec) & grepl(snp,res.all.vec))
+          if(any(matched)){
+            return(which(matched))
+          }else{
+            return(NULL)
+          }
+        }))
+        if(!is.null(map.qtl)){
+          extended.qtl <- paste(snp,paste(cor.block[[1]],collapse = "_"),sep="_")
+          if(nchar(extended.qtl)>nchar(res.all.vec[map.qtl[1]])){
+		res.all.vec[map.qtl[[1]]] <- extended.qtl
+	  }
+        }else{
+          #Caveat: only first interaction of a SNP with a correlation block will be considered, thus 'trans' effects
+          #are not considered
+          res.all.vec <- c(res.all.vec,paste(snp,paste(cor.block[[1]],collapse = "_"),sep="_"))
+        }
+      }
+      logger.completed()
+    }
+    logger.completed()
+    logger.start("Overlapping")
     for(i in 1:length(meth.qtl.result.list)){
       logger.start(paste("Obtaining correlation blocks for object",i))
       cor.blocks <- getCorrelationBlocks(meth.qtl.result.list[[i]])
@@ -47,17 +78,16 @@ overlap.QTLs <- function(meth.qtl.result.list,type){
         }))
         if(!is.null(map.qtl)){
           res.all.class <- c(res.all.class,res.all.vec[map.qtl[1]])
-          res.all.vec <- c(res.all.vec,res.all.vec[map.qtl[1]])
         }else{
-          #Caveat: only first interaction of a SNP with a correlation block will be considered, thus 'trans' effects
-          #are not considered
-          res.all.class <- c(res.all.class,paste(snp,paste(cor.block[[1]],collapse = "_"),sep="_"))
-          res.all.vec <- c(res.all.vec,paste(snp,paste(cor.block[[1]],collapse = "_"),sep="_"))
-        }
+	  # You weren't supposed to be here
+	  stop("Constructing the universe failed")
+       }
       }
       logger.completed()
       res.all[[i]] <- res.all.class
     }
+
+    logger.completed()
   }
   names(res.all) <- names(meth.qtl.result.list)
   return(res.all)
@@ -234,7 +264,10 @@ get.specific.qtl <- function(meth.qtl.res,meth.qtl.background,type="SNP"){
 #' @export
 get.overlapping.qtl <- function(meth.qtl.list,type="SNP"){
   op.qtl <- overlap.QTLs(meth.qtl.list,type=type)
-  all.ops <- intersect(op.qtl[[1]],intersect(op.qtl[[2]],intersect(op.qtl[[3]],op.qtl[[4]])))
+  all.ops <- op.qtl[[1]]
+  for(i in 1:length(op.qtl)){
+    all.ops <- intersect(all.ops,op.qtl[[i]])
+  }
   res.all <- c()
   for(i in 1:length(meth.qtl.list)){
     qtl <- meth.qtl.list[[i]]
