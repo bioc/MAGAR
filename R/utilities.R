@@ -47,8 +47,11 @@ overlap.QTLs <- function(meth.qtl.result.list,type){
         }))
         if(!is.null(map.qtl)){
           extended.qtl <- paste(snp,paste(cor.block[[1]],collapse = "_"),sep="_")
-          if(nchar(extended.qtl)>nchar(res.all.vec[map.qtl[1]])){
-		res.all.vec[map.qtl[[1]]] <- extended.qtl
+	  if(extended.qtl==res.all.vec[map.qtl[1]]){
+		next
+	  }else{
+		old.cpgs <- unlist(strsplit(res.all.vec[map.qtl[1]],"_"))[-1]
+		res.all.vec[map.qtl[[1]]] <-  paste(snp,paste(union(old.cpgs,cor.block[[1]]),collapse = "_"),sep="_")
 	  }
         }else{
           #Caveat: only first interaction of a SNP with a correlation block will be considered, thus 'trans' effects
@@ -110,10 +113,10 @@ overlap.inputs <- function(meth.qtl.list,type){
     stop("Invalid value for type, needs to be 'CpG', 'SNP', or 'cor.block'")
   }
   type <- ifelse(type%in%c("CpG","cor.block"),"meth","geno")
-  all.input <- c()
-  for(i in 1:length(meth.qtl.list)){
+  all.input <- getAnno(meth.qtl.list[[1]],type)
+  for(i in 2:length(meth.qtl.list)){
     anno <- getAnno(meth.qtl.list[[i]],type)
-    all.input <- rbind(all.input,anno[!(row.names(anno)%in%row.names(all.input)),])
+    all.input <- rbind(all.input[,intersect(colnames(anno),colnames(all.input))],anno[!(row.names(anno)%in%row.names(all.input)),intersect(colnames(anno),colnames(all.input))])
   }
   all.input <- as.data.frame(all.input)
 #  if(type%in%"SNP"){

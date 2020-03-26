@@ -141,7 +141,7 @@ qtl.base.substitution.enrichment <- function(meth.qtl.res){
 #' @param assembly The assembly used. Only \code{"hg19"} and \code{"hg38"} supported
 #' @param subsample Integer specifying how many of the regions are to be subsamples from the universe.
 #' @param out.dir The output directory in which resulting plots will be stored.
-#' @param ... Further parameters passed to \code{\link{findMotifFgBg}}
+#' @param ... Further parameters passed to \code{\link[motifRG]{findMotifFgBg}}
 #' @return A plot describing the TFB motif enrichment
 #' @details This function is in part based on the tutorial for Motif discovery in https://compgenomr.github.io/book/motif-discovery.html. 
 #' We use all data points that have been used to calculate methQTLs as the background
