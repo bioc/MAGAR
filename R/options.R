@@ -11,7 +11,8 @@ assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc',
                'cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
                'linear.model.type','representative.cpg.computation','meth.qtl.type',
                'max.cpgs','rscript.path','cluster.config','recode.allele.frequencies',
-               'n.permutations','p.value.correction','compute.cor.blocks'),QTL.OPTIONS)
+               'n.permutations','p.value.correction','compute.cor.blocks',
+               'use.segmentation','use.functional.annotation'),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',NULL,QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
 assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
@@ -34,6 +35,9 @@ assign("N.PERMUTATIONS",1000,QTL.OPTIONS)
 assign("P.VALUE.CORRECTION","uncorrected.fdr",QTL.OPTIONS)
 assign("COMPUTE.COR.BLOCKS",TRUE,QTL.OPTIONS)
 assign("RECODE.ALLELE.FREQUENCIES",TRUE,QTL.OPTIONS)
+assign("USE.SEGMENTATION",FALSE,QTL.OPTIONS)
+assign("USE.FUNCTIONAL.ANNOTATION",FALSE,QTL.OPTIONS)
+assign("FUNCTIONAL.ANNOTATION.WEIGHT",1.1,QTL.OPTIONS)
 
 #' qtl.setOption
 #'
@@ -82,6 +86,14 @@ assign("RECODE.ALLELE.FREQUENCIES",TRUE,QTL.OPTIONS)
 #'              for the correlation structure of the p-values and then uses FDR-correction for all the interactions computed.
 #' @param compute.cor.blocks Flag indicating if correlation blocks are to be called. If \code{FALSE}, each CpG is considered
 #'              separately.
+#' @param use.segmentation Flag indicating if segmenation into partically methylated domains (PMDs) and non-PMDs is to
+#'              be used for computing correlation block. If \code{TRUE}, two CpGs cannot be connected in the graph if they
+#'              are in different segments.
+#' @param use.functional.annotation Flag indicating if functional genome annotation according to the ENSEMBL regulatory
+#'              build is to be incorportated into the correlation block computation. If \code{TRUE}, samples within the
+#'              same annotation are prioritized and in different ones penalized.
+#' @param functional.annotation.weight Numeric value specifying how strong CpGs in the same functional annotation should
+#'              be prioritized.
 #' @param recode.allele.frequencies Flag indicating if the reference allele is to be redefined according to the frequenciess
 #'              found in the cohort investigated.
 #' @export
@@ -113,7 +125,10 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        n.permutations=1000,
                        p.value.correction="uncorrected.fdr",
                        compute.cor.blocks=TRUE,
-                       recode.allele.frequencies=FALSE){
+                       recode.allele.frequencies=FALSE,
+                       use.segmentation=TRUE,
+                       use.functional.annotation=TRUE,
+                       functional.annotation.weight=1.1){
   if(length(rnbeads.options)!=1 & !is.null(rnbeads.options)){
     stop("Please specify the options one by one, not as a vector or list.")
   }
@@ -261,6 +276,24 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']] <- recode.allele.frequencies
   }
+  if(!missing(use.segmentation)){
+    if(!is.logical(use.segmenation)){
+      stop("Invalid value for use.segmentation, needs to be logical.")
+    }
+    QTL.OPTIONS[['USE.SEGMENTATION']] <- use.segmentation
+  }
+  if(!missing(use.functional.annotation)){
+    if(!is.logical(use.functional.annotation)){
+      stop("Invalid value for use.functional.annotation, needs to be logical.")
+    }
+    QTL.OPTIONS[['USE.FUNCTIONAL.ANNOTATION']] <- use.functional.annotation
+  }
+  if(!missing(functional.annotation.weight)){
+    if(!is.numeric(functional.annotation.weight)){
+      stop("Invalid value for functional.annotation.weight, needs to be numeric.")
+    }
+    QTL.OPTIONS[['FUNCTIONAL.ANNOTATION.WEIGHT']] <- functional.annotation.weight
+  }
 }
 
 #' qtl.getOption
@@ -349,6 +382,15 @@ qtl.getOption <- function(names){
   }
   if('recode.allele.frequencies'%in%names){
     ret <- c(ret,recode.allele.frequencies=QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']])
+  }
+  if('use.segmentation'%in%names){
+    ret <- c(ret,use.segmentation=QTL.OPTIONS[['USE.SEGMENTATION']])
+  }
+  if('use.functional.annotation'%in%names){
+    ret <- c(ret,use.functional.annotation=QTL.OPTIONS[['USE.FUNCTIONAL.ANNOTATION']])
+  }
+  if('functional.annotation.weight'%in%names){
+    ret <- c(ret,functional.annotation.weight=QTL.OPTIONS[['FUNCTIONAL.ANNOTATION.WEIGHT']])
   }
   return(ret[names])
 }
