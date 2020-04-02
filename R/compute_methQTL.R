@@ -111,7 +111,7 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
   sel.anno <- anno[sel.meth,]
   sel.meth <- getMethData(meth.qtl)[sel.meth,]
   if(qtl.getOption('compute.cor.blocks')){
-    cor.blocks <- compute.correlation.blocks(sel.meth,sel.anno,assembly=meth.qtl@assembly,chromosome=chrom)
+    cor.blocks <- compute.correlation.blocks(sel.meth,sel.anno,assembly=meth.qtl@assembly,chromosome=chrom,segmentation=meth.qtl@segmentation)
     cor.blocks <- lapply(cor.blocks,as.numeric)
     if(!is.null(out.dir)){
       to.plot <- data.frame(Size=lengths(cor.blocks))

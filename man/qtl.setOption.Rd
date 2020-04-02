@@ -26,7 +26,10 @@ qtl.setOption(
   n.permutations = 1000,
   p.value.correction = "uncorrected.fdr",
   compute.cor.blocks = TRUE,
-  recode.allele.frequencies = FALSE
+  recode.allele.frequencies = FALSE,
+  use.segmentation = FALSE,
+  use.functional.annotation = FALSE,
+  functional.annotation.weight = 1.1
 )
 }
 \arguments{
@@ -96,6 +99,17 @@ separately.}
 
 \item{recode.allele.frequencies}{Flag indicating if the reference allele is to be redefined according to the frequenciess
 found in the cohort investigated.}
+
+\item{use.segmentation}{Flag indicating if segmenation into partically methylated domains (PMDs) and non-PMDs is to
+be used for computing correlation block. If \code{TRUE}, two CpGs cannot be connected in the graph if they
+are in different segments.}
+
+\item{use.functional.annotation}{Flag indicating if functional genome annotation according to the ENSEMBL regulatory
+build is to be incorportated into the correlation block computation. If \code{TRUE}, samples within the
+same annotation are prioritized and in different ones penalized.}
+
+\item{functional.annotation.weight}{Numeric value specifying how strong CpGs in the same functional annotation should
+be prioritized.}
 }
 \description{
 Change global options for methQTL calculation

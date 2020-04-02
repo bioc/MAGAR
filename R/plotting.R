@@ -272,7 +272,8 @@ qtl.upset.plot <- function(meth.qtl.result.list,type="SNP",...){
                mainbar.y.label = paste("Number of overlapping",type),
                sets.x.label = "methQTL per class",
                text.scale = c(1,1,1.5,1.5,2,1.5),
-               number.angles = 30)
+               number.angles = 30,
+	       ...)
 }
 
 #' qtl.correlate.cor.block.stat

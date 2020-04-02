@@ -1,0 +1,3 @@
+methQTL version 0.3.3
+---------------------
+ * Integrating weighting the correlation blocks according to functional annotations (regulatory build) and DNA methylation-based segmentation (MethylSeekR) 

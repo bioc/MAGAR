@@ -11,6 +11,7 @@
 ##########################################################################################
 setClassUnion("matrixOrHDF",c("matrix","HDF5Matrix"))
 setClassUnion("characterOrNULL",c("character","NULL"))
+setClassUnion("GRangesOrNULL",c("GRanges","NULL"))
 
 #' methQTLInput-class
 #'
@@ -36,6 +37,7 @@ setClassUnion("characterOrNULL",c("character","NULL"))
 #'       \code{pheno.data}.}
 #'   \item{\code{assembly}}{The genome assembly used.}
 #'   \item{\code{platform}}{The platform used to compute the methylation data.}
+#'   \item{\code{segmentation}}{If performed, the segmentation into PMD/nonPMDs using the epicPMDdetect package.}
 #'   \item{\code{disk.dump}}{Flag indicating if the matrices are stored on disk rather than in memory.}
 #'   \item{\code{imputed}}{Flag indicating if DNA methylation dataset has been imputed.}
 #' }
@@ -64,7 +66,8 @@ setClass("methQTLInput",
            assembly="character",
            disk.dump="logical",
            imputed="logical",
-           platform="character"
+           platform="character",
+	   segmentation="GRangesOrNULL"
          ),
          prototype(
            meth.data=matrix(nrow=0,ncol=0),
@@ -76,7 +79,8 @@ setClass("methQTLInput",
            assembly="hg19",
            disk.dump=F,
            imputed=F,
-           platform="probesEPIC"
+           platform="probesEPIC",
+	   segmentation=NULL
          ),
          package="methQTL")
 
@@ -92,7 +96,8 @@ setMethod("initialize","methQTLInput",
             assembly="hg19",
             disk.dump=F,
             imputed=F,
-            platform="probesEPIC"
+            platform="probesEPIC",
+	    segmentation=NULL
           ){
             if(length(samples) != ncol(meth.data) | length(samples) != ncol(geno.data) | length(samples) != nrow(pheno.data)){
               stop("Samples do not match dimension of the matrices.")
@@ -107,6 +112,7 @@ setMethod("initialize","methQTLInput",
             .Object@disk.dump <- disk.dump
             .Object@imputed <- imputed
             .Object@platform <- platform
+            .Object@segmentation <- segmentation
 
             .Object
           })
@@ -297,6 +303,9 @@ setMethod("show","methQTLInput",
     ret.str[3] <- paste("\t Methylation data for",nrow(object@meth.data),"CpGs\n")
     ret.str[4] <- paste("\t Genotyping data for",nrow(object@geno.data),"SNPs\n")
     ret.str[5] <- paste("\t Genome assembly:",object@assembly,"\n")
+    if(!is.null(object@segmentation)){
+      ret.str[6] <- "\t Segmentation was performed"
+    }
     cat(do.call(paste0,ret.str))
   }
 )
@@ -335,6 +344,9 @@ setMethod("save.methQTL","methQTLInput",
             }else{
               writeHDF5Array(object@meth.data,filepath = file.path(path,"meth_data.h5"),name="meth.data")
               writeHDF5Array(object@geno.data,filepath = file.path(path,"geno_data.h5"),name="geno.data")
+            }
+            if(!is.null(object@segmentation)){
+              saveRDS(object@segmentation,file=file.path(path,"segmentation.RDS"))
             }
             saveRDS(object@anno.meth,file=file.path(path,"anno_meth.RDS"))
             saveRDS(object@anno.geno,file=file.path(path,"anno_geno.RDS"))
@@ -383,5 +395,9 @@ load.methQTL <- function(path){
   object@anno.meth <- anno.meth
   object@anno.geno <- anno.geno
   object@pheno.data <- pheno.data
+  if(file.exists(file.path(path,"segmentation.RDS"))){
+    segmentation <- readRDS(file.path(path,"segmentation.RDS"))
+    object@segmentation <- segmentation
+  }
   return(object)
 }

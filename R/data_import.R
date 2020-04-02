@@ -93,7 +93,8 @@ do.import <- function(data.location,
     assembly=assembly.meth,
     disk.dump=qtl.getOption("hdf5dump"),
     imputed=ifelse(rnb.getOption("imputation.method")=="none",FALSE,TRUE),
-    platform=meth.import$platform
+    platform=meth.import$platform,
+    segmentation=meth.import$segmentation
   )
   if(assembly.meth != assembly.geno){
     dataset.import <- match.assemblies(dataset.import)
@@ -112,11 +113,15 @@ do.import <- function(data.location,
 #' @param s.id.col Column name in the sample annotation sheet specifying the sample identifiers.
 #' @param tab.sep Table separator used.
 #' @param snp.location Locations of SNPs called in the genotyped processing to be removed from the list of CpGs.
-#' @return A list with three elements:
+#' @param out.folder If not \code{NULL} a directory in which intermediate results are to be written
+#' @param ... Further parameters passed to, e.g., qtl.run.segmentation
+#' @return A list with five elements:
 #'          \describe{
 #'            \item{sample}{The samples used in the dataset as a character vector}
 #'            \item{data}{The DNA methylation data matrix as the results of import and preprocessing}
 #'            \item{annotation}{The genomic annotation of the sites present in \code{data}}
+#'            \item{platform}{The platform used, e.g. \code{'probesEPIC'}}
+#'            \item{segmentation}{If segmentation was performed, the segmentation as a \code{GRanges} object}
 #'          }
 #' @details This function execute the import and preprocessing modules of RnBeads. In the default setting, a common
 #'          option setting for Illumina BeadArray data is used (described in \code{inst/extdata/rnbeads_options.xml}).
@@ -124,7 +129,7 @@ do.import <- function(data.location,
 #'          specify another XML file with custom RnBeads options.
 #' @author Michael Scherer
 #' @noRd
-do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep=",",snp.location=NULL){
+do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep=",",snp.location=NULL,out.folder=NULL,...){
   logger.start("Processing DNA methylation data")
   rnb.xml2options(qtl.getOption("rnbeads.options"))
   rnb.options(identifiers.column=s.id.col,
@@ -135,6 +140,8 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
   if(qtl.getOption("rnbeads.qc")){
     if(dir.exists(qtl.getOption("rnbeads.report"))){
       rnb.report <- file.path(qtl.getOption("rnbeads.report"),"rnbeads_QC")
+    }else if(!is.null(out.folder)){
+      rnb.report <- file.path(out.folder,"rnbeads_QC")
     }else{
       rnb.report <- file.path(tempdir(),"rnbeads_QC")
     }
@@ -142,6 +149,8 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
   }
   if(dir.exists(qtl.getOption("rnbeads.report"))){
     rnb.report <- file.path(qtl.getOption("rnbeads.report"),"rnbeads_preprocessing")
+  }else if(!is.null(out.folder)){
+    rnb.report <- file.path(out.folder,"rnbeads_preprocessing")
   }else{
     rnb.report <- file.path(tempdir(),"rnbeads_preprocessing")
   }
@@ -157,6 +166,7 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
     rnb.imp <- remove.sites(rnb.imp,rem.sites)
     logger.completed()
   }
+  segmentation <- qtl.run.segmentation(rnb.imp,out.folder,...)
   s.names <- samples(rnb.imp)
   meth.data <- meth(rnb.imp)
   if(qtl.getOption("hdf5dump")){
@@ -164,7 +174,7 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
   }
   anno.meth <- annotation(rnb.imp)
   logger.completed()
-  return(list(samples=s.names,data=meth.data,annotation=anno.meth,platform=rnb.imp@target))
+  return(list(samples=s.names,data=meth.data,annotation=anno.meth,platform=rnb.imp@target,segmentation=segmentation))
 }
 
 #' do.geno.import
@@ -216,9 +226,9 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   system(cmd)
   snp.dat <- read.plink(bed=paste0(proc.data,".bed"),bim=paste0(proc.data,".bim"),fam=paste0(proc.data,".fam"))
   snp.mat <- t(as(snp.dat$genotypes,"numeric"))
-  allele.frequencies <- count(as.vector(snp.mat))
   if(qtl.getOption("recode.allele.frequencies")){
-    allele.frequencies <- apply(snp.dat,1,function(x)sum(x==2)>sum(x==0))
+    allele.frequencies <- apply(snp.mat,1,function(x)sum(x==2)>sum(x==0))
+    allele.frequencies[is.na(allele.frequencies)] <- FALSE
     snp.mat[allele.frequencies,] <- 2-(snp.mat[allele.frequencies,])
   }else{
     snp.mat[snp.mat==2] <- 3
@@ -335,4 +345,35 @@ do.geno.import.imputed <- function(dos.file,
 match.assemblies <- function(meth.qtl){
   print("Not yet implemented")
   return(meth.qtl)
+}
+
+#' qtl.run.segmentation
+#'
+#' This function performs DNA methylation based segmentation using the 'epicPMDdetect' package
+#' 
+#' @param rnb.set An object of type \code{\link{RnBSet-class}} with required DNA methylation information
+#' @param out.folder The output folder to store intermediate results
+#' @return A \code{GRanges} object with the segmentation performed
+#' @details The 'epicPMDdetect' package has been created by Malte Gross
+#' @author Michael Scherer
+#' @export
+qtl.run.segmentation <- function(rnb.set,
+				out.folder,
+				train.chr="chr2"){
+  if(qtl.getOption("use.segmentation")){
+    if(requireNamespace("epicPMDdetect")){
+      require("epicPMDdetect")
+      logger.start("Start segmentation")
+      gr <- epicPMDdetect::buildMethGrangesFromRnbSet(rnb.set)
+      segmentation <- epicPMDdetect::segmentPMDsKNN(gr,training.chr.sel=train.chr)
+      segmentation <- segmentation[values(segmentation)$type%in%c("PMD","notPMD")]
+      logger.completed()
+    }else{
+      stop("Please install the 'epicPMDdetect' package, which is required for computing segmentations")
+    }
+  }else{
+    logger.info("Segmentation package 'epicPMDdetect' not available, skipping segmentation")
+    segmentation <- NULL
+  }
+  return(segmentation)
 }

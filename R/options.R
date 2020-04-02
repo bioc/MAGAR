@@ -12,7 +12,8 @@ assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc',
                'linear.model.type','representative.cpg.computation','meth.qtl.type',
                'max.cpgs','rscript.path','cluster.config','recode.allele.frequencies',
                'n.permutations','p.value.correction','compute.cor.blocks',
-               'use.segmentation','use.functional.annotation'),QTL.OPTIONS)
+               'use.segmentation','use.functional.annotation',
+		'functional.annotation.weight'),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',NULL,QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
 assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
@@ -126,8 +127,8 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        p.value.correction="uncorrected.fdr",
                        compute.cor.blocks=TRUE,
                        recode.allele.frequencies=FALSE,
-                       use.segmentation=TRUE,
-                       use.functional.annotation=TRUE,
+                       use.segmentation=FALSE,
+                       use.functional.annotation=FALSE,
                        functional.annotation.weight=1.1){
   if(length(rnbeads.options)!=1 & !is.null(rnbeads.options)){
     stop("Please specify the options one by one, not as a vector or list.")
@@ -277,7 +278,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']] <- recode.allele.frequencies
   }
   if(!missing(use.segmentation)){
-    if(!is.logical(use.segmenation)){
+    if(!is.logical(use.segmentation)){
       stop("Invalid value for use.segmentation, needs to be logical.")
     }
     QTL.OPTIONS[['USE.SEGMENTATION']] <- use.segmentation
