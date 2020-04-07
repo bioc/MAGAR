@@ -4,10 +4,12 @@
 \alias{qtl.base.substitution.enrichment}
 \title{qtl.base.substitution.enrichment}
 \usage{
-qtl.base.substitution.enrichment(meth.qtl.res)
+qtl.base.substitution.enrichment(meth.qtl.res, merge = F)
 }
 \arguments{
 \item{meth.qtl.res}{An object of type \code{\link{methQTLResult-class}} or a list of such objects.}
+
+\item{merge}{Flag indicating if 5' and 3' substitutions are to be merged or to be analyzed separately.}
 }
 \value{
 A list with one element for each potential base substitution containing the enrichment p-value.

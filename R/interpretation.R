@@ -94,13 +94,15 @@ qtl.annotation.enrichment <- function(meth.qtl.res,
 #' This function tests for enrichment of a specific base substitution in the methQTL interactions.
 #'
 #' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
+#' @param merge Flag indicating if 5' and 3' substitutions are to be merged or to be analyzed separately.
 #' @return A list with one element for each potential base substitution containing the enrichment p-value.
 #' @details The names of the list are e.g. \code{A_G}, which refers to a replacement of the reference base \code{A}
 #'   with an \code{A}. Enrichment is computed using Fisher's exact test, using all SNP that have been used
 #'   as input as the background.
 #' @author Michael Scherer
 #' @export
-qtl.base.substitution.enrichment <- function(meth.qtl.res){
+qtl.base.substitution.enrichment <- function(meth.qtl.res,
+					merge=F){
   stats <- get.overlap.universe(meth.qtl.res,type="SNP")
   if(is.list(meth.qtl.res)){
     anno.cpgs <- overlap.inputs(meth.qtl.res,type="SNP")
@@ -109,13 +111,35 @@ qtl.base.substitution.enrichment <- function(meth.qtl.res){
   }
   sel.anno <- anno.cpgs[names(stats$all.qtl),]
   subs.qtl <- paste(sel.anno[,"Allele.1"],sel.anno[,"Allele.2"],sep="_")
-  cu.qtl <- count(subs.qtl)
   sel.anno <- anno.cpgs[names(stats$all.input),]
   subs.input <- paste(sel.anno[,"Allele.1"],sel.anno[,"Allele.2"],sep="_")
-  cu.input <- count(subs.input)
   all.interactions <- as.character(sapply(c("A","C","G","T"),function(b){
     paste(c("A","C","G","T")[!c("A","C","G","T")%in%b],b,sep ="_")
   }))
+  if(merge){
+    subs.map <- c("A_C"="A_C/T_G",
+			"T_G"="A_C/T_G",
+			"A_G"="A_G/T_C",
+			"T_C"="A_G/T_C",
+			"A_T"="A_T/T_A",
+			"T_A"="A_T/T_A",
+			"C_A"="C_A/G_T",
+			"G_T"="C_A/G_T",
+			"C_G"="C_G/G_C",
+			"G_C"="C_G/G_C",
+			"C_T"="C_T/G_A",
+			"G_A"="C_T/G_A"
+			)
+    subs.qtl <- subs.map[subs.qtl]
+    sub.qtl <- unname(subs.qtl)
+    subs.input <- subs.map[subs.input]
+    subs.input <- unname(subs.input)  
+    all.interactions <- subs.map[all.interactions]
+    all.interactions <- unique(all.interactions)
+    all.interactions <- unname(all.interactions)
+  }
+  cu.qtl <- count(subs.qtl)
+  cu.input <- count(subs.input)
   enr.all <- sapply(all.interactions, function(int){
     tps <- cu.qtl[cu.qtl$x%in%int,"freq"]
     fps <- sum(cu.qtl[!(cu.qtl$x%in%int),"freq"])

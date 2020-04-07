@@ -27,7 +27,42 @@ overlap.QTLs <- function(meth.qtl.result.list,type){
       getResult(res)[,type]
     })
   }else{
-    res.all.vec <- c()
+#    res.all.vec <- c()
+#    res.all <- list()
+#    logger.start("Constructing universe")
+#    for(i in 1:length(meth.qtl.result.list)){
+#      logger.start(paste("Obtaining correlation blocks for object",i))
+#      cor.blocks <- getCorrelationBlocks(meth.qtl.result.list[[i]])
+#      res <- getResult(meth.qtl.result.list[[i]],cor.blocks)
+#      for(j in 1:nrow(res)){
+#        snp <- res$SNP[j]
+#        cor.block <- res$CorrelationBlock[j]
+#        map.qtl <- unlist(sapply(cor.block[[1]],function(cpg){
+#          matched <- unlist(grepl(cpg,res.all.vec) & grepl(snp,res.all.vec))
+#          if(any(matched)){
+#            return(which(matched))
+#          }else{
+#            return(NULL)
+#          }
+#        }))
+#        if(!is.null(map.qtl)){
+#          extended.qtl <- paste(snp,paste(cor.block[[1]],collapse = "_"),sep="_")
+#	  if(extended.qtl==res.all.vec[map.qtl[1]]){
+#		next
+#	  }else{
+#		old.cpgs <- unlist(strsplit(res.all.vec[map.qtl[1]],"_"))[-1]
+#		res.all.vec[map.qtl[[1]]] <-  paste(snp,paste(union(old.cpgs,cor.block[[1]]),collapse = "_"),sep="_")
+#	  }
+#        }else{
+#          #Caveat: only first interaction of a SNP with a correlation block will be considered, thus 'trans' effects
+#          #are not considered
+#          res.all.vec <- c(res.all.vec,paste(snp,paste(cor.block[[1]],collapse = "_"),sep="_"))
+#        }
+#      }
+#      logger.completed()
+#    }
+#    logger.completed()
+    res.all.vec <- list()
     res.all <- list()
     logger.start("Constructing universe")
     for(i in 1:length(meth.qtl.result.list)){
@@ -35,61 +70,51 @@ overlap.QTLs <- function(meth.qtl.result.list,type){
       cor.blocks <- getCorrelationBlocks(meth.qtl.result.list[[i]])
       res <- getResult(meth.qtl.result.list[[i]],cor.blocks)
       for(j in 1:nrow(res)){
-        snp <- res$SNP[j]
+        snp <- as.character(res$SNP[j])
         cor.block <- res$CorrelationBlock[j]
-        map.qtl <- unlist(sapply(cor.block[[1]],function(cpg){
-          matched <- unlist(grepl(cpg,res.all.vec) & grepl(snp,res.all.vec))
-          if(any(matched)){
-            return(which(matched))
-          }else{
-            return(NULL)
-          }
-        }))
-        if(!is.null(map.qtl)){
-          extended.qtl <- paste(snp,paste(cor.block[[1]],collapse = "_"),sep="_")
-	  if(extended.qtl==res.all.vec[map.qtl[1]]){
-		next
-	  }else{
-		old.cpgs <- unlist(strsplit(res.all.vec[map.qtl[1]],"_"))[-1]
-		res.all.vec[map.qtl[[1]]] <-  paste(snp,paste(union(old.cpgs,cor.block[[1]]),collapse = "_"),sep="_")
-	  }
-        }else{
-          #Caveat: only first interaction of a SNP with a correlation block will be considered, thus 'trans' effects
-          #are not considered
-          res.all.vec <- c(res.all.vec,paste(snp,paste(cor.block[[1]],collapse = "_"),sep="_"))
-        }
-      }
+	if(!(snp%in%names(res.all.vec))){
+		res.all.vec[[snp]] <- cor.block[[1]]
+	}else{
+		map.qtl <- res.all.vec[[snp]]
+		matched <- sapply(cor.block[[1]],function(cpg)grepl(cpg,map.qtl))
+	        if(any(matched)){
+            		if(all(cor.block[[1]]%in%map.qtl)&all(map.qtl%in%cor.block[[1]])){
+				next
+			}else{
+				res.all.vec[[snp]] <- union(map.qtl,cor.block[[1]])
+			}
+          	}
+	}
+      }	
       logger.completed()
     }
-    logger.completed()
     logger.start("Overlapping")
     for(i in 1:length(meth.qtl.result.list)){
       logger.start(paste("Obtaining correlation blocks for object",i))
       cor.blocks <- getCorrelationBlocks(meth.qtl.result.list[[i]])
       res <- getResult(meth.qtl.result.list[[i]],cor.blocks)
-      res.all.class <- c()
+      res.all.class <- list()
       for(j in 1:nrow(res)){
-        snp <- res$SNP[j]
+        snp <- as.character(res$SNP[j])
         cor.block <- res$CorrelationBlock[j]
-        map.qtl <- unlist(sapply(cor.block[[1]],function(cpg){
-          matched <- unlist(grepl(cpg,res.all.vec) & grepl(snp,res.all.vec))
-          if(any(matched)){
-            return(which(matched))
-          }else{
-            return(NULL)
-          }
-        }))
-        if(!is.null(map.qtl)){
-          res.all.class <- c(res.all.class,res.all.vec[map.qtl[1]])
-        }else{
-	  # You weren't supposed to be here
-	  stop("Constructing the universe failed")
-       }
+	if(snp%in%names(res.all.vec)){
+		map.qtl <- res.all.vec[[snp]]
+		matched <- sapply(cor.block[[1]],function(cpg)grepl(cpg,map.qtl))
+		if(is.null(matched)){
+	  		stop("Constructing the universe failed")
+		}
+		res.all.class[[snp]] <- map.qtl
+	}else{
+		stop("Constructing the universe failed")
+	}
       }
       logger.completed()
-      res.all[[i]] <- res.all.class
+      res.class.vec <- c()
+      for(j in 1:length(res.all.class)){
+        res.class.vec <- c(res.class.vec,paste(names(res.all.class)[j],paste(res.all.class[[j]],collapse="_"),sep="_"))
+      }
+      res.all[[i]] <- res.class.vec
     }
-
     logger.completed()
   }
   names(res.all) <- names(meth.qtl.result.list)

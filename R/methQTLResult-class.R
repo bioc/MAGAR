@@ -132,6 +132,34 @@ setMethod("getResult",signature(object="methQTLResult"),
           }
 )
 
+if(!isGeneric("getResult.GWASMap")) setGeneric("getResult.GWASMap",function(object,...) standardGeneric("getResult.GWASMap"))
+
+#' getResult.GWASMap
+#'
+#' Returns the methQTL results in the format used as input to GWAS-map and stores in the object.
+#'
+#' @param object An of type \code{\link{methQTLResult-class}}.
+#' @param meth.qtl An object of type \code{\link{methQTLInput-class}} containing further information about the QTLs
+#' @return The methQTL results as a \code{data.frame} with each row being a methQTL.
+#' @rdname getResult.GWASMap
+#' @docType methods
+#' @aliases getResult.GWASMap,methQTLResult-method
+#' @export
+setMethod("getResult.GWASMap",signature(object="methQTLResult"),
+          function(object,meth.qtl){
+            ret <- object@result.frame
+#            keep.lines <- apply(ret,1,function(line){
+#              any(!is.na(line))
+#            })
+#            ret <- ret[keep.lines,]
+	    anno.geno <- getAnno(meth.qtl,"geno")[as.character(ret$SNP),]
+	    ret$ReferenceAllele <- anno.geno$Allele.1
+	    ret$EffectiveAllele <- anno.geno$Allele.2
+            ret$EffectiveAlleleFrequncy <- anno.geno$Allele.2.Freq
+            return(ret)
+          }
+)
+
 if(!isGeneric("getAnno")) setGeneric("getAnno",function(object,...) standardGeneric("getAnno"))
 
 #' getAnno
@@ -199,7 +227,7 @@ setMethod("show","methQTLResult",
           function(object){
             ret.str <- list()
             ret.str[1] <- "Object of class methQTLResult\n"
-            ret.str[2] <- paste("\t Contains",nrow(getResult(object)),"methQTL\n")
+            ret.str[2] <- paste("\t Contains",nrow(object@result.frame),"methQTL\n")
             if(length(object@correlation.blocks)>0){
               if(is.list(object@correlation.blocks[[1]])){
                 ret.str[3] <- paste("\t Contains",sum(lengths(object@correlation.blocks)),"correlation blocks\n")

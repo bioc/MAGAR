@@ -226,10 +226,28 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   system(cmd)
   snp.dat <- read.plink(bed=paste0(proc.data,".bed"),bim=paste0(proc.data,".bim"),fam=paste0(proc.data,".fam"))
   snp.mat <- t(as(snp.dat$genotypes,"numeric"))
+  anno.geno <- snp.dat$map
+  colnames(anno.geno) <- c("Chromosome","Name","cM","Start","Allele.1","Allele.2")
+  row.names(anno.geno) <- as.character(anno.geno$Name)
+  anno.geno <- anno.geno[,c("Chromosome","Start","cM","Allele.1","Allele.2")]
+  if(!any(grepl("chr*",anno.geno$Chromosome))){
+    anno.geno$Chromosome <- paste0("chr",anno.geno$Chromosome)
+  }
+  maj.allele.frequencies <- apply(snp.mat,1,function(x){
+    x <- x[!is.na(x)]
+    (2*sum(x==0)+sum(x==1))/(2*length(x))
+  })
+  anno.geno$Allele.1.Freq <- maj.allele.frequencies
+  anno.geno$Allele.2.Freq <- 1-maj.allele.frequencies
   if(qtl.getOption("recode.allele.frequencies")){
-    allele.frequencies <- apply(snp.mat,1,function(x)sum(x==2)>sum(x==0))
+    allele.frequencies <- maj.allele.frequencies<0.5
     allele.frequencies[is.na(allele.frequencies)] <- FALSE
     snp.mat[allele.frequencies,] <- 2-(snp.mat[allele.frequencies,])
+    temp <- anno.geno$Allele.2[allele.frequencies]
+    anno.geno$Allele.2[allele.frequencies] <- anno.geno$Allele.1[allele.frequencies]
+    anno.geno$Allele.1[allele.frequencies] <- temp
+    anno.geno$Allele.1.Freq[allele.frequencies] <- 1-maj.allele.frequencies[allele.frequencies]
+    anno.geno$Allele.2.Freq[allele.frequencies] <- maj.allele.frequencies[allele.frequencies]
   }else{
     snp.mat[snp.mat==2] <- 3
     snp.mat[snp.mat==0] <- 2
@@ -249,13 +267,6 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   logger.completed()
   if(qtl.getOption("hdf5dump")){
     snp.mat <- writeHDF5Array(snp.mat)
-  }
-  anno.geno <- snp.dat$map
-  colnames(anno.geno) <- c("Chromosome","Name","cM","Start","Allele.1","Allele.2")
-  row.names(anno.geno) <- as.character(anno.geno$Name)
-  anno.geno <- anno.geno[,c("Chromosome","Start","cM","Allele.1","Allele.2")]
-  if(!any(grepl("chr*",anno.geno$Chromosome))){
-    anno.geno$Chromosome <- paste0("chr",anno.geno$Chromosome)
   }
   logger.completed()
   return(list(data=snp.mat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
@@ -334,9 +345,21 @@ do.geno.import.imputed <- function(dos.file,
   anno.geno$Start <- as.numeric(as.character(anno.geno$Start))
   # Recode major and minor alleles
   snp.dat <- as.matrix(snp.dat)
+  maj.allele.frequencies <- apply(snp.mat,1,function(x){
+    x <- x[!is.na(x)]
+    (2*sum(x==0)+sum(x==1))/(2*length(x))
+  })
+  anno.geno$Allele.1.Freq <- maj.allele.frequencies
+  anno.geno$Allele.2.Freq <- 1-maj.allele.frequencies
   if(qtl.getOption("recode.allele.frequencies")){
-    allele.frequencies <- apply(snp.dat,1,function(x)sum(x==2)>sum(x==0))
-    snp.dat[allele.frequencies,] <- 2-(snp.dat[allele.frequencies,])
+    allele.frequencies <- maj.allele.frequencies<0.5
+    allele.frequencies[is.na(allele.frequencies)] <- FALSE
+    snp.mat[allele.frequencies,] <- 2-(snp.mat[allele.frequencies,])
+    temp <- anno.geno$Allele.2[allele.frequencies]
+    anno.geno$Allele.2[allele.frequencies] <- anno.geno$Allele.1[allele.frequencies]
+    anno.geno$Allele.1[allele.frequencies] <- temp
+    anno.geno$Allele.1.Freq[allele.frequencies] <- 1-maj.allele.frequencies[allele.frequencies]
+    anno.geno$Allele.2.Freq[allele.frequencies] <- maj.allele.frequencies[allele.frequencies]
   }
   logger.completed()
   return(list(data=snp.dat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
@@ -372,7 +395,6 @@ qtl.run.segmentation <- function(rnb.set,
       stop("Please install the 'epicPMDdetect' package, which is required for computing segmentations")
     }
   }else{
-    logger.info("Segmentation package 'epicPMDdetect' not available, skipping segmentation")
     segmentation <- NULL
   }
   return(segmentation)

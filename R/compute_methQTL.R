@@ -142,7 +142,6 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
     ph.dat <- ph.dat[,sel.covariates,drop=FALSE]
   }
   logger.start("Compute methQTL per correlation block")
-#  if(ncores>1){
     parallel.setup(ncores)
     res.chr.p.val <- mclapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno,mc.cores = ncores)
     res.all <- c()
@@ -151,38 +150,21 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
     }
     res.chr.p.val <- as.data.frame(res.all)
     rm(res.all)
-  # }else{
-  #   res.chr.p.val <- t(sapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno))
-  #   ret <- c()
-  #   for(j in 1:ncol(res.chr.p.val)){
-  #     if(j %in% c(1,2,5)){
-  #       ret <- cbind(ret,unlist(lapply(res.chr.p.val[,j],as.character)))
-  #     }else{
-  #       ret <- cbind(ret,unlist(lapply(res.chr.p.val[,j],as.numeric)))
-  #     }
-  #   }
-  #   ret <- as.data.frame(ret)
-  #   for(j in 1:ncol(ret)){
-  #     if(j %in% c(1,2,5)){
-  #       ret[,j] <- as.character(ret[,j])
-  #     }else{
-  #       ret[,j] <- as.numeric(as.character(ret[,j]))
-  #     }
-  #   }
-  #   ret <- as.data.frame(ret)
-  #   colnames(ret) <- colnames(res.chr.p.val)
-  # }
   logger.completed()
   if(qtl.getOption("p.value.correction")=="uncorrected.fdr"){
     res.chr.p.val <- res.chr.p.val[as.numeric(as.character(res.chr.p.val$P.value))<p.val.cutoff,]
   }
-  if(nrow(res.chr.p.val)==0){
+  if(is.null(res.chr.p.val) || is.na(res.chr.p.val)){
+    logger.info(paste("No methQTL found for chromosome",chrom))
+    chrom.frame <- data.frame()
+  }else if(row(res.chr.p.val)==0){
     logger.info(paste("No methQTL found for chromosome",chrom))
     chrom.frame <- data.frame()
   }else{
     chrom.frame <- data.frame(CpG=as.character(res.chr.p.val$CpG),
                             SNP=as.character(res.chr.p.val$SNP),
                             Beta=as.numeric(as.character(res.chr.p.val$Beta)),
+			    SE.Beta=as.numeric(as.character(res.chr.p.val$SE.Beta)),
                             P.value=as.numeric(as.character(res.chr.p.val$P.value)),
                             Chromosome=as.character(res.chr.p.val$Chromosome),
                             Position.CpG=as.numeric(as.character(res.chr.p.val$Position_CpG)),
@@ -285,11 +267,12 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
     ret <- data.frame(as.character(row.names(sel.anno)),
                       NA,
                       NA,
+		      NA,
                       NA,
                       as.character(sel.anno$Chromosome),
                       NA,
                       sel.anno$Start)
-    colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
+    colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
     return(ret)
   }
   geno.data <- geno.data[distances<qtl.getOption("absolute.distance.cutoff"),,drop=FALSE]
@@ -298,22 +281,24 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
     ret <- data.frame(as.character(row.names(sel.anno)),
                       NA,
                       NA,
+		      NA,
                       NA,
                       as.character(sel.anno$Chromosome),
                       NA,
                       sel.anno$Start)
-    colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
+    colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
     return(ret)
   }else if(nrow(geno.data)==0){
     logger.error("Geno data contains no rows")
     ret <- data.frame(as.character(row.names(sel.anno)),
                       NA,
                       NA,
+		      NA,
                       NA,
                       as.character(sel.anno$Chromosome),
                       NA,
                       sel.anno$Start)
-    colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
+    colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
     return(ret)
   }
   anno.geno <- anno.geno[distances<qtl.getOption("absolute.distance.cutoff"),,drop=FALSE]
@@ -355,6 +340,7 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
       }
       p.val <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
       beta <- summary(lm.model)$coefficients["SNP","Estimate"]
+      se.beta <- summary(lm.model)$coefficients["SNP","Std. Error"]
       if(qtl.getOption("p.value.correction") == "corrected.fdr"){
         permuted.pvals <- matrix(nrow = n.permutations,ncol=2)
         # determine number of independent tests
@@ -375,7 +361,7 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
         }
         p.val <- p.adjust(p.val,"bonferroni",n=ifelse(n.tests<1,1,n.tests))
       }
-     return(c(p.val=p.val,beta=beta))
+     return(c(p.val=p.val,beta=beta,se.beta=se.beta))
     }
   })
   all.snps <- t(all.snps)
@@ -394,20 +380,22 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
     ret <- data.frame(as.character(row.names(sel.anno)),
                       NA,
                       NA,
+		      NA,
                       NA,
                       as.character(sel.anno$Chromosome),
                       NA,
                       sel.anno$Start)
-    colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
+    colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
     return(ret)
   }
   min.p.val <- data.frame(as.character(row.names(sel.anno)),
                           as.character(row.names(anno.geno)[is.min]),
                           all.snps[is.min,'p.val'],
                           all.snps[is.min,'beta'],
+			  all.snps[is.min,'se.beta'],
                           as.character(sel.anno$Chromosome),
                           anno.geno$Start[is.min],
                           sel.anno$Start)
-  colnames(min.p.val) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
+  colnames(min.p.val) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
   return(min.p.val)
 }
