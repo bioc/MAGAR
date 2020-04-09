@@ -7,7 +7,7 @@
 
 QTL.OPTIONS <- new.env()
 assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',
-               'minor.allele.frequency','missing.values.samples','plink.path',
+               'minor.allele.frequency','missing.values.samples','plink.path','fast.qtl.path','bgzip.path','tabix.path',
                'cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
                'linear.model.type','representative.cpg.computation','meth.qtl.type',
                'max.cpgs','rscript.path','cluster.config','recode.allele.frequencies',
@@ -23,6 +23,9 @@ assign("HARDY.WEINBERG.P",0.001,QTL.OPTIONS)
 assign("MINOR.ALLELE.FREQUENCY",0.05,QTL.OPTIONS)
 assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
 assign("PLINK.PATH",NULL,QTL.OPTIONS)
+assign("FAST.QTL.PATH",NULL,QTL.OPTIONS)
+assign('BGZIP.PATH',NULL,QTL.OPTIONS)
+assign("TABIX.PATH",NULL,QTL.OPTIONS)
 assign("CLUSTER.COR.THRESHOLD",0.25,QTL.OPTIONS)
 assign("STANDARD.DEVIATION.GAUSS",250,QTL.OPTIONS)
 assign("ABSOLUTE.DISTANCE.CUTOFF",5e5,QTL.OPTIONS)
@@ -32,7 +35,7 @@ assign("METH.QTL.TYPE","oneVSall",QTL.OPTIONS)
 assign("MAX.CPGS",40000,QTL.OPTIONS)
 assign("RSCRIPT.PATH","/usr/bin/Rscript",QTL.OPTIONS)
 assign("CLUSTER.CONFIG",list(c(h_vmem="5G",mem_free="5G")),QTL.OPTIONS)
-assign("N.PERMUTATIONS",1000,QTL.OPTIONS)
+assign("N.PERMUTATIONS",100,QTL.OPTIONS)
 assign("P.VALUE.CORRECTION","uncorrected.fdr",QTL.OPTIONS)
 assign("COMPUTE.COR.BLOCKS",TRUE,QTL.OPTIONS)
 assign("RECODE.ALLELE.FREQUENCIES",TRUE,QTL.OPTIONS)
@@ -58,6 +61,9 @@ assign("FUNCTIONAL.ANNOTATION.WEIGHT",1.1,QTL.OPTIONS)
 #' @param missing.values.samples Threshold specifying how much missing values per SNP are allowed across the samples
 #'            to be included in the analyis.
 #' @param plink.path Path to an installation of PLINK (also comes with the package)
+#' @param fast.qtl.path Path to an installation of fastQTL (comes with the package for Linux)
+#' @param bgzip.path Path to an installation of BGZIP (comes with the package for Linux)
+#' @param tabix.path Path to an installation of TABIX (comes with the package for Linux)
 #' @param cluster.cor.threshold Threshold for CpG methylatin state correlation to be considered as connected in
 #'            the distance graph used to compute the correlation clustering.
 #' @param standard.deviation.gauss Standard deviation of the Gauss distribution used to weight the correlation
@@ -73,13 +79,15 @@ assign("FUNCTIONAL.ANNOTATION.WEIGHT",1.1,QTL.OPTIONS)
 #' @param meth.qtl.type Option specifying how a methQTL interaction is computed. Since the package is based on correlation
 #'            blocks, a single correlation block can be associated with either one SNP (\code{meth.qtl.type='oneVSall'}),
 #'            with multiple SNPs (\code{meth.qtl.type='allVSall'}), or each correlation block can once be positively and once
-#'            negatively correlated with a SNP genotype (\code{meth.qtl.type='twoVSall'}).
+#'            negatively correlated with a SNP genotype (\code{meth.qtl.type='twoVSall'}). Additionally, we provide the option
+#'            to use (\code{FastQTL}) as a methQTL mapping tool (option \code{'fastQTL'}).
 #' @param max.cpgs Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
 #'             default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
 #'             for larger ones.
 #' @param cluster.config Resource parameters needed to setup an SGE cluster job. Includes \code{h_vmem} and \code{mem_free}
 #' @param rscript.path Path to an executable version of Rscript needed for submitting batch jobs to a cluster
-#' @param n.permutations The number of permutations used to correct the p-values for multiple testing.
+#' @param n.permutations The number of permutations used to correct the p-values for multiple testing. See
+#'              (http://fastqtl.sourceforge.net/) for furthe information.
 #' @param p.value.correction The p-value correction method for multiple testing correction. Can be one of
 #'              \code{"uncorrected.fdr"} or \code{"corrected.fdr}. \code{"uncorrected.fdr"} uses nominal p-values
 #'              per correlation block as a lenient filtering and then uses FDR with the number of tests performed.
@@ -105,6 +113,10 @@ assign("FUNCTIONAL.ANNOTATION.WEIGHT",1.1,QTL.OPTIONS)
 #' qtl.setOption(rnbeads.report=getwd())
 #' qtl.getOption("rnbeads.report")
 #' }
+#' @references
+#'   1. Ongen, H., Buil, A., Brown, A. A., Dermitzakis, E. T., & Delaneau, O. (2016).
+#'    Fast and efficient QTL mapper for thousands of molecular phenotypes. Bioinformatics, 32(10),
+#'    1479–1485. https://doi.org/10.1093/bioinformatics/btv722
 qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.xml",package="methQTL"),
                        meth.data.type="idat.dir",
                        rnbeads.report="temp",
@@ -114,6 +126,9 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        minor.allele.frequency=0.05,
                        missing.values.samples=0.05,
                        plink.path=system.file("bin/plink",package="methQTL"),
+                       fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL"),
+                       bgzip.path=system.file("bin/bgzip",package="methQTL"),
+                       tabix.path=system.file("bin/tabix",package="methQTL"),
                        cluster.cor.threshold=0.25,
                        standard.deviation.gauss=250,
                        absolute.distance.cutoff=5e5,
@@ -173,7 +188,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['HARDY.WEINBERG.P']] <- hardy.weinberg.p
   }
-  if(!missing(minor.allele.frequency)){
+  if(!missing(minor.allele.frequency)){q
     if(!is.numeric(minor.allele.frequency) && minor.allele.frequency > 1){
       stop("Invalid value for minor.allele.frequency, needs to be numeric < 1")
     }
@@ -195,6 +210,39 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
       stop("Invalid value for plink.path, needs to be path to an executable")
     }
     QTL.OPTIONS[['PLINK.PATH']] <- plink.path
+  }
+  if(!missing(fast.qtl.path)){
+    if(is.null(fast.qtl.path)){
+      logger.info("Loading system default for option 'plink.path'")
+      fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL")
+    }
+    er <- tryCatch(system(fast.qtl.path),error=function(x)x)
+    if(inherits(er,"error")){
+      stop("Invalid value for fast.qtl.path, needs to be path to an executable")
+    }
+    QTL.OPTIONS[['FAST.QTL.PATH']] <- fast.qtl.path
+  }
+  if(!missing(bgzip.path)){
+    if(is.null(bgzip.path)){
+      logger.info("Loading system default for option 'bgzip.path'")
+      bgzip.path=system.file("bin/bgzip",package="methQTL")
+    }
+    er <- tryCatch(system(bgzip.path),error=function(x)x)
+    if(inherits(er,"error")){
+      stop("Invalid value for bgzip.path, needs to be path to an executable")
+    }
+    QTL.OPTIONS[['BGZIP.PATH']] <- bgzip.path
+  }
+  if(!missing(tabix.path)){
+    if(is.null(tabix.path)){
+      logger.info("Loading system default for option 'tabix.path'")
+      tabix.path=system.file("bin/tabix",package="methQTL")
+    }
+    er <- tryCatch(system(tabix.path),error=function(x)x)
+    if(inherits(er,"error")){
+      stop("Invalid value for tabix.path, needs to be path to an executable")
+    }
+    QTL.OPTIONS[['TABIX.PATH']] <- tabix.path
   }
   if(!missing(cluster.cor.threshold)){
     if(!is.numeric(cluster.cor.threshold) & cluster.cor.threshold >1){
@@ -227,8 +275,8 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     QTL.OPTIONS[['REPRESENTATIVE.CPG.COMPUTATION']] <- representative.cpg.computation
   }
   if(!missing(meth.qtl.type)){
-    if(!meth.qtl.type%in%c("oneVSall","allVSall","twoVSall")){
-      stop("Invalid value for meth.qtl.type. Needs to be 'oneVSall', 'allVSall', or 'twoVSall'")
+    if(!meth.qtl.type%in%c("oneVSall","allVSall","twoVSall","fastQTL")){
+      stop("Invalid value for meth.qtl.type. Needs to be 'oneVSall', 'allVSall', 'twoVSall', or 'fastQTL'")
     }
     QTL.OPTIONS[['METH.QTL.TYPE']] <- meth.qtl.type
   }
@@ -338,12 +386,33 @@ qtl.getOption <- function(names){
   if('missing.values.samples'%in%names){
     ret <- c(ret,missing.values.samples=QTL.OPTIONS[['MISSING.VALUES.SAMPLES']])
   }
+  if('fast.qtl.path'%in%names){
+    if(is.null(QTL.OPTIONS[['FAST.QTL.PATH']])){
+      logger.info("Loading system default for option 'fast.qtl.path'")
+      qtl.setOption('fast.qtl.path'=system.file("bin/fastQTL.static",package="methQTL"))
+    }
+    ret <- c(ret,fast.qtl.path=QTL.OPTIONS[['FAST.QTL.PATH']])
+  }
   if('plink.path'%in%names){
     if(is.null(QTL.OPTIONS[['PLINK.PATH']])){
       logger.info("Loading system default for option 'plink.path'")
       qtl.setOption('plink.path'=system.file("bin/plink",package="methQTL"))
     }
     ret <- c(ret,plink.path=QTL.OPTIONS[['PLINK.PATH']])
+  }
+  if('bgzip.path'%in%names){
+    if(is.null(QTL.OPTIONS[['BGZIP.PATH']])){
+      logger.info("Loading system default for option 'bgzip.path'")
+      qtl.setOption('bgzip.path'=system.file("bin/bgzip",package="methQTL"))
+    }
+    ret <- c(ret,bgzip.path=QTL.OPTIONS[['BGZIP.PATH']])
+  }
+  if('tabix.path'%in%names){
+    if(is.null(QTL.OPTIONS[['TABIX.PATH']])){
+      logger.info("Loading system default for option 'tabix.path'")
+      qtl.setOption('tabix.path'=system.file("bin/tabix",package="methQTL"))
+    }
+    ret <- c(ret,tabix.path=QTL.OPTIONS[['TABIX.PATH']])
   }
   if('cluster.cor.threshold'%in%names){
     ret <- c(ret,cluster.cor.threshold=QTL.OPTIONS[['CLUSTER.COR.THRESHOLD']])

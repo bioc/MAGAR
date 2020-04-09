@@ -50,7 +50,19 @@
 #    checkTrue(inherits(res,"methQTLResult"))
 #  }
 
+#   test.fastQTL <- function(){
+#     meth.qtl <- load.methQTL("/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/methQTL/package/imputation/stringent/allVSall/RE/methQTLInput/")
+#     qtl.setOption(meth.qtl.type="fastQTL",
+#		bgzip.path="/TL/deep-share/archive00/software/packages/htslib/htslib-1.3.2/bgzip",
+#		tabix.path="/TL/deep-share/archive00/software/packages/htslib/htslib-1.3.2/tabix")
+#    meth.qtl <- do.methQTL.chromosome(meth.qtl,
+#	chrom="chr20",
+#	sel.covariates=NULL,
+#	p.val.cutoff=1e-5,
+#	out.dir=getwd(),
+#	ncores=10)
+#   }
 #  require("RUnit")
 #  require("methQTL")
-#  test.methQTL.segmentation()
+#  test.fastQTL()
 

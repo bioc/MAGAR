@@ -14,6 +14,9 @@ qtl.setOption(
   minor.allele.frequency = 0.05,
   missing.values.samples = 0.05,
   plink.path = system.file("bin/plink", package = "methQTL"),
+  fast.qtl.path = system.file("bin/fastQTL.static", package = "methQTL"),
+  bgzip.path = system.file("bin/bgzip", package = "methQTL"),
+  tabix.path = system.file("bin/tabix", package = "methQTL"),
   cluster.cor.threshold = 0.25,
   standard.deviation.gauss = 250,
   absolute.distance.cutoff = 5e+05,
@@ -56,6 +59,12 @@ to be included in the analyis.}
 
 \item{plink.path}{Path to an installation of PLINK (also comes with the package)}
 
+\item{fast.qtl.path}{Path to an installation of fastQTL (comes with the package for Linux)}
+
+\item{bgzip.path}{Path to an installation of BGZIP (comes with the package for Linux)}
+
+\item{tabix.path}{Path to an installation of TABIX (comes with the package for Linux)}
+
 \item{cluster.cor.threshold}{Threshold for CpG methylatin state correlation to be considered as connected in
 the distance graph used to compute the correlation clustering.}
 
@@ -76,7 +85,8 @@ CpGs in the correlation block.}
 \item{meth.qtl.type}{Option specifying how a methQTL interaction is computed. Since the package is based on correlation
 blocks, a single correlation block can be associated with either one SNP (\code{meth.qtl.type='oneVSall'}),
 with multiple SNPs (\code{meth.qtl.type='allVSall'}), or each correlation block can once be positively and once
-negatively correlated with a SNP genotype (\code{meth.qtl.type='twoVSall'}).}
+negatively correlated with a SNP genotype (\code{meth.qtl.type='twoVSall'}). Additionally, we provide the option
+to use (\code{FastQTL}) as a methQTL mapping tool (option \code{'fastQTL'}).}
 
 \item{max.cpgs}{Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
 default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
@@ -86,7 +96,8 @@ for larger ones.}
 
 \item{cluster.config}{Resource parameters needed to setup an SGE cluster job. Includes \code{h_vmem} and \code{mem_free}}
 
-\item{n.permutations}{The number of permutations used to correct the p-values for multiple testing.}
+\item{n.permutations}{The number of permutations used to correct the p-values for multiple testing. See
+(http://fastqtl.sourceforge.net/) for furthe information.}
 
 \item{p.value.correction}{The p-value correction method for multiple testing correction. Can be one of
 \code{"uncorrected.fdr"} or \code{"corrected.fdr}. \code{"uncorrected.fdr"} uses nominal p-values
@@ -120,6 +131,11 @@ qtl.getOption("rnbeads.report")
 qtl.setOption(rnbeads.report=getwd())
 qtl.getOption("rnbeads.report")
 }
+}
+\references{
+1. Ongen, H., Buil, A., Brown, A. A., Dermitzakis, E. T., & Delaneau, O. (2016).
+   Fast and efficient QTL mapper for thousands of molecular phenotypes. Bioinformatics, 32(10),
+   1479–1485. https://doi.org/10.1093/bioinformatics/btv722
 }
 \author{
 Michael Scherer

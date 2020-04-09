@@ -92,7 +92,7 @@ do.import <- function(data.location,
     samples=s.names,
     assembly=assembly.meth,
     disk.dump=qtl.getOption("hdf5dump"),
-    imputed=ifelse(rnb.getOption("imputation.method")=="none",FALSE,TRUE),
+    imputed=geno.import$imputed,
     platform=meth.import$platform,
     segmentation=meth.import$segmentation
   )
@@ -269,7 +269,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
     snp.mat <- writeHDF5Array(snp.mat)
   }
   logger.completed()
-  return(list(data=snp.mat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
+  return(list(data=snp.mat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col],imputed=FALSE))
 }
 
 #' do.geno.import.imputed
@@ -362,7 +362,7 @@ do.geno.import.imputed <- function(dos.file,
     anno.geno$Allele.2.Freq[allele.frequencies] <- maj.allele.frequencies[allele.frequencies]
   }
   logger.completed()
-  return(list(data=snp.dat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col]))
+  return(list(data=snp.dat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col],imputed=TRUE))
 }
 
 match.assemblies <- function(meth.qtl){
@@ -373,7 +373,7 @@ match.assemblies <- function(meth.qtl){
 #' qtl.run.segmentation
 #'
 #' This function performs DNA methylation based segmentation using the 'epicPMDdetect' package
-#' 
+#'
 #' @param rnb.set An object of type \code{\link{RnBSet-class}} with required DNA methylation information
 #' @param out.folder The output folder to store intermediate results
 #' @return A \code{GRanges} object with the segmentation performed

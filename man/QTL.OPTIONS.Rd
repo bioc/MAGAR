@@ -4,7 +4,7 @@
 \name{QTL.OPTIONS}
 \alias{QTL.OPTIONS}
 \title{options.R}
-\format{An object of class \code{environment} of length 26.}
+\format{An object of class \code{environment} of length 29.}
 \usage{
 QTL.OPTIONS
 }

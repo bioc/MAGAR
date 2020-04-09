@@ -85,7 +85,7 @@ overlap.QTLs <- function(meth.qtl.result.list,type){
 			}
           	}
 	}
-      }	
+      }
       logger.completed()
     }
     logger.start("Overlapping")
@@ -319,4 +319,71 @@ get.overlapping.qtl <- function(meth.qtl.list,type="SNP"){
     res.all <- rbind(res.all,res)
   }
   return(res.all)
+}
+
+#' generate.fastQTL.input
+#'
+#' This function generates the required input to FastQTL and stores the files on disk.
+#'
+#' @param meth.qtl An object of type \code{\link{methQTLInput-class}} with methylation and genotyping information
+#' @param chrom The chromosome to be investigated.
+#' @param correlation.blocks The correlation blocks generated.
+#' @param sel.covariates The selected covariates as a \code{data.frame}
+#' @param out.dir The target output directory
+#' @return A vector comprising the following elements:\describe{
+#'           \item{\code{genotypes:}}{The path to the genotypes file}
+#'           \item{\code{phenotypes:}}{The path to the DNA methylation data file}
+#'           \item{\code{covariates:}}{The path to the covariates file}
+#' }
+generate.fastQTL.input <- function(meth.qtl,chrom,correlation.block,sel.covariates,out.dir){
+  geno.data <- getGeno(meth.qtl)
+  anno.geno <- getAnno(meth.qtl,"geno")
+  geno.data <- geno.data[anno.geno$Chromosome%in%chrom,]
+  anno.geno <- anno.geno[anno.geno$Chromosome%in%chrom,]
+  vcf.frame <- data.frame(CHROM=anno.geno$Chromosome,
+                          POS=anno.geno$Start,
+                          ID=row.names(anno.geno),
+                          REF=anno.geno$Allele.1,
+                          ALT=anno.geno$Allele.2,
+                          QUAL=rep(100,nrow(anno.geno)),
+                          FILTER=rep("PASS",nrow(anno.geno)),
+                          INFO=rep("INFO",nrow(anno.geno)),
+			  FORMAT=rep(ifelse(meth.qtl@imputed,"DS","GT"),nrow(anno.geno)),
+                          geno.data)
+  f.name <- file.path(out.dir,paste0("genotypes_",chrom,".vcf"))
+  write.table(vcf.frame,f.name,sep="\t",row.names = F,col.names = F,quote=F)
+  system(paste("sed -i '1i#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT",
+               paste(colnames(geno.data),collapse="\t"),"'",f.name))
+  system(paste("sed -i '1i##fileformat=VCFv4.1'",f.name))
+  system(paste(qtl.getOption("bgzip.path"),f.name,"&&",qtl.getOption("tabix.path"),"-p vcf",paste0(f.name,".gz")))
+  meth.data <- getMethData(meth.qtl)
+  anno.meth <- getAnno(meth.qtl)
+  meth.data <- meth.data[anno.meth$Chromosome%in%chrom,]
+  anno.meth <- anno.meth[anno.meth$Chromosome%in%chrom,]
+  reps <- compute.representative.CpG(correlation.block,meth.data,anno.meth)
+  anno.meth <- reps$anno
+  meth.data <- reps$meth
+  pheno.frame <- data.frame(Chr=anno.meth$Chromosome,
+                            start=anno.meth$Start,
+                            end=anno.meth$End,
+                            ID=row.names(anno.meth),
+                            meth.data)
+  pheno.frame <- pheno.frame[order(pheno.frame$start,decreasing=F),]
+  f.name <- file.path(out.dir,paste0("phenotypes_",chrom,".bed"))
+  write.table(pheno.frame,f.name,sep="\t",row.names = F,col.names = F,quote=F)
+  system(paste("sed -i '1i#Chr\tstart\tend\tID",
+               paste(colnames(meth.data),collapse="\t"),"'",f.name))
+  system(paste(qtl.getOption("bgzip.path"),f.name,"&&",qtl.getOption("tabix.path"),"-p bed",paste0(f.name,".gz")))
+  f.name <- file.path(out.dir,"covariates.txt")
+  if(is.null(sel.covariates)){
+	cov.file <- NULL
+  }else{
+	cov.file <- file.path(out.dir,"covariates.txt")
+	  cov.frame <- data.frame(id=meth.qtl@samples,
+		                  sel.covariates)
+	  write.table(t(cov.frame),f.name,sep="\t",row.names = T,col.names=F,quote = F)
+  }
+  return(c(genotypes=file.path(out.dir,paste0("genotypes_",chrom,".vcf.gz")),
+           phenotypes=file.path(out.dir,paste0("phenotypes_",chrom,".bed.gz")),
+           covariates=cov.file))
 }

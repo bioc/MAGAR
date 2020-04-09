@@ -30,7 +30,7 @@ This class is the basis for computing methQTLs in the methQTL-package. It stores
   \item{\code{platform}}{The platform used to compute the methylation data.}
   \item{\code{segmentation}}{If performed, the segmentation into PMD/nonPMDs using the epicPMDdetect package.}
   \item{\code{disk.dump}}{Flag indicating if the matrices are stored on disk rather than in memory.}
-  \item{\code{imputed}}{Flag indicating if DNA methylation dataset has been imputed.}
+  \item{\code{imputed}}{Flag indicating if genotype dataset has been imputed.}
 }
 }
 
