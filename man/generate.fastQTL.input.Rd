@@ -17,11 +17,11 @@ generate.fastQTL.input(
 
 \item{chrom}{The chromosome to be investigated.}
 
+\item{correlation.block}{The correlation blocks generated.}
+
 \item{sel.covariates}{The selected covariates as a \code{data.frame}}
 
 \item{out.dir}{The target output directory}
-
-\item{correlation.blocks}{The correlation blocks generated.}
 }
 \value{
 A vector comprising the following elements:\describe{

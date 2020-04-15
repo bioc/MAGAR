@@ -430,8 +430,8 @@ compute.representative.CpG <- function(cor.blocks,meth.data,annotation){
 	  }
  	 return(list(meth=res.meth,anno=res.anno))
   }else{
-	    sel.meth <- meth.data
-	    anno.meth <- annotation
+	    sel.meth <- meth.data[cor.blocks,,drop=FALSE]
+	    anno.meth <- annotation[cor.blocks,,drop=FALSE]
 	    if(repr.type == "row.medians"){
 	      reps <- apply(as.matrix(sel.meth),1,median,na.rm=T)
 	      order.reps <- order(reps,decreasing = T)

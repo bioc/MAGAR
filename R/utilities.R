@@ -327,7 +327,7 @@ get.overlapping.qtl <- function(meth.qtl.list,type="SNP"){
 #'
 #' @param meth.qtl An object of type \code{\link{methQTLInput-class}} with methylation and genotyping information
 #' @param chrom The chromosome to be investigated.
-#' @param correlation.blocks The correlation blocks generated.
+#' @param correlation.block The correlation blocks generated.
 #' @param sel.covariates The selected covariates as a \code{data.frame}
 #' @param out.dir The target output directory
 #' @return A vector comprising the following elements:\describe{

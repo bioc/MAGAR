@@ -96,6 +96,7 @@ test.meth.qtl.functions <- function(){
   row.names(snp.matrix) <- paste0("rs",1:nrow(snp.matrix))
   row.names(anno.cpg) <- paste0("cg",1:nrow(meth.matrix))
   row.names(anno.snps) <- paste0("rs",1:nrow(snp.matrix))
+  qtl.setOption(meth.qtl.type="allVSall")
   meth.qtl <- new("methQTLInput",
                   meth.data=meth.matrix,
                   geno.data=snp.matrix,
@@ -105,7 +106,7 @@ test.meth.qtl.functions <- function(){
                   samples=paste0("Sample",1:100),
                   platform="probesEPIC")
   passed <- inherits(meth.qtl,"methQTLInput")
-  meth.qtl.res <- do.methQTL.chromosome(meth.qtl,chrom = sel.chr,sel.covariates = NULL,p.val.cutoff = 1e-5)
+  meth.qtl.res <- do.methQTL.chromosome(meth.qtl,chrom = sel.chr,sel.covariates = NULL,p.val.cutoff = 1e-2)
   true.meth.qtl.cpgs <- row.names(meth.matrix)[is.methQTL.CpG]
   true.meth.qtl.snps <- row.names(snp.matrix)[is.methQTL.SNP]
   cor.blocks <- getCorrelationBlocks(meth.qtl.res)

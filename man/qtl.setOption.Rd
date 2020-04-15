@@ -73,7 +73,7 @@ according to its distance.}
 
 \item{absolute.distance.cutoff}{Distance cutoff after which a CpG correlation is not considered anymore.}
 
-\item{linear.model.type}{Linear model type to be used. Can be either \code{"categorical.anova"} or \code{"classical.linear"}.
+\item{linear.model.type}{Linear model type to be used. Can be either \code{"categorical.anova"} or \code{"classical.linear"}. If \code{'meth.qtl.type'='fastQTL'}, this option is automatically set to \code{'fastQTL'}
 see \code{\link{call.methQTL.block}} for more informations.}
 
 \item{representative.cpg.computation}{Option specifying how reference CpGs per correlation block are to be computed. Available

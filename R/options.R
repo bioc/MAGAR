@@ -69,7 +69,7 @@ assign("FUNCTIONAL.ANNOTATION.WEIGHT",1.1,QTL.OPTIONS)
 #' @param standard.deviation.gauss Standard deviation of the Gauss distribution used to weight the correlation
 #'            according to its distance.
 #' @param absolute.distance.cutoff Distance cutoff after which a CpG correlation is not considered anymore.
-#' @param linear.model.type Linear model type to be used. Can be either \code{"categorical.anova"} or \code{"classical.linear"}.
+#' @param linear.model.type Linear model type to be used. Can be either \code{"categorical.anova"} or \code{"classical.linear"}. If \code{'meth.qtl.type'='fastQTL'}, this option is automatically set to \code{'fastQTL'}
 #'            see \code{\link{call.methQTL.block}} for more informations.
 #' @param representative.cpg.computation Option specifying how reference CpGs per correlation block are to be computed. Available
 #'            options are \code{"row.medians"} for the site that is the row median across the samples within the
@@ -263,7 +263,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     QTL.OPTIONS[['ABSOLUTE.DISTANCE.CUTOFF']] <- absolute.distance.cutoff
   }
   if(!missing(linear.model.type)){
-    if(!linear.model.type %in% c("classical.linear","categorical.anova")){
+    if(!linear.model.type %in% c("classical.linear","categorical.anova","fastQTL")){
       stop("Invalid value for linear.model.type. Needs to be classical linear or categorical.anova.")
     }
     QTL.OPTIONS[['LINEAR.MODEL.TYPE']] <- linear.model.type
@@ -279,6 +279,9 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
       stop("Invalid value for meth.qtl.type. Needs to be 'oneVSall', 'allVSall', 'twoVSall', or 'fastQTL'")
     }
     QTL.OPTIONS[['METH.QTL.TYPE']] <- meth.qtl.type
+    if(meth.qtl.type=="fastQTL"){
+      QTL.OPTIONS[['LINEAR.MODEL.TYPE']] <- "fastQTL"
+    }
   }
   if(!missing(max.cpgs)){
     if(!is.numeric(max.cpgs)){

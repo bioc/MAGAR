@@ -10,6 +10,8 @@ qtl.run.segmentation(rnb.set, out.folder, train.chr = "chr2")
 \item{rnb.set}{An object of type \code{\link{RnBSet-class}} with required DNA methylation information}
 
 \item{out.folder}{The output folder to store intermediate results}
+
+\item{train.chr}{The chromosome on which the HMM should be trained}
 }
 \value{
 A \code{GRanges} object with the segmentation performed

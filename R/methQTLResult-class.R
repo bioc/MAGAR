@@ -110,7 +110,7 @@ setMethod("getResult",signature(object="methQTLResult"),
                   chr <- cor.blocks[[i]]
                   for(j in 1:length(chr)){
                     block <- chr[[j]]
-                    cpg <- as.character(ret$CpG)[as.character(ret$CpG) %in% block]
+                    cpg <- unique(as.character(ret$CpG)[as.character(ret$CpG) %in% block])
                     if(length(cpg)>0){
                       cor.blocks.assigned[[unique(cpg)]] <- block
                     }
@@ -120,7 +120,7 @@ setMethod("getResult",signature(object="methQTLResult"),
                 cor.blocks.assigned <- list()
                 for(i in 1:length(cor.blocks)){
                   block <- cor.blocks[[i]]
-                  cpg <- as.character(ret$CpG)[as.character(ret$CpG) %in% block]
+                  cpg <- unique(as.character(ret$CpG)[as.character(ret$CpG) %in% block])
                   if(length(cpg)>0){
                     cor.blocks.assigned[[cpg]] <- block
                   }

@@ -376,6 +376,7 @@ match.assemblies <- function(meth.qtl){
 #'
 #' @param rnb.set An object of type \code{\link{RnBSet-class}} with required DNA methylation information
 #' @param out.folder The output folder to store intermediate results
+#' @param train.chr The chromosome on which the HMM should be trained
 #' @return A \code{GRanges} object with the segmentation performed
 #' @details The 'epicPMDdetect' package has been created by Malte Gross
 #' @author Michael Scherer
@@ -385,7 +386,6 @@ qtl.run.segmentation <- function(rnb.set,
 				train.chr="chr2"){
   if(qtl.getOption("use.segmentation")){
     if(requireNamespace("epicPMDdetect")){
-      require("epicPMDdetect")
       logger.start("Start segmentation")
       gr <- epicPMDdetect::buildMethGrangesFromRnbSet(rnb.set)
       segmentation <- epicPMDdetect::segmentPMDsKNN(gr,training.chr.sel=train.chr)

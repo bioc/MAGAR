@@ -1,3 +1,8 @@
+methQTL version 0.3.4
+---------------------
+ * Included fastQTL as alternative methQTL calling tool
+ * Some code refactoring, documentation updates, and bugfixes
+
 methQTL version 0.3.3
 ---------------------
  * Integrating weighting the correlation blocks according to functional annotations (regulatory build) and DNA methylation-based segmentation (MethylSeekR) 

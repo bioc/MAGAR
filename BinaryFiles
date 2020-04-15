@@ -1,1 +1,5 @@
 inst/bin/plink
+inst/bin/fastQTL.static
+inst/bin/tabix
+inst/bin/bgzip
+inst/bin/fastQTL
