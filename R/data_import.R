@@ -17,6 +17,8 @@
 #'             (i.e. with \code{bed}, \code{bim} and \code{fam} files), or imputed, dosage files (i.e. with
 #'             \code{dos} and \code{txt} files)}
 #'          }
+#' @param data.type.geno The type of data to be imported. Can be either \code{'plink'} for \code{'.bed', '.bim',} and \code{'.fam'} or
+#'   \code{'.dos'} and \code{'txt'} files or \code{'idat'} for raw IDAT files.
 #' @param s.anno Path to the sample annotation sheet. If \code{NULL}, the program searches for potential sample
 #'          annotation sheets in the data location directories.
 #' @param assembly.meth Assembly used for the DNA methylation data. Typically is \code{"hg19"} for Illumina BeadArray
@@ -44,6 +46,7 @@
 #' @export
 
 do.import <- function(data.location,
+                      data.type.geno="plink",
                       s.anno=NULL,
                       assembly.meth="hg19",
                       assembly.geno="hg19",
@@ -69,7 +72,7 @@ do.import <- function(data.location,
     }
   }
   pheno.data <- read.table(s.anno,sep=tab.sep,header = T)
-  geno.import <- do.geno.import(data.location,pheno.data,s.id.col,out.folder)
+  geno.import <- do.geno.import(data.location,pheno.data,s.id.col,out.folder,data.type=data.type.geno)
   pheno.data <- geno.import$pheno.data
   s.anno <- file.path(out.folder,ifelse(tab.sep==",","sample_annotation.csv","sample_annotation.tsv"))
   write.table(pheno.data,s.anno,sep=tab.sep)
@@ -114,7 +117,7 @@ do.import <- function(data.location,
 #' @param tab.sep Table separator used.
 #' @param snp.location Locations of SNPs called in the genotyped processing to be removed from the list of CpGs.
 #' @param out.folder If not \code{NULL} a directory in which intermediate results are to be written
-#' @param ... Further parameters passed to, e.g., qtl.run.segmentation
+#' @param ... Further parameters passed to, e.g., qtl.run.segmentation, do.geno.import.idat
 #' @return A list with five elements:
 #'          \describe{
 #'            \item{sample}{The samples used in the dataset as a character vector}
@@ -185,6 +188,8 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
 #' @param s.anno The sample annotation sheet.
 #' @param s.id.col The column name of the sample annotation sheet specifying the sample identifiers.
 #' @param out.folder The output folder for storing diagnostic plots.
+#' @param data.type The type of data to be imported. Can be either \code{'plink'} for \code{'.bed', '.bim',} and \code{'.fam'} or
+#'       \code{'.dos'} and \code{'txt'} files or \code{'idat'} for raw IDAT files.
 #' @param ... Futher parameters passed to \code{\link{do.geno.import.imputed}}.
 #' @return A list of three elements:
 #'        \describe{
@@ -194,22 +199,26 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
 #'        }
 #' @author Michael Scherer
 #' @noRd
-do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
+do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,data.type="plink",...){
   logger.start("Processing genotyping data")
   snp.loc <- data.location["geno.dir"]
   all.files <- list.files(snp.loc,full.names=T)
-  bed.file <- all.files[grepl(".bed",all.files)]
-  bim.file <- all.files[grepl(".bim",all.files)]
-  fam.file <- all.files[grepl(".fam",all.files)]
-  if(any(c(length(bed.file)==0,length(bim.file)==0,length(fam.file)==0))){
-    dos.file <- all.files[grepl(".dos",all.files)]
-    id.map <- all.files[grepl(".txt",all.files)]
-    if(any(c(length(dos.file)==0,length(id.map)==0))){
-      stop("Incompatible input to genotyping processing, needs to be in PLINK format (i.e. .bed, .bim and .fam files)")
+  if(data.type=="plink"){
+    bed.file <- all.files[grepl(".bed",all.files)]
+    bim.file <- all.files[grepl(".bim",all.files)]
+    fam.file <- all.files[grepl(".fam",all.files)]
+    if(any(c(length(bed.file)==0,length(bim.file)==0,length(fam.file)==0))){
+      dos.file <- all.files[grepl(".dos",all.files)]
+      id.map <- all.files[grepl(".txt",all.files)]
+      if(any(c(length(dos.file)==0,length(id.map)==0))){
+        stop("Incompatible input to genotyping processing, needs to be in PLINK format (i.e. .bed, .bim and .fam files)")
+      }
+      return(do.geno.import.imputed(dos.file,id.map,s.anno,s.id.col,out.folder,...))
     }
-    return(do.geno.import.imputed(dos.file,id.map,s.anno,s.id.col,out.folder,...))
+    snp.dat <- read.plink(bed = bed.file,bim = bim.file,fam = fam.file)
+  }else if(data.type=="idat"){
+    snp.dat <- do.geno.import.idat(snp.loc,s.anno,s.id.col,out.folder)
   }
-  snp.dat <- read.plink(bed = bed.file,bim = bim.file,fam = fam.file)
   fam <- snp.dat$fam
   s.anno <- s.anno[as.character(s.anno[,s.id.col]) %in% row.names(fam),]
   if(is.null(s.anno)){
@@ -368,6 +377,52 @@ do.geno.import.imputed <- function(dos.file,
 match.assemblies <- function(meth.qtl){
   print("Not yet implemented")
   return(meth.qtl)
+}
+
+#' do.geno.import.idat
+#'
+#' This function imports genotyping data from IDAT files using the \code{'crlmm'} R-package
+#'
+#' @param idat.files A path to the directory where the IDAT files are stored
+#' @param s.anno The sample annotation sheet as a \code{'data.frame'}
+#' @param s.id.col The column in the sample annotation sheet specifying the sample identifiers
+#' @param out.dir The output directory
+#' @param idat.platform The array platform to be used. Check those available using the crlmm function \code{\link{validCdfNames}}
+#' @return A \code{SnpMatrix} object loaded through \code{\link{read.plink}}
+#' @author Michael Scherer
+#' @export
+library(crlmm)
+library(ff)
+idat.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/idat/"
+s.anno <- read.table("/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/annotation/sample_annotation_genotypes_red.tsv",
+                     sep="\t",
+                     header = T)
+s.id.col <- "sample_id"
+out.dir <- getwd()
+idat.platform="humanomni258v1a"
+do.geno.import.idat <- function(idat.files,
+                                   s.anno,
+                                   s.id.col,
+                                   out.dir,
+                                   idat.platform="humanomni258v1a"){
+  if(!("SentrixPosition"%in%colnames(s.anno))){
+    stop("Missing required column 'SentrixPosition' in the sample annotation sheet")
+  }
+  array.names <- file.path(idat.files,as.character(s.anno[,"SentrixPosition"]))
+  test.exist <- file.exists(paste0(array.names,"_Grn.idat")) & file.exists(paste0(array.names,"_Red.idat"))
+  if(any(!test.exist)){
+    stop(paste0("Missing idat files, e.g. ",paste(s.anno[!test.exist,"SentrixPosition"],collapse=" ")))
+  }
+  array.info <- list(barcode=NULL,position="SentrixPosition")
+  batch.info <- rep("1",nrow(s.anno))
+  loadNamespace("ff")
+  crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
+                                 arrayNames=array.names,
+                                 arrayInfoColNames=array.info,
+                                 cdfName=idat.platform,
+                                 batch=batch.info,
+                                 call.method="krlmm",
+                                 quantile.method="within")
 }
 
 #' qtl.run.segmentation

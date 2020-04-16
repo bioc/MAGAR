@@ -155,7 +155,7 @@ setMethod("getResult.GWASMap",signature(object="methQTLResult"),
 	    anno.geno <- getAnno(meth.qtl,"geno")[as.character(ret$SNP),]
 	    ret$ReferenceAllele <- anno.geno$Allele.1
 	    ret$EffectiveAllele <- anno.geno$Allele.2
-            ret$EffectiveAlleleFrequncy <- anno.geno$Allele.2.Freq
+            ret$EffectiveAlleleFrequency <- anno.geno$Allele.2.Freq
             return(ret)
           }
 )

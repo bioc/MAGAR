@@ -1,7 +1,7 @@
 ---
 title: "methQTL package"
 author: "Michael Scherer"
-date: "January 16, 2020"
+date: "April 15, 2020"
 header-includes:
   \usepackage{helvet}
   \hypersetup{colorlinks,
@@ -12,6 +12,7 @@ output:
     latex_engine: xelatex
 vignette:
   \VignetteEngine{knitr::knitr}
+bibliography: biblio.bib  
 ---
 
 ```{r setup, include=FALSE, cache=FALSE}
@@ -60,6 +61,8 @@ cat(rnb.options2xml(),file=xml.fi)
 qtl.setOption(rnbeads.options = xml.fi)
 ```
 
+To redefine the correlation blocks, we allow including additional information such as genome-wide segmentation of the methylation landscape (see option ```use.segmentation``` and function ```qtl.run.segmentation```), and also function annotation according to the Ensembl regulatory build[@Zerbino2015].
+
 ## Genotyping data
 
 We require that genotyping data has already been processed by *plink* and is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, as variant calling files (*.vcf*), or as imputed files in the dosage format (*.dos*). For further processing, we use the command line tool *plink*, which comes with this package, but is only applicable on Linux systems. For Windows and MacOS users, please install the *plink* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.
@@ -92,6 +95,8 @@ imp.data <- do.import(data.location = c(idat.dir=idat.dir,geno.dir=geno.dir),
                       tab.sep = "\t")
 ```
 
+Please note that the ```recode.allele.frequencies``` option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies found.
+
 # methQTL calling
 
 Although *methQTL* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter, or as global parameters using ```?qtl.setOption```.
@@ -121,7 +126,14 @@ From the list of correlation blocks, *methQTL* computes methQTL interactions wit
 
 1. Compute a representative CpG per correlation block, as specified with the option ```representative.cpg.computation``` (default: *row.medians*).
 2. Discard all SNPs that are further than ```absolute.distance.cutoff``` (default: 1,000,000) away from the representative CpG
-3. Call methQTL by using linear models. Multiple options of methQTL calling are available and can be selected via the option ```linear.model.type``` (default: *classical.linear*).
+3. Call methQTL by using linear models. Multiple options of methQTL calling are available and can be selected via the option ```linear.model.type``` (default: *classical.linear*). Alternatively, *fastQTL* can be set as an option for
+```meth.qtl.type```. This will tell the package to use the fastQTL software[@Ongen2016].
+
+The ```meth.qtl.type``` tells, how a methQTL interaction is defined and provides three options, in addition to the already mentioned *fastQTL*:
+
+1. *oneVSall*: A CpG can only be influenced by one SNP. We choose the one with the lowest p-value.
+2. *twoVSall*: A CpG can both positively and negatively be influenced by two independent SNPs. The package will output those fulfilling the p-value cutoff.
+3. *allVSall*: For each CpG, all SNPs showing a p-value lower than the p-value cutoff will be returned.
 
 In the latest stage, potential covariates can be specified using the option *sel.covariates*. We recommend to include at least *age* and *sex* as covariates, as they have a strong influence on the DNA methylation pattern.
 
