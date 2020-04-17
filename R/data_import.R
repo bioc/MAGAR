@@ -391,20 +391,22 @@ match.assemblies <- function(meth.qtl){
 #' @return A \code{SnpMatrix} object loaded through \code{\link{read.plink}}
 #' @author Michael Scherer
 #' @export
-library(crlmm)
-library(ff)
-idat.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/idat/"
-s.anno <- read.table("/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/annotation/sample_annotation_genotypes_red.tsv",
-                     sep="\t",
-                     header = T)
-s.id.col <- "sample_id"
-out.dir <- getwd()
-idat.platform="humanomni258v1a"
 do.geno.import.idat <- function(idat.files,
                                    s.anno,
                                    s.id.col,
                                    out.dir,
-                                   idat.platform="humanomni258v1a"){
+                                   idat.platform="humanomni258v1a",
+                                   gender.col=NULL){
+  # library(crlmm)
+  # library(ff)
+  # idat.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/idat/"
+  # s.anno <- read.table("/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/annotation/sample_annotation_genotypes_red.tsv",
+  #                      sep="\t",
+  #                      header = T)
+  # s.id.col <- "sample_id"
+  # out.dir <- getwd()
+  # idat.platform="humanomni258v1p1b"
+  # gender.col=NULL
   if(!("SentrixPosition"%in%colnames(s.anno))){
     stop("Missing required column 'SentrixPosition' in the sample annotation sheet")
   }
@@ -416,13 +418,34 @@ do.geno.import.idat <- function(idat.files,
   array.info <- list(barcode=NULL,position="SentrixPosition")
   batch.info <- rep("1",nrow(s.anno))
   loadNamespace("ff")
+  if(!any(c("gender","sex")%in%tolower(colnames(s.anno)))){
+    logger.info("Parsing gender information")
+    gender.col <- colnames(s.anno[which(tolower(colnames(s.anno))%in%c("gender","sex"))])
+  }
+  if(!is.null(gender.col)){
+    sex <- s.anno[,gender.col]
+    if(any(grepl("f",sex))){
+      sex <- ifelse(grepl("f",sex),2,1)
+    }
+  }else{
+    sex <- rep(NA,nrow(s.anno))
+  }
   crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
                                  arrayNames=array.names,
                                  arrayInfoColNames=array.info,
                                  cdfName=idat.platform,
                                  batch=batch.info,
                                  call.method="krlmm",
-                                 quantile.method="within")
+                                 copynumber=FALSE,
+                                 fitMixture=FALSE,
+                                 gender=sex)
+  snp.mat <- new("SnpMatrix",t(calls(crlmm.obj)[,,drop=F])-1)
+  ids <- as.character(s.anno[,s.id.col])
+  write.plink(file.path(out.dir,"plink"),
+              snps=snp.mat,
+              pedigree=ids,
+              id=ids,
+              sex=sex)
 }
 
 #' qtl.run.segmentation

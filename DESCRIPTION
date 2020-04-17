@@ -21,7 +21,8 @@ Depends: HDF5Array,
          knitr,
          plyr,
 	 BiocGenerics,
-	 crlmm
+	 crlmm,
+	 ff
 Suggests: gridExtra,
          VennDiagram,
          UpSetR,
