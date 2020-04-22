@@ -1,4 +1,4 @@
-#  test.import <- function(){
+  #  test.import <- function(){
 #    idat.files <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
 #    s.anno <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_CD4_IPC.tsv"
 #    plink.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO//"
@@ -62,7 +62,27 @@
 #	out.dir=getwd(),
 #	ncores=10)
 #   }
+
+test.idat <- function(){
+ idat.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/idat/"
+ s.anno <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/annotation/sample_annotation_genotypes_red.tsv"
+ s.id.col <- "sample_id"
+ out.dir <- getwd()
+ idat.platform="humanomni258v1p1b"
+ gender.col=NULL
+ qtl.setOption(meth.data.type="GEO")
+ qtl.setOption(missing.values.samples = 0.5)
+ data.loc <- c(idat.dir="GSE79262",geno.dir=idat.files)
+ res <- do.import(data.loc,
+                  data.type.geno="idat",
+                  s.anno=s.anno,
+                  tab.sep="\t",
+                  s.id.col=s.id.col,
+                  out.folder=out.dir,
+                  idat.platform=idat.platform)
+}
 #  require("RUnit")
-#  require("methQTL")
+  require("methQTL")
 #  test.fastQTL()
+test.idat()
 

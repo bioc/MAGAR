@@ -28,6 +28,7 @@
 #' @param tab.sep The table separator used for the sample annotation sheet.
 #' @param s.id.col The column name of the sample annotation sheet that specifies the sample identifier.
 #' @param out.folder The output directory to store diagnostic plots
+#' @param ... Futher parameters passed to e.g. \code{\link{do.geno.import}}
 #' @return An object of type \code{\link{methQTLInput-class}} with the methylation and genotyping information added.
 #' @details Import of DNA methylation and genotyping data is done separately:
 #'          \describe{
@@ -52,7 +53,8 @@ do.import <- function(data.location,
                       assembly.geno="hg19",
                       tab.sep=",",
                       s.id.col="sample_id",
-                      out.folder=tempdir()){
+                      out.folder=tempdir(),
+                      ...){
   logger.start("Import methQTL data")
   if(is.null(s.anno)){
     for(i in 1:length(data.location)){
@@ -72,7 +74,7 @@ do.import <- function(data.location,
     }
   }
   pheno.data <- read.table(s.anno,sep=tab.sep,header = T)
-  geno.import <- do.geno.import(data.location,pheno.data,s.id.col,out.folder,data.type=data.type.geno)
+  geno.import <- do.geno.import(data.location,pheno.data,s.id.col,out.folder,data.type=data.type.geno,...)
   pheno.data <- geno.import$pheno.data
   s.anno <- file.path(out.folder,ifelse(tab.sep==",","sample_annotation.csv","sample_annotation.tsv"))
   write.table(pheno.data,s.anno,sep=tab.sep)
@@ -215,10 +217,13 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,data.type="p
       }
       return(do.geno.import.imputed(dos.file,id.map,s.anno,s.id.col,out.folder,...))
     }
-    snp.dat <- read.plink(bed = bed.file,bim = bim.file,fam = fam.file)
   }else if(data.type=="idat"){
-    snp.dat <- do.geno.import.idat(snp.loc,s.anno,s.id.col,out.folder)
+    res <- do.geno.import.idat(snp.loc,s.anno,s.id.col,out.folder,...)
+    bed.file <- res["bed.file"]
+    bim.file <- res["bim.file"]
+    fam.file <- res["fam.file"]
   }
+  snp.dat <- read.plink(bed = bed.file,bim = bim.file,fam = fam.file)
   fam <- snp.dat$fam
   s.anno <- s.anno[as.character(s.anno[,s.id.col]) %in% row.names(fam),]
   if(is.null(s.anno)){
@@ -399,6 +404,8 @@ do.geno.import.idat <- function(idat.files,
                                    gender.col=NULL){
   # library(crlmm)
   # library(ff)
+  # library(snpStats)
+  # library(RnBeads)
   # idat.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/idat/"
   # s.anno <- read.table("/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/annotation/sample_annotation_genotypes_red.tsv",
   #                      sep="\t",
@@ -407,20 +414,24 @@ do.geno.import.idat <- function(idat.files,
   # out.dir <- getwd()
   # idat.platform="humanomni258v1p1b"
   # gender.col=NULL
-  if(!("SentrixPosition"%in%colnames(s.anno))){
-    stop("Missing required column 'SentrixPosition' in the sample annotation sheet")
+  if(!("GenoSentrixPosition"%in%colnames(s.anno))){
+    stop("Missing required column 'GenoSentrixPosition' in the sample annotation sheet")
   }
-  array.names <- file.path(idat.files,as.character(s.anno[,"SentrixPosition"]))
+  array.names <- file.path(idat.files,as.character(s.anno[,"GenoSentrixPosition"]))
   test.exist <- file.exists(paste0(array.names,"_Grn.idat")) & file.exists(paste0(array.names,"_Red.idat"))
   if(any(!test.exist)){
-    stop(paste0("Missing idat files, e.g. ",paste(s.anno[!test.exist,"SentrixPosition"],collapse=" ")))
+    stop(paste0("Missing idat files, e.g. ",paste(s.anno[!test.exist,"GenoSentrixPosition"],collapse=" ")))
   }
-  array.info <- list(barcode=NULL,position="SentrixPosition")
+  array.info <- list(barcode=NULL,position="GenoSentrixPosition")
   batch.info <- rep("1",nrow(s.anno))
   loadNamespace("ff")
-  if(!any(c("gender","sex")%in%tolower(colnames(s.anno)))){
-    logger.info("Parsing gender information")
-    gender.col <- colnames(s.anno[which(tolower(colnames(s.anno))%in%c("gender","sex"))])
+  if(is.null(gender.col)){
+    if(any(c("gender","sex")%in%tolower(colnames(s.anno)))){
+      logger.info("Parsing sex information")
+      gender.col <- colnames(s.anno)[which(tolower(colnames(s.anno))%in%c("gender","sex"))]
+    }else{
+      logger.info("No sex information found")
+    }
   }
   if(!is.null(gender.col)){
     sex <- s.anno[,gender.col]
@@ -441,11 +452,39 @@ do.geno.import.idat <- function(idat.files,
                                  gender=sex)
   snp.mat <- new("SnpMatrix",t(calls(crlmm.obj)[,,drop=F])-1)
   ids <- as.character(s.anno[,s.id.col])
+  row.names(snp.mat) <- ids
+  f.dat <- featureData(crlmm.obj)
+  assembly <- crlmm.obj@genome
+  anno.data <- system.file("extdata/annotation.rda",package = paste0(idat.platform,"Crlmm"))
+  if(!file.exists(anno.data)){
+    stop(paste("Missing required annotation data for BeadArray",idat.platform))
+  }
+  load(anno.data)
+  if(any(!(featureNames(f.dat)%in%annot$Name))){
+    stop("Provided array annotation not sufficient, Aborting")
+  }
+  alleles <- annot$SNP[match(featureNames(f.dat),annot$Name)]
+  allele.A <- substr(alleles,2,2)
+  allele.B <- substr(alleles,4,4)
+  chroms <- chromosome(f.dat)
+  is.chr.0 <- chroms%in%c(0,25)
+  chroms[chroms==23] <- "X"
+  chroms[chroms==24] <- "Y"
   write.plink(file.path(out.dir,"plink"),
-              snps=snp.mat,
+              snps=snp.mat[,!is.chr.0],
               pedigree=ids,
               id=ids,
-              sex=sex)
+              sex=sex,
+              chromosome=chroms[!is.chr.0],
+              position=position(f.dat)[!is.chr.0],
+              allele.1=allele.A[!is.chr.0],
+              allele.2=allele.B[!is.chr.0]
+              )
+  return(c(
+    bed.file=file.path(out.dir,"plink.bed"),
+    bim.file=file.path(out.dir,"plink.bim"),
+    fam.file=file.path(out.dir,"plink.fam")
+  ))
 }
 
 #' qtl.run.segmentation
