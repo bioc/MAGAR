@@ -158,7 +158,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['RNBEADS.OPTIONS']] <- rnbeads.options
   }
-  if(!missing(rnbeads.report)){
+  if(!missing(meth.data.type)){
     if(!(meth.data.type %in% c("idat.dir","data.dir","data.files","GS.report","GEO","rnb.set"))){
       stop("Invalid value for meth.data.type, see rnb.execute.import for options.")
     }

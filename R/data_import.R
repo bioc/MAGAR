@@ -140,7 +140,11 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
   rnb.options(identifiers.column=s.id.col,
               assembly=assembly,
               import.table.separator=tab.sep)
-  data.s <- c(data.location["idat.dir"],s.anno)
+  if(qtl.getOption("meth.data.type")=="GEO"){
+    data.s <- data.location["idat.dir"]
+  }else{
+    data.s <- c(data.location["idat.dir"],s.anno)
+  }
   rnb.imp <- rnb.execute.import(data.source = data.s, data.type = qtl.getOption("meth.data.type"))
   if(qtl.getOption("rnbeads.qc")){
     if(dir.exists(qtl.getOption("rnbeads.report"))){
