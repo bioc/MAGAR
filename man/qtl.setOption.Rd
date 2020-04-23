@@ -13,6 +13,7 @@ qtl.setOption(
   hardy.weinberg.p = 0.001,
   minor.allele.frequency = 0.05,
   missing.values.samples = 0.05,
+  impute.geno.data = FALSE,
   plink.path = system.file("bin/plink", package = "methQTL"),
   fast.qtl.path = system.file("bin/fastQTL.static", package = "methQTL"),
   bgzip.path = system.file("bin/bgzip", package = "methQTL"),
@@ -32,7 +33,11 @@ qtl.setOption(
   recode.allele.frequencies = FALSE,
   use.segmentation = FALSE,
   use.functional.annotation = FALSE,
-  functional.annotation.weight = 1.1
+  functional.annotation.weight = 1.1,
+  vcftools.path = NULL,
+  imputation.user.token = NULL,
+  imputation.reference.panel = "apps@hrc-r1.1",
+  imputation.phasing.method = "shapeit"
 )
 }
 \arguments{
@@ -56,6 +61,9 @@ Hardy-Weinberg equilibrium as implemented in \code{PLINK}.}
 
 \item{missing.values.samples}{Threshold specifying how much missing values per SNP are allowed across the samples
 to be included in the analyis.}
+
+\item{impute.geno.data}{Flag indicating if imputation of gneotyping data is to be perfomed using the Michigan imputation
+server (https://imputationserver.sph.umich.edu/index.html)[2].}
 
 \item{plink.path}{Path to an installation of PLINK (also comes with the package)}
 
@@ -86,7 +94,7 @@ CpGs in the correlation block.}
 blocks, a single correlation block can be associated with either one SNP (\code{meth.qtl.type='oneVSall'}),
 with multiple SNPs (\code{meth.qtl.type='allVSall'}), or each correlation block can once be positively and once
 negatively correlated with a SNP genotype (\code{meth.qtl.type='twoVSall'}). Additionally, we provide the option
-to use (\code{FastQTL}) as a methQTL mapping tool (option \code{'fastQTL'}).}
+to use (\code{FastQTL})[1] as a methQTL mapping tool (option \code{'fastQTL'}).}
 
 \item{max.cpgs}{Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
 default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
@@ -121,6 +129,18 @@ same annotation are prioritized and in different ones penalized.}
 
 \item{functional.annotation.weight}{Numeric value specifying how strong CpGs in the same functional annotation should
 be prioritized.}
+
+\item{vcftools.path}{Path to the installation of VCFtools. Necessary is the vcf-sort function in this folder.}
+
+\item{imputation.user.token}{The user token that is required for authorization with the Michigan imputation server. Please
+have a look at https://imputationserver.sph.umich.edu, create a user account and request a user token for access
+in your user profile.}
+
+\item{imputation.reference.panel}{The reference panel used for imputation. Please see https://imputationserver.readthedocs.io/en/latest/reference-panels/
+for further information which panels are supported by the Michigan imputation server.}
+
+\item{imputation.phasing.method}{The phasing method employed by the Michigan imputation server. See
+https://imputationserver.readthedocs.io/en/latest/api/ for further information.}
 }
 \description{
 Change global options for methQTL calculation
@@ -136,6 +156,9 @@ qtl.getOption("rnbeads.report")
 1. Ongen, H., Buil, A., Brown, A. A., Dermitzakis, E. T., & Delaneau, O. (2016).
    Fast and efficient QTL mapper for thousands of molecular phenotypes. Bioinformatics, 32(10),
    1479–1485. https://doi.org/10.1093/bioinformatics/btv722
+  2. Das S, Forer L, Schönherr S, Sidore C, Locke AE, et al. (2016).
+   Next-generation genotype imputation service and methods. Nature Genetics 48, 1284–1287,
+   https://doi.org/10.1038/ng.3656
 }
 \author{
 Michael Scherer

@@ -22,7 +22,8 @@ Depends: HDF5Array,
          plyr,
 	 BiocGenerics,
 	 crlmm,
-	 ff
+	 ff,
+	 jsonlite
 Suggests: gridExtra,
          VennDiagram,
          UpSetR,

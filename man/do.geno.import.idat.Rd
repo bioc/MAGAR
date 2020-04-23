@@ -25,7 +25,11 @@ do.geno.import.idat(
 \item{idat.platform}{The array platform to be used. Check those available using the crlmm function \code{\link{validCdfNames}}}
 }
 \value{
-A \code{SnpMatrix} object loaded through \code{\link{read.plink}}
+A vector with three elements: \describe{
+  \item{\code{"bed.file"}}{Path to the BED file for PLINK}
+  \item{\code{"bim.file"}}{Path to the BIM file for PLINK}
+  \item{\code{"fam.file"}}{Path to the FAM file for PLINK}
+}
 }
 \description{
 This function imports genotyping data from IDAT files using the \code{'crlmm'} R-package

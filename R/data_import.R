@@ -78,7 +78,13 @@ do.import <- function(data.location,
   pheno.data <- geno.import$pheno.data
   s.anno <- file.path(out.folder,ifelse(tab.sep==",","sample_annotation.csv","sample_annotation.tsv"))
   write.table(pheno.data,s.anno,sep=tab.sep)
-  meth.import <- do.meth.import(data.location,assembly.meth,s.anno,s.id.col,tab.sep,snp.location=geno.import$annotation)
+  meth.import <- do.meth.import(data.location,
+                                assembly.meth,
+                                s.anno,
+                                s.id.col,
+                                tab.sep,
+                                snp.location=geno.import$annotation,
+                                out.folder=out.folder)
   s.names <- as.character(pheno.data[,s.id.col])
   if(is.null(s.names) || (length(unique(s.names)) < length(s.names))){
     stop("Invalid value for s.id.col, needs to specify unique identfiers in the sample annotation sheet")
@@ -164,6 +170,9 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
     rnb.report <- file.path(tempdir(),"rnbeads_preprocessing")
   }
   rnb.imp <- rnb.run.preprocessing(rnb.imp,rnb.report)$rnb.set
+  if(!is.null(out.folder)){
+    save.rnb.set(rnb.imp,file.path(out.folder,"rnbSet_preprocessed"))
+  }
   if(!is.null(snp.location)){
     snp.location <- GRanges(Rle(snp.location$Chromosome),IRanges(start=as.numeric(snp.location$Start),
                                                                  end=as.numeric(snp.location$Start)))
@@ -223,6 +232,15 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,data.type="p
     }
   }else if(data.type=="idat"){
     res <- do.geno.import.idat(snp.loc,s.anno,s.id.col,out.folder,...)
+    bed.file <- res["bed.file"]
+    bim.file <- res["bim.file"]
+    fam.file <- res["fam.file"]
+  }
+  if(qtl.getOption("impute.geno.data")){
+    res <- do.imputation(bed.file,
+                         bim.file,
+                         fam.file,
+                         out.folder)
     bed.file <- res["bed.file"]
     bim.file <- res["bim.file"]
     fam.file <- res["fam.file"]
@@ -397,7 +415,11 @@ match.assemblies <- function(meth.qtl){
 #' @param s.id.col The column in the sample annotation sheet specifying the sample identifiers
 #' @param out.dir The output directory
 #' @param idat.platform The array platform to be used. Check those available using the crlmm function \code{\link{validCdfNames}}
-#' @return A \code{SnpMatrix} object loaded through \code{\link{read.plink}}
+#' @return A vector with three elements: \describe{
+#'   \item{\code{"bed.file"}}{Path to the BED file for PLINK}
+#'   \item{\code{"bim.file"}}{Path to the BIM file for PLINK}
+#'   \item{\code{"fam.file"}}{Path to the FAM file for PLINK}
+#' }
 #' @author Michael Scherer
 #' @export
 do.geno.import.idat <- function(idat.files,

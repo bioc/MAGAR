@@ -13,7 +13,8 @@ assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc',
                'max.cpgs','rscript.path','cluster.config','recode.allele.frequencies',
                'n.permutations','p.value.correction','compute.cor.blocks',
                'use.segmentation','use.functional.annotation',
-		'functional.annotation.weight'),QTL.OPTIONS)
+		           'functional.annotation.weight','impute.geno.data',"vcftools.path",
+		           "imputation.user.token","imputation.reference.panel","imputation.phasing.method"),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',NULL,QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
 assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
@@ -42,6 +43,11 @@ assign("RECODE.ALLELE.FREQUENCIES",TRUE,QTL.OPTIONS)
 assign("USE.SEGMENTATION",FALSE,QTL.OPTIONS)
 assign("USE.FUNCTIONAL.ANNOTATION",FALSE,QTL.OPTIONS)
 assign("FUNCTIONAL.ANNOTATION.WEIGHT",1.1,QTL.OPTIONS)
+assign("IMPUTE.GENO.DATA",FALSE,QTL.OPTIONS)
+assign("VCFTOOLS.PATH",NULL,QTL.OPTIONS)
+assign("IMPUTATION.USER.TOKEN",NULL,QTL.OPTIONS)
+assign("IMPUTATION.REFERENCE.PANEL","apps@hrc-r1.1",QTL.OPTIONS)
+assign("IMPUTATION.PHASING.METHOD","shapeit",QTL.OPTIONS)
 
 #' qtl.setOption
 #'
@@ -60,6 +66,8 @@ assign("FUNCTIONAL.ANNOTATION.WEIGHT",1.1,QTL.OPTIONS)
 #' @param minor.allele.frequency Threshold for the minor allele frequency of the SNPs to be used in the analysis.
 #' @param missing.values.samples Threshold specifying how much missing values per SNP are allowed across the samples
 #'            to be included in the analyis.
+#' @param impute.geno.data Flag indicating if imputation of gneotyping data is to be perfomed using the Michigan imputation
+#'            server (https://imputationserver.sph.umich.edu/index.html)[2].
 #' @param plink.path Path to an installation of PLINK (also comes with the package)
 #' @param fast.qtl.path Path to an installation of fastQTL (comes with the package for Linux)
 #' @param bgzip.path Path to an installation of BGZIP (comes with the package for Linux)
@@ -80,7 +88,7 @@ assign("FUNCTIONAL.ANNOTATION.WEIGHT",1.1,QTL.OPTIONS)
 #'            blocks, a single correlation block can be associated with either one SNP (\code{meth.qtl.type='oneVSall'}),
 #'            with multiple SNPs (\code{meth.qtl.type='allVSall'}), or each correlation block can once be positively and once
 #'            negatively correlated with a SNP genotype (\code{meth.qtl.type='twoVSall'}). Additionally, we provide the option
-#'            to use (\code{FastQTL}) as a methQTL mapping tool (option \code{'fastQTL'}).
+#'            to use (\code{FastQTL})[1] as a methQTL mapping tool (option \code{'fastQTL'}).
 #' @param max.cpgs Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
 #'             default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
 #'             for larger ones.
@@ -105,6 +113,14 @@ assign("FUNCTIONAL.ANNOTATION.WEIGHT",1.1,QTL.OPTIONS)
 #'              be prioritized.
 #' @param recode.allele.frequencies Flag indicating if the reference allele is to be redefined according to the frequenciess
 #'              found in the cohort investigated.
+#' @param vcftools.path Path to the installation of VCFtools. Necessary is the vcf-sort function in this folder.
+#' @param imputation.user.token The user token that is required for authorization with the Michigan imputation server. Please
+#'              have a look at https://imputationserver.sph.umich.edu, create a user account and request a user token for access
+#'              in your user profile.
+#' @param imputation.reference.panel The reference panel used for imputation. Please see https://imputationserver.readthedocs.io/en/latest/reference-panels/
+#'              for further information which panels are supported by the Michigan imputation server.
+#' @param imputation.phasing.method The phasing method employed by the Michigan imputation server. See
+#'              https://imputationserver.readthedocs.io/en/latest/api/ for further information.
 #' @export
 #' @author Michael Scherer
 #' @examples
@@ -117,6 +133,9 @@ assign("FUNCTIONAL.ANNOTATION.WEIGHT",1.1,QTL.OPTIONS)
 #'   1. Ongen, H., Buil, A., Brown, A. A., Dermitzakis, E. T., & Delaneau, O. (2016).
 #'    Fast and efficient QTL mapper for thousands of molecular phenotypes. Bioinformatics, 32(10),
 #'    1479–1485. https://doi.org/10.1093/bioinformatics/btv722
+#'   2. Das S, Forer L, Schönherr S, Sidore C, Locke AE, et al. (2016).
+#'    Next-generation genotype imputation service and methods. Nature Genetics 48, 1284–1287,
+#'    https://doi.org/10.1038/ng.3656
 qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.xml",package="methQTL"),
                        meth.data.type="idat.dir",
                        rnbeads.report="temp",
@@ -125,6 +144,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        hardy.weinberg.p=0.001,
                        minor.allele.frequency=0.05,
                        missing.values.samples=0.05,
+                       impute.geno.data=FALSE,
                        plink.path=system.file("bin/plink",package="methQTL"),
                        fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL"),
                        bgzip.path=system.file("bin/bgzip",package="methQTL"),
@@ -144,7 +164,11 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        recode.allele.frequencies=FALSE,
                        use.segmentation=FALSE,
                        use.functional.annotation=FALSE,
-                       functional.annotation.weight=1.1){
+                       functional.annotation.weight=1.1,
+                       vcftools.path=NULL,
+                       imputation.user.token=NULL,
+                       imputation.reference.panel="apps@hrc-r1.1",
+                       imputation.phasing.method="shapeit"){
   if(length(rnbeads.options)!=1 & !is.null(rnbeads.options)){
     stop("Please specify the options one by one, not as a vector or list.")
   }
@@ -189,16 +213,22 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     QTL.OPTIONS[['HARDY.WEINBERG.P']] <- hardy.weinberg.p
   }
   if(!missing(minor.allele.frequency)){q
-    if(!is.numeric(minor.allele.frequency) && minor.allele.frequency > 1){
+    if(!is.numeric(minor.allele.frequency) || minor.allele.frequency > 1){
       stop("Invalid value for minor.allele.frequency, needs to be numeric < 1")
     }
     QTL.OPTIONS[['MINOR.ALLELE.FREQUENCY']] <- minor.allele.frequency
   }
   if(!missing(missing.values.samples)){
-    if(!is.numeric(missing.values.samples) && missing.values.samples > 1){
+    if(!is.numeric(missing.values.samples) || missing.values.samples > 1){
       stop("Invalid value for missing.values.samples, needs to be numeric < 1")
     }
     QTL.OPTIONS[['MISSING.VALUES.SAMPLES']] <- missing.values.samples
+  }
+  if(!missing(impute.geno.data)){
+    if(!is.logical(impute.geno.data)){
+      stop("Invalid value for impute.geno.data, needs to be logical")
+    }
+    QTL.OPTIONS[['IMPUTE.GENO.DATA']] <- impute.geno.data
   }
   if(!missing(plink.path)){
     if(is.null(plink.path)){
@@ -346,6 +376,30 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['FUNCTIONAL.ANNOTATION.WEIGHT']] <- functional.annotation.weight
   }
+  if(!missing(vcftools.path)){
+    if(!is.character(vcftools.path) || !file.exists(file.path(vcftools.path,"vcf-sort"))){
+      stop("Invalid value for option 'vcftools.path', needs to point to a folder with the program 'vcf-sort'")
+    }
+    QTL.OPTIONS[['VCFTOOLS.PATH']] <- vcftools.path
+  }
+  if(!missing(imputation.user.token)){
+    if(!is.character(imputation.user.token)){
+      stop("Invalid value for option 'imputation.user.token', needs to character")
+    }
+    QTL.OPTIONS[['IMPUTATION.USER.TOKEN']] <- imputation.user.token
+  }
+  if(!missing(imputation.reference.panel)){
+    if(!is.character(imputation.reference.panel)){
+      stop("Invalid value for option 'imputation.reference.panel', needs to character")
+    }
+    QTL.OPTIONS[['IMPUTATION.REFERENCE.PANEL']] <- imputation.reference.panel
+  }
+  if(!missing(imputation.phasing.method)){
+    if(!is.character(imputation.phasing.method)){
+      stop("Invalid value for option 'imputation.phasing.method', needs to character")
+    }
+    QTL.OPTIONS[['IMPUTATION.PHASING.METHOD']] <- imputation.phasing.method
+  }
 }
 
 #' qtl.getOption
@@ -388,6 +442,9 @@ qtl.getOption <- function(names){
   }
   if('missing.values.samples'%in%names){
     ret <- c(ret,missing.values.samples=QTL.OPTIONS[['MISSING.VALUES.SAMPLES']])
+  }
+  if('impute.geno.data'%in%names){
+    ret <- c(ret,impute.geno.data=QTL.OPTIONS[['IMPUTE.GENO.DATA']])
   }
   if('fast.qtl.path'%in%names){
     if(is.null(QTL.OPTIONS[['FAST.QTL.PATH']])){
@@ -464,6 +521,18 @@ qtl.getOption <- function(names){
   }
   if('functional.annotation.weight'%in%names){
     ret <- c(ret,functional.annotation.weight=QTL.OPTIONS[['FUNCTIONAL.ANNOTATION.WEIGHT']])
+  }
+  if('vcftools.path'%in%names){
+    ret <- c(ret,vcftools.path=QTL.OPTIONS[['VCFTOOLS.PATH']])
+  }
+  if('imputation.user.token'%in%names){
+    ret <- c(ret,imputation.user.token=QTL.OPTIONS[['IMPUTATION.USER.TOKEN']])
+  }
+  if('imputation.reference.panel'%in%names){
+    ret <- c(ret,imputation.reference.panel=QTL.OPTIONS[['IMPUTATION.REFERENCE.PANEL']])
+  }
+  if('imputation.phasing.method'%in%names){
+    ret <- c(ret,imputation.phasing.method=QTL.OPTIONS[['IMPUTATION.PHASING.METHOD']])
   }
   return(ret[names])
 }

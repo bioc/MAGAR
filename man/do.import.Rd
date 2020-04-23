@@ -12,7 +12,8 @@ do.import(
   assembly.geno = "hg19",
   tab.sep = ",",
   s.id.col = "sample_id",
-  out.folder = tempdir()
+  out.folder = tempdir(),
+  ...
 )
 }
 \arguments{
@@ -41,6 +42,8 @@ positions will be matched using liftOver.}
 \item{s.id.col}{The column name of the sample annotation sheet that specifies the sample identifier.}
 
 \item{out.folder}{The output directory to store diagnostic plots}
+
+\item{...}{Futher parameters passed to e.g. \code{\link{do.geno.import}}}
 }
 \value{
 An object of type \code{\link{methQTLInput-class}} with the methylation and genotyping information added.
