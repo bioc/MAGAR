@@ -85,18 +85,19 @@ do.import <- function(data.location,
                                 tab.sep,
                                 snp.location=geno.import$annotation,
                                 out.folder=out.folder)
-  s.names <- as.character(pheno.data[,s.id.col])
+  s.names <- intersect(meth.import$samples,geno.import$samples)
+  pheno.data <- pheno.data[as.character(pheno.data[,s.id.col])%in%s.names,]
   if(is.null(s.names) || (length(unique(s.names)) < length(s.names))){
     stop("Invalid value for s.id.col, needs to specify unique identfiers in the sample annotation sheet")
   }
-  if(s.names != meth.import$samples || s.names != geno.import$samples){
-    stop("Samples are not present in all of the datasets")
-  }
+#  if(any(!(s.names%in%meth.import$samples) || any!(s.names%in%geno.import$samples)){
+#    stop("Samples are not present in all of the datasets")
+#  }
   row.names(pheno.data) <- s.names
   pheno.data <- pheno.data[,!(colnames(pheno.data) %in% s.id.col)]
   dataset.import <- new("methQTLInput",
-    meth.data=meth.import$data,
-    geno.data=geno.import$data,
+    meth.data=meth.import$data[,s.names],
+    geno.data=geno.import$data[,s.names],
     anno.meth=meth.import$annotation,
     anno.geno=geno.import$annotation,
     pheno.data=pheno.data,

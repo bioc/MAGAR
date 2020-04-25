@@ -66,7 +66,7 @@
 test.idat <- function(){
  idat.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/idat/"
  s.anno <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/annotation/sample_annotation_genotypes_red.tsv"
- s.id.col <- "sample_id"
+ s.id.col <- "title"
  out.dir <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/test_package/"
  idat.platform="humanomni258v1p1b"
  gender.col=NULL
