@@ -81,6 +81,10 @@ test.idat <- function(){
                   s.id.col=s.id.col,
                   out.folder=out.dir,
                   idat.platform=idat.platform)
+ res <- do.methQTL(res,
+                   sel.covariates = NULL,
+                   out.dir=out.dir,
+                   ncores=10)
 }
 #  require("RUnit")
   require("methQTL")
