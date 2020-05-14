@@ -7,7 +7,7 @@
 
 QTL.OPTIONS <- new.env()
 assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',
-               'minor.allele.frequency','missing.values.samples','plink.path',
+               'minor.allele.frequency','missing.values.samples','n.prin.comp','plink.path',
                'cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
                'linear.model.type','representative.cpg.computation','meth.qtl.type',
                'max.cpgs','rscript.path','cluster.config','recode.allele.frequencies',
@@ -22,6 +22,7 @@ assign('HDF5DUMP',FALSE,QTL.OPTIONS)
 assign("HARDY.WEINBERG.P",0.001,QTL.OPTIONS)
 assign("MINOR.ALLELE.FREQUENCY",0.05,QTL.OPTIONS)
 assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
+assign("N.PRIN.COMP",NULL,QTL.OPTIONS)
 assign("PLINK.PATH",NULL,QTL.OPTIONS)
 assign("CLUSTER.COR.THRESHOLD",0.25,QTL.OPTIONS)
 assign("STANDARD.DEVIATION.GAUSS",250,QTL.OPTIONS)
@@ -57,6 +58,8 @@ assign("FUNCTIONAL.ANNOTATION.WEIGHT",1.1,QTL.OPTIONS)
 #' @param minor.allele.frequency Threshold for the minor allele frequency of the SNPs to be used in the analysis.
 #' @param missing.values.samples Threshold specifying how much missing values per SNP are allowed across the samples
 #'            to be included in the analyis.
+#" @param n.prin.comp Number of principal components of the genetic data to be used as covariates
+#'            in the methQTL calling. \code{NULL} means that no adjustment is conducted.
 #' @param plink.path Path to an installation of PLINK (also comes with the package)
 #' @param cluster.cor.threshold Threshold for CpG methylatin state correlation to be considered as connected in
 #'            the distance graph used to compute the correlation clustering.
@@ -113,6 +116,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        hardy.weinberg.p=0.001,
                        minor.allele.frequency=0.05,
                        missing.values.samples=0.05,
+		       n.prin.comp=NULL,
                        plink.path=system.file("bin/plink",package="methQTL"),
                        cluster.cor.threshold=0.25,
                        standard.deviation.gauss=250,
@@ -184,6 +188,12 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
       stop("Invalid value for missing.values.samples, needs to be numeric < 1")
     }
     QTL.OPTIONS[['MISSING.VALUES.SAMPLES']] <- missing.values.samples
+  }
+  if(!missing(n.prin.comp)){
+    if(!is.numeric(n.prin.comp) || is.null(n.prin.comp)){
+      stop("Invalid value for n.prin.comp, needs to be an integer or NULL")
+    }
+    QTL.OPTIONS[['N.PRIN.COMP']] <- n.prin.comp
   }
   if(!missing(plink.path)){
     if(is.null(plink.path)){
@@ -337,6 +347,9 @@ qtl.getOption <- function(names){
   }
   if('missing.values.samples'%in%names){
     ret <- c(ret,missing.values.samples=QTL.OPTIONS[['MISSING.VALUES.SAMPLES']])
+  }
+  if('n.prin.comp'%in%names){
+    ret <- c(ret,n.prin.comp=QTL.OPTIONS[['N.PRIN.COMP']])
   }
   if('plink.path'%in%names){
     if(is.null(QTL.OPTIONS[['PLINK.PATH']])){
