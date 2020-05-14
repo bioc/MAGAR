@@ -274,7 +274,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
     }
     ncol.anno <- ncol(s.anno)
     s.anno <- data.frame(s.anno,loads[,1:n.comps])
-    colnames(s.anno)[ncol.anno:ncol(s.anno)] <- paste0("PC",1:n.comps)
+    colnames(s.anno)[(ncol.anno+1):ncol(s.anno)] <- paste0("PC",1:n.comps)
   }
   if(qtl.getOption("hdf5dump")){
     snp.mat <- writeHDF5Array(snp.mat)
@@ -354,7 +354,7 @@ do.geno.import.imputed <- function(dos.file,
     }
     ncol.anno <- ncol(s.anno)
     s.anno <- data.frame(s.anno,loads[,1:n.comps])
-    colnames(s.anno)[ncol.anno:ncol(s.anno)] <- paste0("PC",1:n.comps)
+    colnames(s.anno)[(ncol.anno+1):ncol(s.anno)] <- paste0("PC",1:n.comps)
   }
   logger.completed()
   if(qtl.getOption("hdf5dump")){

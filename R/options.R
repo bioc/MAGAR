@@ -435,6 +435,6 @@ qtl.json2options <- function(path){
   if(!file.exists(path) || !grepl(".json",path,ignore.case = T)){
     logger.error("Invalid value for path, needs to be a JSON file")
   }
-  all.options <- fromJSON(file=path)
+  all.options <- fromJSON(path)
   do.call(qtl.setOption,all.options)
 }
