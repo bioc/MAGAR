@@ -6,10 +6,10 @@
 ## G L O B A L S #######################################################################################################
 
 QTL.OPTIONS <- new.env()
-assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',
-               'minor.allele.frequency','missing.values.samples','plink.geno','plink.path',
-	       'fast.qtl.path','bgzip.path','tabix.path',
-               'cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
+
+assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',             'minor.allele.frequency','missing.values.samples','plink.geno','plink.path',
+		'fast.qtl.path','bgzip.path','tabix.path',
+		 'n.prin.comp','cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
                'linear.model.type','representative.cpg.computation','meth.qtl.type',
                'max.cpgs','rscript.path','cluster.config','recode.allele.frequencies',
                'n.permutations','p.value.correction','compute.cor.blocks',
@@ -25,6 +25,7 @@ assign("HARDY.WEINBERG.P",0.001,QTL.OPTIONS)
 assign("MINOR.ALLELE.FREQUENCY",0.05,QTL.OPTIONS)
 assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
 assign("PLINK.GENO",0.1,QTL.OPTIONS)
+assign("N.PRIN.COMP",NULL,QTL.OPTIONS)
 assign("PLINK.PATH",NULL,QTL.OPTIONS)
 assign("FAST.QTL.PATH",NULL,QTL.OPTIONS)
 assign('BGZIP.PATH',NULL,QTL.OPTIONS)
@@ -69,8 +70,10 @@ assign("IMPUTATION.PHASING.METHOD","shapeit",QTL.OPTIONS)
 #' @param missing.values.samples Threshold specifying how much missing values per SNP are allowed across the samples
 #'            to be included in the analyis.
 #' @param plink.geno Threshold for missing values per SNP
-#' @param impute.geno.data Flag indicating if imputation of gneotyping data is to be perfomed using the Michigan imputation
+#' @param impute.geno.data Flag indicating if imputation of genotyping data is to be perfomed using the Michigan imputation
 #'            server (https://imputationserver.sph.umich.edu/index.html)[2].
+#" @param n.prin.comp Number of principal components of the genetic data to be used as covariates
+#'            in the methQTL calling. \code{NULL} means that no adjustment is conducted.
 #' @param plink.path Path to an installation of PLINK (also comes with the package)
 #' @param fast.qtl.path Path to an installation of fastQTL (comes with the package for Linux)
 #' @param bgzip.path Path to an installation of BGZIP (comes with the package for Linux)
@@ -149,6 +152,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        missing.values.samples=0.05,
 		       plink.geno=0.1,
                        impute.geno.data=FALSE,
+		       n.prin.comp=NULL,
                        plink.path=system.file("bin/plink",package="methQTL"),
                        fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL"),
                        bgzip.path=system.file("bin/bgzip",package="methQTL"),
@@ -239,6 +243,12 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
       stop("Invalid value for impute.geno.data, needs to be logical")
     }
     QTL.OPTIONS[['IMPUTE.GENO.DATA']] <- impute.geno.data
+  }
+  if(!missing(n.prin.comp)){
+    if(!is.numeric(n.prin.comp) && !is.null(n.prin.comp)){
+      stop("Invalid value for n.prin.comp, needs to be an integer or NULL")
+    }
+    QTL.OPTIONS[['N.PRIN.COMP']] <- n.prin.comp
   }
   if(!missing(plink.path)){
     if(is.null(plink.path)){
@@ -465,6 +475,9 @@ qtl.getOption <- function(names){
       qtl.setOption('fast.qtl.path'=system.file("bin/fastQTL.static",package="methQTL"))
     }
     ret <- c(ret,fast.qtl.path=QTL.OPTIONS[['FAST.QTL.PATH']])
+  }
+  if('n.prin.comp'%in%names){
+    ret <- c(ret,n.prin.comp=QTL.OPTIONS[['N.PRIN.COMP']])
   }
   if('plink.path'%in%names){
     if(is.null(QTL.OPTIONS[['PLINK.PATH']])){

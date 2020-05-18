@@ -129,6 +129,10 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
   sel.anno.geno <- anno.geno[sel.geno,]
   sel.geno <- getGeno(meth.qtl)[sel.geno,]
   ph.dat <- getPheno(meth.qtl)
+  n.comps <- qtl.getOption('n.prin.comp')
+  if(!is.null(n.comps)){
+    sel.covariates <- c(paste0("PC",1:n.comps))
+  }
   if(is.null(sel.covariates)){
     ph.dat <- NULL
   }else{

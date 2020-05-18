@@ -302,6 +302,17 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,data.type="p
           axis.text = element_text(size=15,color="black"))
   ggsave(file.path(out.folder,"genetics_PCA.pdf"),plot)
   logger.completed()
+  n.comps <- qtl.getOption('n.prin.comp')
+  if(!is.null(n.comps)){
+    loads <- pca.obj$x
+    if(n.comps>ncol(loads)){
+      n.comps <- ncol(loads)
+      logger.info(paste("Too many PCs specified, setting to maximum number",n.comps))
+    }
+    ncol.anno <- ncol(s.anno)
+    s.anno <- data.frame(s.anno,loads[,1:n.comps])
+    colnames(s.anno)[(ncol.anno+1):ncol(s.anno)] <- paste0("PC",1:n.comps)
+  }
   if(qtl.getOption("hdf5dump")){
     snp.mat <- writeHDF5Array(snp.mat)
   }
@@ -371,6 +382,17 @@ do.geno.import.imputed <- function(dos.file,
          axis.ticks=element_line(color="black"),plot.title = element_text(size=18,color="black",hjust = .5),
          axis.text = element_text(size=15,color="black"))
   ggsave(file.path(out.folder,"genetics_PCA.pdf"),plot)
+  n.comps <- qtl.getOption('n.prin.comp')
+  if(!is.null(n.comps)){
+    loads <- pca.obj$x
+    if(n.comps>ncol(loads)){
+      n.comps <- ncol(loads)
+      logger.info(paste("Too many PCs specified, setting to maximum number",n.comps))
+    }
+    ncol.anno <- ncol(s.anno)
+    s.anno <- data.frame(s.anno,loads[,1:n.comps])
+    colnames(s.anno)[(ncol.anno+1):ncol(s.anno)] <- paste0("PC",1:n.comps)
+  }
   logger.completed()
   if(qtl.getOption("hdf5dump")){
     snp.mat <- writeHDF5Array(snp.dat)
