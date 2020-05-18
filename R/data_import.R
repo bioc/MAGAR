@@ -259,7 +259,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,data.type="p
   plink.file <- gsub(".bed","",bed.file)
   cmd <- paste(qtl.getOption("plink.path"),"--bfile",plink.file,"--keep",keep.file,"--hwe",qtl.getOption("hardy.weinberg.p"),
                "--maf",qtl.getOption("minor.allele.frequency"),"--mind",qtl.getOption("missing.values.samples"),
-               "--make-bed --out",proc.data)
+               "--geno",qtl.getOption("plink.geno"),"--make-bed --out",proc.data)
   system(cmd)
   snp.dat <- read.plink(bed=paste0(proc.data,".bed"),bim=paste0(proc.data,".bim"),fam=paste0(proc.data,".fam"))
   snp.mat <- t(as(snp.dat$genotypes,"numeric"))
