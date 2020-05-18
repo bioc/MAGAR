@@ -190,7 +190,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     QTL.OPTIONS[['MISSING.VALUES.SAMPLES']] <- missing.values.samples
   }
   if(!missing(n.prin.comp)){
-    if(!is.numeric(n.prin.comp) || is.null(n.prin.comp)){
+    if(!is.numeric(n.prin.comp) && !is.null(n.prin.comp)){
       stop("Invalid value for n.prin.comp, needs to be an integer or NULL")
     }
     QTL.OPTIONS[['N.PRIN.COMP']] <- n.prin.comp
