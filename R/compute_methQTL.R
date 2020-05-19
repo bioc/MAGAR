@@ -63,7 +63,7 @@ do.methQTL <- function(meth.qtl,
   if(!cluster.submit){
     if(ncores>1){
       parallel.setup(ncores)
-      res.all <- foreach(chrom=all.chroms,.combine="list") %dopar%{
+      res.all <- foreach(chrom=all.chroms,.combine="c") %dopar%{
         do.methQTL.chromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff)
       }
     }else{
@@ -199,7 +199,7 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
                         correlation.blocks=cor.blocks,
                         method=qtl.getOption("linear.model.type"),
                         rep.type=qtl.getOption("representative.cpg.computation"),
-                        chr=chrom)
+                        chr=as.character(chrom))
   logger.completed()
   return(methQTL.result)
 }
