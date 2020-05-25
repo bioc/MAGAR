@@ -65,7 +65,32 @@ To redefine the correlation blocks, we allow including additional information su
 
 ## Genotyping data
 
-We require that genotyping data has already been processed by *plink* and is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, as variant calling files (*.vcf*), or as imputed files in the dosage format (*.dos*). For further processing, we use the command line tool *plink*, which comes with this package, but is only applicable on Linux systems. For Windows and MacOS users, please install the *plink* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.
+### PLINK files
+
+The package supports data that has already been processed by *plink* and is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, as variant calling files (*.vcf*), or as imputed files in the dosage format (*.dos*). For further processing, we use the command line tool *plink*, which comes with this package, but is only applicable on Linux systems. For Windows and MacOS users, please install the *plink* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.
+
+### IDAT files
+
+The package also support raw IDAT files and uses the [CRLMM](https://www.bioconductor.org/packages/release/bioc/html/crlmm.html) R-package, together with PLINK to perform data import. The package requires a single sample annotation sheet in the format described in the [DNA methylation data] section. In addition to the column names specified above, a column named *GenoSentrixPosition* has to be added, which specifies the IDAT file IDs.
+
+```{bash sample_annotation, eval=FALSE}
+SampleID,age,sex,barcode,GenoSentrixPosition
+Sample_1,14,f,209054857842_R01C01,9701756058_R05C01
+Sample_2,42,f,209054857842_R02C01,9701756058_R07C01
+Sample_3,45,m,209054857842_R03C01,9742011016_R04C01
+```
+
+### Imputation
+
+Illumina SNP BeadArray data is typically imputed before further analysis, and the package allows for imputation through the [Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html#!). In order to be able to perform computation on the server, an account is required. After the account is created, one has to request an API token in the user settings and specify it to the package using the option ```imputation.user.token``` option. During the imputation process, the package will stall for a while an wait for entering the password send via e-mail to the user account. The imputation process has to be split according to chromosomes, which is why multiple e-mails will be send to the account, and the imputation process can take up to several days. However, after imputation, the imputed data will be available as PLINK files, such that the imputation has to be performed only once. For preprocessing the data for upload to the imputation server, the package required the [bgzip](http://www.htslib.org/doc/bgzip.html) and [tabix](http://www.htslib.org/doc/tabix.html) tools from the [htslib](http://www.htslib.org/) package. Also see further options to configure the imputation jobs (see the Michigan Imputation Server [documentation](https://imputationserver.readthedocs.io/en/latest/) for further information):
+
+```{r imputation options}
+qtl.setOption(
+  imputation.reference.panel="apps@hrc-r1.1",
+  imputation.phasing.method="shapeit",
+	imputation.population="eur"
+)
+```
 
 ## Perform data import
 

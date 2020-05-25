@@ -65,14 +65,16 @@
 #   }
 
 test.idat <- function(){
+ options(fftempdir="/DEEP_fhgfs/projects/mscherer/deep/tmp/")
  idat.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/idat/"
  s.anno <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/annotation/sample_annotation_genotypes_red.tsv"
- s.id.col <- "title"
+ s.id.col <- "sample_id"
  out.dir <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/test_package/"
  idat.platform="humanomni258v1p1b"
  gender.col=NULL
  qtl.setOption(meth.data.type="GEO")
- qtl.setOption(missing.values.samples = 0.5)
+ qtl.setOption(missing.values.samples = 1)
+ qtl.setOption(db.snp.ref="/DEEP_fhgfs/projects/mscherer/data/misc/common_all_20180423_hg19.vcf.gz")
  data.loc <- c(idat.dir="GSE79144",geno.dir=idat.files)
  rnbeads.report = out.dir
  res <- do.import(data.loc,
@@ -94,7 +96,7 @@ test.idat()
 
 test.imputation <- function(){
   plink.files <- paste0("/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/test_package/","processed_snp_data",c(".bed",".bim",".fam"))
-  qtl.setOption("imputation.user.token"="eyJjdHkiOiJ0ZXh0XC9wbGFpbiIsImFsZyI6IkhTMjU2In0.eyJtYWlsIjoibXNjaGVyZXJAbXBpLWluZi5tcGcuZGUiLCJleHBpcmUiOjE1OTAxNTIzMjkwNzIsIm5hbWUiOiJNaWNoYWVsIFNjaGVyZXIiLCJhcGkiOnRydWUsInVzZXJuYW1lIjoibXNjaGVyZXIifQ.UJDTTrK-poRQbfRKhelvOB4QQQ4Xo13q7Q5g3Z1P-EU")
+  qtl.setOption("imputation.user.token"="eyJjdHkiOiJ0ZXh0XC9wbGFpbiIsImFsZyI6IkhTMjU2In0.eyJtYWlsIjoibXNjaGVyZXJAbXBpLWluZi5tcGcuZGUiLCJleHBpcmUiOjE1OTI4MTg4MTIwMDIsIm5hbWUiOiJNaWNoYWVsIFNjaGVyZXIiLCJhcGkiOnRydWUsInVzZXJuYW1lIjoibXNjaGVyZXIifQ.PtdzP_-8wzBsNgv0nOcZ7vC9u0B5fAjIZSSO5FmXn1g")
   qtl.setOption(vcftools.path="/TL/deep-share/archive00/software/packages/vcftools/vcftools/perl/")
   qtl.setOption(missing.values.samples = 0.75,
                 bgzip.path = "/TL/deep-share/archive00/software/packages/htslib/htslib-1.3.2/bgzip",
@@ -112,3 +114,34 @@ test.imputation <- function(){
 }
 library(methQTL)
 test.imputation()
+
+test.idat.imputation <- function(){
+ options(fftempdir="/DEEP_fhgfs/projects/mscherer/deep/tmp/")
+ idat.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/idat/"
+ s.anno <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/annotation/sample_annotation_genotypes_red.tsv"
+ s.id.col <- "geo_accession"
+ out.dir <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/test_package/"
+ idat.platform="humanomni258v1p1b"
+ gender.col=NULL
+ qtl.setOption(meth.data.type="GEO")
+ qtl.setOption(missing.values.samples = 1)
+ qtl.setOption(db.snp.ref="/DEEP_fhgfs/projects/mscherer/data/misc/common_all_20180423_hg19.vcf.gz")
+ qtl.setOption(impute.geno.data=TRUE,
+               meth.qtl.type="fastQTL")
+ data.loc <- c(idat.dir="GSE79144",geno.dir=idat.files)
+ rnbeads.report = out.dir
+ res <- do.import(data.loc,
+                  data.type.geno="idat",
+                  s.anno=s.anno,
+                  tab.sep="\t",
+                  s.id.col=s.id.col,
+                  out.folder=out.dir,
+                  idat.platform=idat.platform)
+ res <- do.methQTL(res,
+                   sel.covariates = NULL,
+                   out.dir=out.dir,
+                   ncores=10)
+}
+library(methQTL)
+test.idat.imputation()
+

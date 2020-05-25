@@ -499,9 +499,6 @@ do.geno.import.idat <- function(idat.files,
                                  copynumber=FALSE,
                                  fitMixture=FALSE,
                                  gender=sex)
-  snp.mat <- new("SnpMatrix",t(calls(crlmm.obj)[,,drop=F])-1)
-  ids <- as.character(s.anno[,s.id.col])
-  row.names(snp.mat) <- ids
   f.dat <- featureData(crlmm.obj)
   assembly <- crlmm.obj@genome
   anno.data <- system.file("extdata/annotation.rda",package = paste0(idat.platform,"Crlmm"))
@@ -512,22 +509,67 @@ do.geno.import.idat <- function(idat.files,
   if(any(!(featureNames(f.dat)%in%annot$Name))){
     stop("Provided array annotation not sufficient, Aborting")
   }
-  alleles <- annot$SNP[match(featureNames(f.dat),annot$Name)]
-  allele.A <- substr(alleles,2,2)
-  allele.B <- substr(alleles,4,4)
+  alleles <- annot$SourceSeq[match(featureNames(f.dat),as.character(annot$Name))]
+  pos.mark <- regexpr("\\/",alleles)
+  allele.A <- substr(alleles,pos.mark-1,pos.mark-1)
+  allele.B <- substr(alleles,pos.mark+1,pos.mark+1)
   chroms <- chromosome(f.dat)
   is.chr.0 <- chroms%in%c(0,25)
   chroms[chroms==23] <- "X"
   chroms[chroms==24] <- "Y"
+  snp.mat <- t(calls(crlmm.obj)[,,drop=F])
+  snp.mat <- snp.mat[,!is.chr.0]
+  chroms <- chroms[!is.chr.0]
+  position <- position(f.dat)[!is.chr.0]
+  allele.A <- allele.A[!is.chr.0]
+  allele.B <- allele.B[!is.chr.0]
+  if(qtl.getOption("recode.allele.frequencies")){
+    maj.allele.frequencies <- apply(snp.mat,2,function(x){
+      x <- x[!is.na(x)]
+      (2*sum(x==1)+sum(x==2))/(2*length(x))
+    })
+    allele.frequencies <- maj.allele.frequencies<0.5
+    allele.frequencies[is.na(allele.frequencies)] <- FALSE
+    logger.info(paste("Recoding",sum(allele.frequencies),"SNPs"))
+    snp.mat[,allele.frequencies] <- 4-(snp.mat[,allele.frequencies])
+    temp <- allele.B[allele.frequencies]
+    allele.B[allele.frequencies] <- allele.A[allele.frequencies]
+    allele.A[allele.frequencies] <- temp
+  }
+  if(!is.null(qtl.getOption("db.snp.ref"))){
+    logger.start("Matching reference allele according to dbSNP")
+    db.snp <- fread(qtl.getOption("db.snp.ref"))
+    db.snp.gr <- makeGRangesFromDataFrame(db.snp,seqnames="#CHROM",start.field="POS",end.field="POS")
+    anno.gr <- GRanges(Rle(chroms),IRanges(start=position,end=position))
+    op <- findOverlaps(anno.gr,db.snp.gr)
+    is.mismatch <- allele.A[queryHits(op)]!=db.snp$REF[subjectHits(op)]
+    logger.info(paste("Recoding",sum(is.mismatch),"variants"))
+    temp <- allele.A[queryHits(op)][is.mismatch]
+    allele.A[queryHits(op)][is.mismatch] <- allele.B[queryHits(op)][is.mismatch]
+    allele.B[queryHits(op)][is.mismatch] <- temp
+    snp.mat[,queryHits(op)][,is.mismatch] <- 4-(snp.mat[,queryHits(op)][,is.mismatch])
+    rem.sites <- rep(FALSE,length(allele.A))
+    rem.sites[queryHits(op)] <- allele.A[queryHits(op)]!=db.snp$REF[subjectHits(op)]
+    logger.info(paste("Removing",sum(rem.sites),"variants, since neither ALT nor REF matches dbSNP"))
+    snp.mat <- snp.mat[,!rem.sites]
+    chroms <- chroms[!rem.sites]
+    position <- position[!rem.sites]
+    allele.A <- allele.A[!rem.sites]
+    allele.B <- allele.B[!rem.sites]
+    logger.completed()    
+  }
+  snp.mat <- new("SnpMatrix",snp.mat)
+  ids <- as.character(s.anno[,s.id.col])
+  row.names(snp.mat) <- ids
   write.plink(file.path(out.dir,"plink"),
-              snps=snp.mat[,!is.chr.0],
+              snps=snp.mat,
               pedigree=ids,
               id=ids,
               sex=sex,
-              chromosome=chroms[!is.chr.0],
-              position=position(f.dat)[!is.chr.0],
-              allele.1=allele.A[!is.chr.0],
-              allele.2=allele.B[!is.chr.0]
+              chromosome=chroms,
+              position=position,
+              allele.1=allele.A,
+              allele.2=allele.B
               )
   return(c(
     bed.file=file.path(out.dir,"plink.bed"),

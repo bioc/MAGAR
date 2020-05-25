@@ -39,7 +39,7 @@ do.imputation <- function(bed.file,
   cmd <- paste(qtl.getOption("plink.path"),"--bfile",plink.loc,
                "--hwe",qtl.getOption("hardy.weinberg.p"),
                "--maf",qtl.getOption("minor.allele.frequency"),"--mind",qtl.getOption("missing.values.samples"),
-               "--make-bed --recode vcf --out",proc.data)
+               "--snps-only just-acgt --make-bed --recode vcf --out",proc.data)
   system(cmd)
   # sort and split by chromosome
   vcftools.path <- qtl.getOption("vcftools.path")
@@ -60,12 +60,14 @@ do.imputation <- function(bed.file,
         "' -F 'input-files=@",paste0(out.dir,"/",chr,".vcf.gz'"),
         " -F 'input-refpanel=",qtl.getOption("imputation.reference.panel"),
         "' -F 'input-phasing=", qtl.getOption("imputation.phasing.method"),
+        "' -F 'input-population=", qtl.getOption("imputation.population"),
         "' https://imputationserver.sph.umich.edu/api/v2/jobs/submit/minimac4")
+    print(cmd)
     res <- system(cmd,intern=T)
     res <- unlist(strsplit(res,"\""))
     j.id <- res[unlist(lapply(res,function(x)grepl("job-",x)))]
     run <- T
-    logger.start("Waiting for imputation jobs to finish. This can take up to several days and you can check the state of the jobs in you user profile on https://imputationserver.sph.umich.edu/index.html#!pages/jobs")
+    logger.start("Waiting for imputation jobs to finish. This can take up to several days and you can check the state of the jobs in your user profile on https://imputationserver.sph.umich.edu/index.html#!pages/jobs")
     while(run){
       Sys.sleep(100)
       cmd <- paste0("curl -H 'X-Auth-Token:",
@@ -76,34 +78,34 @@ do.imputation <- function(bed.file,
     }
     logger.completed()
     imp.resu <- paste0("curl -H 'X-Auth-Token:",
-      qtl.getOption("imputation.user.token"),"' https://imputationserver.sph.umich.edu/results/",j.id,"/local/",chr,".zip --output temp.zip")
+      qtl.getOption("imputation.user.token"),"' https://imputationserver.sph.umich.edu/results/",j.id,"/local/chr_",substr(chr,4,nchar(chr)),".zip --output ",out.dir,"/temp.zip")
     imp.resu <- system(imp.resu)
     cat("Enter password for zip archive send per mail ")
     pwd <- readLines("stdin",n=1)
-    cmd <- paste("unzip","-P",pwd,"temp.zip")
+    cmd <- paste0("unzip"," -P '",pwd,"' -d ",out.dir," ",out.dir,"/temp.zip")
     system(cmd)
-    cmd <- paste(qtl.getOption("plink.path"),"--vcf",paste0(chr,".dose.vcf.gz"),"--recode --make-bed --out",paste0(out.dir,"/",chr))
+    cmd <- paste(qtl.getOption("plink.path"),"--vcf",paste0(out.dir,"/",chr,".dose.vcf.gz"),"--recode --make-bed --out",paste0(out.dir,"/",chr))
     system(cmd)
     write.table(paste0(out.dir,"/",chr,c(".bed",".bim",".fam"),collapse="\t"),file.path(out.dir,"allfiles.txt"),append=T,col.names=F,row.names=F,quote=F)
   }
-  all.files <- read.table(file.path(wd,"allfiles.txt"))
+  all.files <- read.table(file.path(out.dir,"allfiles.txt"))
   for(fi in 1:nrow(all.files)){
     fi <- all.files[fi,]
-    cmd <- paste(qtl.getOption("plink.path"),"--bfile",file.path(out.dir,unlist(fi[1])),
-      "--exclude", file.path(out.dir,"all_dups.dups"),"--make-bed --out",file.path(out.dir,paste0(unlist(fi[1]))))
+    cmd <- paste(qtl.getOption("plink.path"),"--bfile",gsub(".bed","",unlist(fi[1])),
+      "--make-bed --out",paste0(unlist(fi[1])))
     system(cmd)
-    cmd <- paste(qtl.getOption("plink.path"),"--bfile",file.path(out.dir,paste0(unlist(fi[1]))),
-                 " --flip", file.path(out.dir,"imputed_data-merge.missnp"),"--make-bed --out",file.path(out.dir,unlist(fi[1])))
-    system(cmd)
+#    cmd <- paste(qtl.getOption("plink.path"),"--bfile",gsub(".bed","",paste0(unlist(fi[1]))),
+#                 " --flip", file.path(out.dir,"imputed_data-merge.missnp"),"--make-bed --out",file.path(out.dir,unlist(fi[1])))
+#    system(cmd)
   }
   
   cmd <- paste(qtl.getOption("plink.path"),"--merge-list", file.path(out.dir,"allfiles.txt"),"--missing-genotype N --make-bed --out",proc.data)
   system(cmd)
   
-  proc.data <- file.path(out,"imputed_data")
+  proc.data <- file.path(out.dir,"imputed_data")
   return(c(
     bed.file=paste0(proc.data,".bed"),
     bim.file=paste0(proc.data,".bim"),
-    fam.file=paste0(proc.data,".fam"),
+    fam.file=paste0(proc.data,".fam")
   ))
 }

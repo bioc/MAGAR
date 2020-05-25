@@ -7,21 +7,23 @@
 
 QTL.OPTIONS <- new.env()
 
-assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',             'minor.allele.frequency','missing.values.samples','plink.geno','plink.path',
+assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',
+             	'db.snp.ref','minor.allele.frequency','missing.values.samples','plink.geno','plink.path',
 		'fast.qtl.path','bgzip.path','tabix.path',
-		 'n.prin.comp','cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
-               'linear.model.type','representative.cpg.computation','meth.qtl.type',
-               'max.cpgs','rscript.path','cluster.config','recode.allele.frequencies',
-               'n.permutations','p.value.correction','compute.cor.blocks',
-               'use.segmentation','use.functional.annotation',
+		'n.prin.comp','cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
+               	'linear.model.type','representative.cpg.computation','meth.qtl.type',
+               	'max.cpgs','rscript.path','cluster.config','recode.allele.frequencies',
+               	'n.permutations','p.value.correction','compute.cor.blocks',
+               	'use.segmentation','use.functional.annotation',
 		           'functional.annotation.weight','impute.geno.data',"vcftools.path",
-		           "imputation.user.token","imputation.reference.panel","imputation.phasing.method"),QTL.OPTIONS)
+		           "imputation.user.token","imputation.reference.panel","imputation.phasing.method","imputation.population"),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',NULL,QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
 assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
 assign('RNBEADS.QC',FALSE,QTL.OPTIONS)
 assign('HDF5DUMP',FALSE,QTL.OPTIONS)
 assign("HARDY.WEINBERG.P",0.001,QTL.OPTIONS)
+assign("DB.SNP.REF",NULL,QTL.OPTIONS)
 assign("MINOR.ALLELE.FREQUENCY",0.05,QTL.OPTIONS)
 assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
 assign("PLINK.GENO",0.1,QTL.OPTIONS)
@@ -51,6 +53,7 @@ assign("VCFTOOLS.PATH",NULL,QTL.OPTIONS)
 assign("IMPUTATION.USER.TOKEN",NULL,QTL.OPTIONS)
 assign("IMPUTATION.REFERENCE.PANEL","apps@hrc-r1.1",QTL.OPTIONS)
 assign("IMPUTATION.PHASING.METHOD","shapeit",QTL.OPTIONS)
+assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 
 #' qtl.setOption
 #'
@@ -66,6 +69,9 @@ assign("IMPUTATION.PHASING.METHOD","shapeit",QTL.OPTIONS)
 #'            \code{\link{HDF5Array}} package.
 #' @param hardy.weinberg.p P-value used for the markers to be excluded if they do not follow the
 #'            Hardy-Weinberg equilibrium as implemented in \code{PLINK}.
+#' @param db.snp.ref Path to a locally stored version of dbSNP[3]. If this option is specified, the reference allele
+#'             is determined from this file instead of from the allele frequencies of the dataset. This circumvents problems
+#'	       with some imputation methods. If \code{NULL}(default), recoding will not be performed.
 #' @param minor.allele.frequency Threshold for the minor allele frequency of the SNPs to be used in the analysis.
 #' @param missing.values.samples Threshold specifying how much missing values per SNP are allowed across the samples
 #'            to be included in the analyis.
@@ -127,6 +133,8 @@ assign("IMPUTATION.PHASING.METHOD","shapeit",QTL.OPTIONS)
 #'              for further information which panels are supported by the Michigan imputation server.
 #' @param imputation.phasing.method The phasing method employed by the Michigan imputation server. See
 #'              https://imputationserver.readthedocs.io/en/latest/api/ for further information.
+#' @param imputation.population The population for the phasing method required by the Michigan imputation server. See
+#'              https://imputationserver.readthedocs.io/en/latest/api/ for further information.
 #' @export
 #' @author Michael Scherer
 #' @examples
@@ -142,12 +150,15 @@ assign("IMPUTATION.PHASING.METHOD","shapeit",QTL.OPTIONS)
 #'   2. Das S, Forer L, Schönherr S, Sidore C, Locke AE, et al. (2016).
 #'    Next-generation genotype imputation service and methods. Nature Genetics 48, 1284–1287,
 #'    https://doi.org/10.1038/ng.3656
+#'   3. Sherry, S. T. et al. (2001). dbSNP: the NCBI database of genetic variation.
+#'    Nucleic Acids Res. 29, 308–311, https://doi.org/10.1093/nar/29.1.308.
 qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.xml",package="methQTL"),
                        meth.data.type="idat.dir",
                        rnbeads.report="temp",
                        rnbeads.qc=F,
                        hdf5dump=F,
                        hardy.weinberg.p=0.001,
+		       db.snp.ref=NULL,
                        minor.allele.frequency=0.05,
                        missing.values.samples=0.05,
 		       plink.geno=0.1,
@@ -176,7 +187,8 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        vcftools.path=NULL,
                        imputation.user.token=NULL,
                        imputation.reference.panel="apps@hrc-r1.1",
-                       imputation.phasing.method="shapeit"){
+                       imputation.phasing.method="shapeit",
+		       imputation.population="eur"){
   if(length(rnbeads.options)!=1 & !is.null(rnbeads.options)){
     stop("Please specify the options one by one, not as a vector or list.")
   }
@@ -220,7 +232,17 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['HARDY.WEINBERG.P']] <- hardy.weinberg.p
   }
-  if(!missing(minor.allele.frequency)){q
+  if(!missing(db.snp.ref)){
+    if(!is.null(db.snp.ref) && !file.exists(db.snp.ref)){
+      stop("Please download dbSNP from UCSC (https://genome.ucsc.edu/), and specify the path here")
+    }
+    if(QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']]){
+	logger.info("Conflicting options 'recode.allele.frequencies' and 'db.snp.ref', setting 'recode.allele.frequencies'=FALSE")
+	QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']] <- FALSE
+    }
+    QTL.OPTIONS[['DB.SNP.REF']] <- db.snp.ref
+  }
+  if(!missing(minor.allele.frequency)){
     if(!is.numeric(minor.allele.frequency) || minor.allele.frequency > 1){
       stop("Invalid value for minor.allele.frequency, needs to be numeric < 1")
     }
@@ -376,6 +398,10 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     if(!is.logical(compute.cor.blocks)){
       stop("Invalid value for recode.allele.frequencies, needs to be logical.")
     }
+    if(!is.null(QTL.OPTIONS[['DB.SNP.REF']])){
+	logger.info("Conflicting options 'recode.allele.frequencies' and 'db.snp.ref', setting 'recode.allele.frequencies'=FALSE")
+	recode.allele.frequencies <- FALSE
+    }
     QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']] <- recode.allele.frequencies
   }
   if(!missing(use.segmentation)){
@@ -420,6 +446,12 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['IMPUTATION.PHASING.METHOD']] <- imputation.phasing.method
   }
+  if(!missing(imputation.population)){
+    if(!is.character(imputation.population)){
+      stop("Invalid value for option 'imputation.population', needs to character")
+    }
+    QTL.OPTIONS[['IMPUTATION.POPULATION']] <- imputation.population
+  }
 }
 
 #' qtl.getOption
@@ -456,6 +488,9 @@ qtl.getOption <- function(names){
   }
   if('hardy.weinberg.p'%in%names){
     ret <- c(ret,hardy.weinberg.p=QTL.OPTIONS[['HARDY.WEINBERG.P']])
+  }
+  if('db.snp.ref'%in%names){
+    ret <- c(ret,db.snp.ref=QTL.OPTIONS[['DB.SNP.REF']])
   }
   if('minor.allele.frequency'%in%names){
     ret <- c(ret,minor.allele.frequency=QTL.OPTIONS[['MINOR.ALLELE.FREQUENCY']])
@@ -559,6 +594,9 @@ qtl.getOption <- function(names){
   }
   if('imputation.phasing.method'%in%names){
     ret <- c(ret,imputation.phasing.method=QTL.OPTIONS[['IMPUTATION.PHASING.METHOD']])
+  }
+  if('imputation.population'%in%names){
+    ret <- c(ret,imputation.population=QTL.OPTIONS[['IMPUTATION.POPULATION']])
   }
   return(ret[names])
 }

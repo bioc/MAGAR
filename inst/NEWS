@@ -1,3 +1,9 @@
+methQTL version 0.3.5
+---------------------
+ * methQTL now supports raw IDAT files for importing genotyping data using the R package CRLMM (https://www.bioconductor.org/packages/release/bioc/html/crlmm.html)
+ * methQTL now supports imputation of genotyping data using the Michigan Imputation Server (https://imputationserver.sph.umich.edu/index.html#!)
+ * Smaller fixes and improvements
+
 methQTL version 0.3.4
 ---------------------
  * Included fastQTL as alternative methQTL calling tool
