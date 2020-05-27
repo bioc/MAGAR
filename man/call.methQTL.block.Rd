@@ -12,6 +12,7 @@ call.methQTL.block(
   anno.meth,
   anno.geno,
   model.type = qtl.getOption("linear.model.type"),
+  repr.type = qtl.getOption("representative.cpg.computation"),
   n.permutations = qtl.getOption("n.permutations")
 )
 }
@@ -37,6 +38,12 @@ call.methQTL.block(
   induces an ordering between heterozygous and homozygous reference. We then use the p-value from the t-statistic
   and the associated beta value.}
 }}
+
+\item{repr.type}{Argument specifying how reference CpGs per correlation block are to be computed. Available
+options are \code{"row.medians"} for the site that is the row median across the samples within the
+correlation block (for ties a random selection is performed), \code{"mean.center"} for an artifical site in the geometric center of the block with
+the average methylation level or \code{"best.all"} for the CpG with the best p-value across all of the
+CpGs in the correlation block.}
 
 \item{n.permutations}{Number of permutations used to correct the p-values. Only has an influence, if the parameter
 \code{"p.value.correction"="permutation".}}

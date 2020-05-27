@@ -389,3 +389,54 @@ qtl.plot.cluster.size <- function(meth.qtl.res,type="count"){
 	plot <- ggplot(to.plot,aes(x=Size,y=..count..))+geom_histogram()+my_theme
 	return(plot)
 }
+
+#' qtl.plot.annotation.enrichment
+#'
+#' This functions returns and enrichment plot for different genomic annotation enrichments
+#' 
+#' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
+#' @param ... Further parameters passed to \code{\link{qtl.annotation.enrichment }}
+#' @seealso qtl.annotation.enrichment 
+#' @export
+#' @author Michael Scherer
+qtl.plot.annotation.enrichment <- function(meth.qtl.res,...){
+	all.types <- c("SNP","CpG","cor.block")
+	all.annos <- c("cpgislands","promoters","genes","ctcf","distal","proximal","tfbs","dnase","tss")
+	enr.res <- lapply(all.types,function(type){
+			lapply(all.annos,function(anno){
+				qtl.annotation.enrichment(meth.qtl.res,type,anno)
+			})
+		})
+	to.plot <- data.frame(First=names(unlist(enr.res)),Second=unlist(enr.res))
+	to.plot <- reshape2::melt(to.plot,id="First")
+	to.plot <-data.frame(Type=unlist(lapply(all.types,function(x)rep(x,9))),
+		Annotation=rep(all.annos,3),
+		enrichment=to.plot$value[grep("enrichment",to.plot$First)],
+		depletion=to.plot$value[grep("depletion",to.plot$First)],
+		OddsRatio=to.plot$value[grep("OddsRatio",to.plot$First)])
+	plot <- ggplot(to.plot,aes(x=Type,y=Annotation,fill=log10(OddsRatio)))+
+		geom_tile(color="black",size=ifelse(to.plot$enrichment<0.01|to.plot$depletion<0.01,5,1))+
+		my_theme+
+		scale_fill_gradient2(low="dodgerblue3",mid="white",high="firebrick3")
+}
+
+#' qtl.plot.base.substitution
+#' 
+#' This function returns an enrichment plot for the different base substitutions.
+#' 
+#' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
+#' @param ... Further parameters passed to \code{\link{qtl.base.substitution.enrichment}}
+#' @seealso qtl.base.substitution.enrichment
+#' @export
+#' @author Michael Scherer
+qtl.plot.base.substitution <- function(meth.qtl.res,...){
+	to.plot <- qtl.base.substitution.enrichment(meth.qtl.res,...)
+	to.plot <- data.frame(Substitution=colnames(to.plot),
+			OddsRatio=to.plot["OddsRatio",],
+			p.value=to.plot["p.value",])
+	plot <- ggplot(to.plot,aes(x=Substitution,y="",fill=log10(OddsRatio)))+
+		geom_tile(color="black",size=ifelse(to.plot$p.value<0.01,5,1))+
+		my_theme+
+		scale_fill_gradient2(low="dodgerblue3",mid="white",high="firebrick3")
+
+}

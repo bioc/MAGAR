@@ -63,7 +63,7 @@ do.methQTL <- function(meth.qtl,
   if(!cluster.submit){
     if(ncores>1){
       parallel.setup(ncores)
-      res.all <- foreach(chrom=all.chroms,.combine="c") %dopar%{
+      res.all <- foreach(chrom=all.chroms,.combine="list") %dopar%{
         do.methQTL.chromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff)
       }
     }else{
@@ -111,7 +111,7 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
   sel.anno <- anno[sel.meth,]
   sel.meth <- getMethData(meth.qtl)[sel.meth,]
   if(qtl.getOption('compute.cor.blocks')){
-    cor.blocks <- compute.correlation.blocks(sel.meth,sel.anno,assembly=meth.qtl@assembly,chromosome=chrom,segmentation=meth.qtl@segmentation)
+    cor.blocks <- compute.correlation.blocks(sel.meth,sel.anno,assembly=meth.qtl@assembly,chromosome=chrom)
     cor.blocks <- lapply(cor.blocks,as.numeric)
     if(!is.null(out.dir)){
       to.plot <- data.frame(Size=lengths(cor.blocks))
@@ -129,10 +129,6 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
   sel.anno.geno <- anno.geno[sel.geno,]
   sel.geno <- getGeno(meth.qtl)[sel.geno,]
   ph.dat <- getPheno(meth.qtl)
-  n.comps <- qtl.getOption('n.prin.comp')
-  if(!is.null(n.comps)){
-    sel.covariates <- c(paste0("PC",1:n.comps))
-  }
   if(is.null(sel.covariates)){
     ph.dat <- NULL
   }else{
@@ -145,37 +141,48 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
     }
     ph.dat <- ph.dat[,sel.covariates,drop=FALSE]
   }
-  if(qtl.getOption("meth.qtl.type")=="fastQTL"){
-    logger.start("Running FastQTL")
-    prep.fast.qtl <- generate.fastQTL.input(meth.qtl,chrom,cor.blocks,ph.dat,out.dir=out.dir)
-    res.chr.p.val <- run.fastQTL(prep.fast.qtl,meth.qtl,chrom,out.dir)
-    logger.completed()
-  }else{
-    logger.start("Compute methQTL per correlation block")
-      parallel.setup(ncores)
-      res.chr.p.val <- mclapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno,mc.cores = ncores)
-      res.all <- c()
-      for(i in 1:length(res.chr.p.val)){
-        res.all <- rbind(res.all,res.chr.p.val[[i]])
-      }
-      res.chr.p.val <- as.data.frame(res.all)
-      rm(res.all)
-    logger.completed()
-  }
+  logger.start("Compute methQTL per correlation block")
+#  if(ncores>1){
+    parallel.setup(ncores)
+    res.chr.p.val <- mclapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno,mc.cores = ncores)
+    res.all <- c()
+    for(i in 1:length(res.chr.p.val)){
+      res.all <- rbind(res.all,res.chr.p.val[[i]])
+    }
+    res.chr.p.val <- as.data.frame(res.all)
+    rm(res.all)
+  # }else{
+  #   res.chr.p.val <- t(sapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno))
+  #   ret <- c()
+  #   for(j in 1:ncol(res.chr.p.val)){
+  #     if(j %in% c(1,2,5)){
+  #       ret <- cbind(ret,unlist(lapply(res.chr.p.val[,j],as.character)))
+  #     }else{
+  #       ret <- cbind(ret,unlist(lapply(res.chr.p.val[,j],as.numeric)))
+  #     }
+  #   }
+  #   ret <- as.data.frame(ret)
+  #   for(j in 1:ncol(ret)){
+  #     if(j %in% c(1,2,5)){
+  #       ret[,j] <- as.character(ret[,j])
+  #     }else{
+  #       ret[,j] <- as.numeric(as.character(ret[,j]))
+  #     }
+  #   }
+  #   ret <- as.data.frame(ret)
+  #   colnames(ret) <- colnames(res.chr.p.val)
+  # }
+  logger.completed()
   if(qtl.getOption("p.value.correction")=="uncorrected.fdr"){
     res.chr.p.val <- res.chr.p.val[as.numeric(as.character(res.chr.p.val$P.value))<p.val.cutoff,]
   }
-  if(is.null(res.chr.p.val)){
-    logger.info(paste("No methQTL found for chromosome",chrom))
-    chrom.frame <- data.frame()
-  }else if(nrow(res.chr.p.val)==0){
+  if(nrow(res.chr.p.val)==0){
     logger.info(paste("No methQTL found for chromosome",chrom))
     chrom.frame <- data.frame()
   }else{
     chrom.frame <- data.frame(CpG=as.character(res.chr.p.val$CpG),
                             SNP=as.character(res.chr.p.val$SNP),
                             Beta=as.numeric(as.character(res.chr.p.val$Beta)),
-			    SE.Beta=as.numeric(as.character(res.chr.p.val$SE.Beta)),
                             P.value=as.numeric(as.character(res.chr.p.val$P.value)),
                             Chromosome=as.character(res.chr.p.val$Chromosome),
                             Position.CpG=as.numeric(as.character(res.chr.p.val$Position_CpG)),
@@ -199,7 +206,7 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
                         correlation.blocks=cor.blocks,
                         method=qtl.getOption("linear.model.type"),
                         rep.type=qtl.getOption("representative.cpg.computation"),
-                        chr=as.character(chrom))
+                        chr=chrom)
   logger.completed()
   return(methQTL.result)
 }
@@ -225,6 +232,11 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
 #'      induces an ordering between heterozygous and homozygous reference. We then use the p-value from the t-statistic
 #'      and the associated beta value.}
 #'    }
+#' @param repr.type Argument specifying how reference CpGs per correlation block are to be computed. Available
+#'            options are \code{"row.medians"} for the site that is the row median across the samples within the
+#'            correlation block (for ties a random selection is performed), \code{"mean.center"} for an artifical site in the geometric center of the block with
+#'            the average methylation level or \code{"best.all"} for the CpG with the best p-value across all of the
+#'            CpGs in the correlation block.
 #' @param n.permutations  Number of permutations used to correct the p-values. Only has an influence, if the parameter
 #'            \code{"p.value.correction"="permutation".}
 #' @return A vector of three elements:
@@ -242,24 +254,42 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
 #' @export
 call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno.geno,
                                model.type=qtl.getOption("linear.model.type"),
+                               repr.type=qtl.getOption("representative.cpg.computation"),
                                n.permutations=qtl.getOption("n.permutations")){
+  sel.meth <- meth.data[cor.block,,drop=F]
+  anno.meth <- anno.meth[cor.block,,drop=F]
   # computing CpG-wise medians across the samples
   # then order the CpGs by value and select the one in the middle
-  reps <- compute.representative.CpG(cor.block,meth.data,anno.meth)
-  sel.anno <- reps$anno
-  reps <- as.vector(reps$meth)
+  if(repr.type == "row.medians"){
+    reps <- apply(as.matrix(sel.meth),1,median,na.rm=T)
+    order.reps <- order(reps,decreasing = T)
+    n.cpgs <- length(order.reps)
+    if(n.cpgs%%2 ==0){
+      sel.site <- sample(c(n.cpgs/2,n.cpgs/2 + 1),1)
+    }else{
+      sel.site <- n.cpgs/2 + 0.5
+    }
+    reps <- as.matrix(sel.meth)[sel.site,]
+    sel.anno <- anno.meth[sel.site,]
+  }else if(repr.type == "mean.center"){
+    reps <- apply(as.matrix(sel.meth),2,mean,na.rm=T)
+    sel.anno <- data.frame(Chromosome=unique(anno.meth$Chromosome),Start=mean(anno.meth$Start))
+    row.names(sel.anno) <- paste0("mean_of_",nrow(sel.meth))
+  }else{
+    sel.anno <- anno.meth
+    reps <- t(as.matrix(sel.meth))
+  }
   distances <- abs(anno.geno$Start - sel.anno$Start)
   if(all(distances>=qtl.getOption("absolute.distance.cutoff"))){
     logger.info(paste("No SNP closer than",qtl.getOption("absolute.distance.cutoff")))
     ret <- data.frame(as.character(row.names(sel.anno)),
                       NA,
                       NA,
-		      NA,
                       NA,
                       as.character(sel.anno$Chromosome),
                       NA,
                       sel.anno$Start)
-    colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
+    colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
     return(ret)
   }
   geno.data <- geno.data[distances<qtl.getOption("absolute.distance.cutoff"),,drop=FALSE]
@@ -268,24 +298,22 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
     ret <- data.frame(as.character(row.names(sel.anno)),
                       NA,
                       NA,
-		      NA,
                       NA,
                       as.character(sel.anno$Chromosome),
                       NA,
                       sel.anno$Start)
-    colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
+    colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
     return(ret)
   }else if(nrow(geno.data)==0){
     logger.error("Geno data contains no rows")
     ret <- data.frame(as.character(row.names(sel.anno)),
                       NA,
                       NA,
-		      NA,
                       NA,
                       as.character(sel.anno$Chromosome),
                       NA,
                       sel.anno$Start)
-    colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
+    colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
     return(ret)
   }
   anno.geno <- anno.geno[distances<qtl.getOption("absolute.distance.cutoff"),,drop=FALSE]
@@ -297,7 +325,7 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
     }
     if(model.type == "categorical.anova"){
       if(length(unique(snp))==1){
-        return(c(p.val=NA,beta=NA,se.beta=NA))
+        return(c(p.val=NA,beta=NA))
       }
       in.mat <- data.frame(CpG=reps,SNP=as.factor(snp))
       if(!is.null(covs)){
@@ -306,16 +334,16 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
       lm.model <- lm(form,data=in.mat)
       if(length(unique(snp))==2){
         if(is.na(coef(lm.model)["SNP"])){
-          return(c(p.val=NA,beta=NA,se.beta=NA))
+          return(c(p.val=NA,beta=NA))
         }
       }else{
         if(any(is.na(coef(lm.model)["SNP1"]),is.na(coef(lm.model)["SNP2"]))){
-          return(c(p.val=NA,beta=NA,se.beta=NA))
+          return(c(p.val=NA,beta=NA))
         }
       }
       an.model <- anova(lm.model)
       p.val <- an.model["SNP","Pr(>F)"]
-      return(c(p.val=p.val,beta=NA,se.beta=NA))
+      return(c(p.val=p.val,beta=NA))
     }else if(model.type == "classical.linear"){
       in.mat <- data.frame(CpG=reps,SNP=snp)
       if(!is.null(covs)){
@@ -323,11 +351,10 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
       }
       lm.model <- lm(form,data=in.mat)
       if(is.na(coef(lm.model)["SNP"])){
-        return(c(p.val=NA,beta=NA,se.beta=NA))
+        return(c(p.val=NA,beta=NA))
       }
       p.val <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
       beta <- summary(lm.model)$coefficients["SNP","Estimate"]
-      se.beta <- summary(lm.model)$coefficients["SNP","Std. Error"]
       if(qtl.getOption("p.value.correction") == "corrected.fdr"){
         permuted.pvals <- matrix(nrow = n.permutations,ncol=2)
         # determine number of independent tests
@@ -348,7 +375,7 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
         }
         p.val <- p.adjust(p.val,"bonferroni",n=ifelse(n.tests<1,1,n.tests))
       }
-     return(c(p.val=p.val,beta=beta,se.beta=se.beta))
+     return(c(p.val=p.val,beta=beta))
     }
   })
   all.snps <- t(all.snps)
@@ -367,139 +394,20 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
     ret <- data.frame(as.character(row.names(sel.anno)),
                       NA,
                       NA,
-		      NA,
                       NA,
                       as.character(sel.anno$Chromosome),
                       NA,
                       sel.anno$Start)
-    colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
+    colnames(ret) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
     return(ret)
   }
   min.p.val <- data.frame(as.character(row.names(sel.anno)),
                           as.character(row.names(anno.geno)[is.min]),
                           all.snps[is.min,'p.val'],
                           all.snps[is.min,'beta'],
-			  all.snps[is.min,'se.beta'],
                           as.character(sel.anno$Chromosome),
                           anno.geno$Start[is.min],
                           sel.anno$Start)
-  colnames(min.p.val) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
+  colnames(min.p.val) <- c("CpG","SNP","P.value","Beta","Chromosome","Position_SNP","Position_CpG")
   return(min.p.val)
-}
-
-#' compute.representative.CpG
-#'
-#' This function computes respresentative CpGs per correlation blocks given and return the methylation data matrix
-#' and genomic annotation of these representatives.
-#'
-#' @param cor.blocks The correlation blocks as a \code{list}
-#' @param meth.data The originial DNA methylation data matrix
-#' @param anno.meth The original genomic annotation of the CpGs
-#' @return A list with two elements: \describe{
-#'     \item{\code{meth:}}{The selected DNA methylation data matrix}
-#'     \item{\code{anno:}}{The selexted genomic annotation}
-#' }
-#' @author Michael Scherer
-#' @noRd
-compute.representative.CpG <- function(cor.blocks,meth.data,annotation){
-  res.meth <- c()
-  res.anno <- c()
-  repr.type <- qtl.getOption("representative.cpg.computation")
-  if(is.list(cor.blocks)){
-	  for(i in 1:length(cor.blocks)){
-	    cor.block <- cor.blocks[[i]]
-	    sel.meth <- meth.data[cor.block,,drop=F]
-	    anno.meth <- annotation[cor.block,,drop=F]
-	    if(repr.type == "row.medians"){
-	      reps <- apply(as.matrix(sel.meth),1,median,na.rm=T)
-	      order.reps <- order(reps,decreasing = T)
-	      n.cpgs <- length(order.reps)
-	      if(n.cpgs%%2 ==0){
-		sel.site <- sample(c(n.cpgs/2,n.cpgs/2 + 1),1)
-	      }else{
-		sel.site <- n.cpgs/2 + 0.5
-	      }
-	      reps <- as.matrix(sel.meth)[sel.site,]
-	      sel.anno <- anno.meth[sel.site,]
-	    }else if(repr.type == "mean.center"){
-	      reps <- apply(as.matrix(sel.meth),2,mean,na.rm=T)
-	      sel.anno <- data.frame(Chromosome=unique(anno.meth$Chromosome),Start=mean(anno.meth$Start))
-	      row.names(sel.anno) <- paste0("mean_of_",nrow(sel.meth))
-	    }else{
-	      sel.anno <- anno.meth
-	      reps <- t(as.matrix(sel.meth))
-	    }
-	    res.meth <- rbind(res.meth,reps)
-	    res.anno <- rbind(res.anno,sel.anno)
-	  }
- 	 return(list(meth=res.meth,anno=res.anno))
-  }else{
-	    sel.meth <- meth.data[cor.blocks,,drop=FALSE]
-	    anno.meth <- annotation[cor.blocks,,drop=FALSE]
-	    if(repr.type == "row.medians"){
-	      reps <- apply(as.matrix(sel.meth),1,median,na.rm=T)
-	      order.reps <- order(reps,decreasing = T)
-	      n.cpgs <- length(order.reps)
-	      if(n.cpgs%%2 ==0){
-		sel.site <- sample(c(n.cpgs/2,n.cpgs/2 + 1),1)
-	      }else{
-		sel.site <- n.cpgs/2 + 0.5
-	      }
-	      reps <- as.matrix(sel.meth)[sel.site,]
-	      sel.anno <- anno.meth[sel.site,]
-	    }else if(repr.type == "mean.center"){
-	      reps <- apply(as.matrix(sel.meth),2,mean,na.rm=T)
-	      sel.anno <- data.frame(Chromosome=unique(anno.meth$Chromosome),Start=mean(anno.meth$Start))
-	      row.names(sel.anno) <- paste0("mean_of_",nrow(sel.meth))
-	    }else{
-	      sel.anno <- anno.meth
-	      reps <- t(as.matrix(sel.meth))
-	    }
-  	return(list(meth=reps,anno=sel.anno))
-  }
-}
-
-#' run.fastQTL
-#'
-#' This functions runs fastQTL on the specified input prepared using \code{generate.fastQTL.input}
-#'
-#' @param prepard.input The input as prepared through \code{generate.fastQTL.input}
-#' @param meth.qtl The input object of type \code{\link{methQTLInput}}
-#' @param chrom The chromosome to be analyzed
-#' @param out.dir The output directory
-#' @return A \code{data.frame} in analogy to \code{\link{call.methQTL.block}}
-#' @author Michael Scherer
-#' @noRd
-run.fastQTL <- function(prepared.input,
-                        meth.qtl,
-                        chrom,
-                        out.dir){
-  fastQTL.path <- qtl.getOption("fast.qtl.path")
-  n.permutations <- qtl.getOption("n.permutations")
-  res.file <- file.path(out.dir,paste0("fastQTLresult_",chrom,".txt.gz"))
-  cmd <- paste(fastQTL.path,
-               "--vcf", prepared.input["genotypes"],
-               "--bed", prepared.input["phenotypes"],
-               "--permute", n.permutations,
-               "--window",qtl.getOption("absolute.distance.cutoff"),
-               "--out", res.file,
-	       "--chunk 1 1",
-	       "--silent")
-  if(!is.na(prepared.input["covariates"])){
-    cmd <- paste(cmd,"--cov",prepared.input["covariates"])
-  }
-  system(cmd)
-  res.frame <- read.table(res.file,header = F,sep=" ")
-  pos.cpg <- getAnno(meth.qtl)[as.character(res.frame[,1]),"Start"]
-  pos.snp <- getAnno(meth.qtl,"geno")[as.character(res.frame[,6]),"Start"]
-  ret <- data.frame(as.character(res.frame[,1]),
-                    as.character(res.frame[,6]),
-                    res.frame[,11],
-                    res.frame[,9],
-                    rep(NA,nrow(res.frame)),
-                    rep(chrom,nrow(res.frame)),
-                    pos.snp,
-                    pos.cpg)
-  colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
-  return(ret)
 }

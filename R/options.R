@@ -7,7 +7,7 @@
 
 QTL.OPTIONS <- new.env()
 
-assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',
+assign('ALL',c('rnbeads.options','meth.data.type','geno.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',
              	'db.snp.ref','minor.allele.frequency','missing.values.samples','plink.geno','plink.path',
 		'fast.qtl.path','bgzip.path','tabix.path',
 		'n.prin.comp','cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
@@ -19,6 +19,7 @@ assign('ALL',c('rnbeads.options','meth.data.type','rnbeads.report','rnbeads.qc',
 		           "imputation.user.token","imputation.reference.panel","imputation.phasing.method","imputation.population"),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',NULL,QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
+assign('GENO.DATA.TYPE',"plink",QTL.OPTIONS)
 assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
 assign('RNBEADS.QC',FALSE,QTL.OPTIONS)
 assign('HDF5DUMP',FALSE,QTL.OPTIONS)
@@ -62,6 +63,8 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #' @param rnbeads.options Path to an XML file specifying the RnBeads options used for data import. The default options
 #'            are suitable for Illumina Beads Array data sets.
 #' @param meth.data.type Type of DNA methylation data used. Choices are listed in \code{\link{rnb.execute.import}}.
+#' @param geno.data.type The type of data to be imported. Can be either \code{'plink'} for \code{'.bed', '.bim',} and \code{'.fam'} or
+#'   \code{'.dos'} and \code{'txt'} files or \code{'idat'} for raw IDAT files.
 #' @param rnbeads.report Path to an existing directory, in which the preprocessing report of RnBeads is to be stored.
 #'            Defaults to the temporary file.
 #' @param rnbeads.qc Flag indicating if the quality control module of RnBeads is to be executed.
@@ -78,7 +81,7 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #' @param plink.geno Threshold for missing values per SNP
 #' @param impute.geno.data Flag indicating if imputation of genotyping data is to be perfomed using the Michigan imputation
 #'            server (https://imputationserver.sph.umich.edu/index.html)[2].
-#" @param n.prin.comp Number of principal components of the genetic data to be used as covariates
+#' @param n.prin.comp Number of principal components of the genetic data to be used as covariates
 #'            in the methQTL calling. \code{NULL} means that no adjustment is conducted.
 #' @param plink.path Path to an installation of PLINK (also comes with the package)
 #' @param fast.qtl.path Path to an installation of fastQTL (comes with the package for Linux)
@@ -154,16 +157,17 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #'    Nucleic Acids Res. 29, 308–311, https://doi.org/10.1093/nar/29.1.308.
 qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.xml",package="methQTL"),
                        meth.data.type="idat.dir",
+                       geno.data.type="plink",
                        rnbeads.report="temp",
                        rnbeads.qc=F,
                        hdf5dump=F,
                        hardy.weinberg.p=0.001,
-		       db.snp.ref=NULL,
+		                   db.snp.ref=NULL,
                        minor.allele.frequency=0.05,
                        missing.values.samples=0.05,
-		       plink.geno=0.1,
+		                   plink.geno=0.1,
                        impute.geno.data=FALSE,
-		       n.prin.comp=NULL,
+		                   n.prin.comp=NULL,
                        plink.path=system.file("bin/plink",package="methQTL"),
                        fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL"),
                        bgzip.path=system.file("bin/bgzip",package="methQTL"),
@@ -207,6 +211,12 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
       stop("Invalid value for meth.data.type, see rnb.execute.import for options.")
     }
     QTL.OPTIONS[['METH.DATA.TYPE']] <- meth.data.type
+  }
+  if(!missing(geno.data.type)){
+    if(!(geno.data.type %in% c("idat","plink"))){
+      stop("Invalid value for geno.data.type, needs to be 'idat' or 'plink'.")
+    }
+    QTL.OPTIONS[['GENO.DATA.TYPE']] <- geno.data.type
   }
   if(!missing(rnbeads.report)){
     if(!rnbeads.report =="temp" && !dir.exists(rnbeads.report)){
@@ -476,6 +486,9 @@ qtl.getOption <- function(names){
   }
   if('meth.data.type'%in%names){
     ret <- c(ret,meth.data.type=QTL.OPTIONS[['METH.DATA.TYPE']])
+  }
+  if('geno.data.type'%in%names){
+    ret <- c(ret,geno.data.type=QTL.OPTIONS[['GENO.DATA.TYPE']])
   }
   if('rnbeads.report'%in%names){
     ret <- c(ret,rnbeads.report=QTL.OPTIONS[['RNBEADS.REPORT']])

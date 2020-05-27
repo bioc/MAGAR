@@ -17,8 +17,6 @@
 #'             (i.e. with \code{bed}, \code{bim} and \code{fam} files), or imputed, dosage files (i.e. with
 #'             \code{dos} and \code{txt} files)}
 #'          }
-#' @param data.type.geno The type of data to be imported. Can be either \code{'plink'} for \code{'.bed', '.bim',} and \code{'.fam'} or
-#'   \code{'.dos'} and \code{'txt'} files or \code{'idat'} for raw IDAT files.
 #' @param s.anno Path to the sample annotation sheet. If \code{NULL}, the program searches for potential sample
 #'          annotation sheets in the data location directories.
 #' @param assembly.meth Assembly used for the DNA methylation data. Typically is \code{"hg19"} for Illumina BeadArray
@@ -47,7 +45,6 @@
 #' @export
 
 do.import <- function(data.location,
-                      data.type.geno="plink",
                       s.anno=NULL,
                       assembly.meth="hg19",
                       assembly.geno="hg19",
@@ -74,7 +71,7 @@ do.import <- function(data.location,
     }
   }
   pheno.data <- read.table(s.anno,sep=tab.sep,header = T)
-  geno.import <- do.geno.import(data.location,pheno.data,s.id.col,out.folder,data.type=data.type.geno,...)
+  geno.import <- do.geno.import(data.location,pheno.data,s.id.col,out.folder,...)
   pheno.data <- geno.import$pheno.data
   s.anno <- file.path(out.folder,ifelse(tab.sep==",","sample_annotation.csv","sample_annotation.tsv"))
   write.table(pheno.data,s.anno,sep=tab.sep)
@@ -94,10 +91,10 @@ do.import <- function(data.location,
 #    stop("Samples are not present in all of the datasets")
 #  }
   row.names(pheno.data) <- s.names
-  pheno.data <- pheno.data[,!(colnames(pheno.data) %in% s.id.col)]
+#  pheno.data <- pheno.data[,!(colnames(pheno.data) %in% s.id.col)]
   dataset.import <- new("methQTLInput",
-    meth.data=meth.import$data[,s.names],
-    geno.data=geno.import$data[,s.names],
+    meth.data=meth.import$data,
+    geno.data=geno.import$data,
     anno.meth=meth.import$annotation,
     anno.geno=geno.import$annotation,
     pheno.data=pheno.data,
@@ -204,9 +201,8 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
 #' @param s.anno The sample annotation sheet.
 #' @param s.id.col The column name of the sample annotation sheet specifying the sample identifiers.
 #' @param out.folder The output folder for storing diagnostic plots.
-#' @param data.type The type of data to be imported. Can be either \code{'plink'} for \code{'.bed', '.bim',} and \code{'.fam'} or
-#'       \code{'.dos'} and \code{'txt'} files or \code{'idat'} for raw IDAT files.
-#' @param ... Futher parameters passed to \code{\link{do.geno.import.imputed}}.
+#' @param ... Futher parameters passed to \code{\link{do.geno.import.imputed}} or \code{\link{do.geno.import.idat}} depending on the
+#'          option \code{'geno.data.type'}.
 #' @return A list of three elements:
 #'        \describe{
 #'          \item{data}{The processed genotyping data as a data.frame}
@@ -215,10 +211,11 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
 #'        }
 #' @author Michael Scherer
 #' @noRd
-do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,data.type="plink",...){
+do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   logger.start("Processing genotyping data")
   snp.loc <- data.location["geno.dir"]
   all.files <- list.files(snp.loc,full.names=T)
+  data.type <- qtl.getOption("geno.data.type")
   if(data.type=="plink"){
     bed.file <- all.files[grepl(".bed",all.files)]
     bim.file <- all.files[grepl(".bim",all.files)]
@@ -394,9 +391,6 @@ do.geno.import.imputed <- function(dos.file,
     colnames(s.anno)[(ncol.anno+1):ncol(s.anno)] <- paste0("PC",1:n.comps)
   }
   logger.completed()
-  if(qtl.getOption("hdf5dump")){
-    snp.mat <- writeHDF5Array(snp.dat)
-  }
   if(!any(grepl("chr*",anno.geno$Chromosome))){
     anno.geno$Chromosome <- paste0("chr",anno.geno$Chromosome)
   }
@@ -404,7 +398,7 @@ do.geno.import.imputed <- function(dos.file,
   anno.geno$Start <- as.numeric(as.character(anno.geno$Start))
   # Recode major and minor alleles
   snp.dat <- as.matrix(snp.dat)
-  maj.allele.frequencies <- apply(snp.mat,1,function(x){
+  maj.allele.frequencies <- apply(snp.dat,1,function(x){
     x <- x[!is.na(x)]
     (2*sum(x==0)+sum(x==1))/(2*length(x))
   })
@@ -413,7 +407,7 @@ do.geno.import.imputed <- function(dos.file,
   if(qtl.getOption("recode.allele.frequencies")){
     allele.frequencies <- maj.allele.frequencies<0.5
     allele.frequencies[is.na(allele.frequencies)] <- FALSE
-    snp.mat[allele.frequencies,] <- 2-(snp.mat[allele.frequencies,])
+    snp.dat[allele.frequencies,] <- 2-(snp.dat[allele.frequencies,])
     temp <- anno.geno$Allele.2[allele.frequencies]
     anno.geno$Allele.2[allele.frequencies] <- anno.geno$Allele.1[allele.frequencies]
     anno.geno$Allele.1[allele.frequencies] <- temp
@@ -421,7 +415,10 @@ do.geno.import.imputed <- function(dos.file,
     anno.geno$Allele.2.Freq[allele.frequencies] <- maj.allele.frequencies[allele.frequencies]
   }
   logger.completed()
-  return(list(data=snp.dat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col],imputed=TRUE))
+   if(qtl.getOption("hdf5dump")){
+    snp.dat <- writeHDF5Array(snp.dat)
+  }
+return(list(data=snp.dat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col],imputed=TRUE))
 }
 
 match.assemblies <- function(meth.qtl){
@@ -438,6 +435,7 @@ match.assemblies <- function(meth.qtl){
 #' @param s.id.col The column in the sample annotation sheet specifying the sample identifiers
 #' @param out.dir The output directory
 #' @param idat.platform The array platform to be used. Check those available using the crlmm function \code{\link{validCdfNames}}
+#' @param call.method The genotype calling method passed to \code{\link{genotype.Illumina}}
 #' @return A vector with three elements: \describe{
 #'   \item{\code{"bed.file"}}{Path to the BED file for PLINK}
 #'   \item{\code{"bim.file"}}{Path to the BIM file for PLINK}
@@ -450,6 +448,7 @@ do.geno.import.idat <- function(idat.files,
                                    s.id.col,
                                    out.dir,
                                    idat.platform="humanomni258v1a",
+                                   call.method="krlmm",
                                    gender.col=NULL){
   # library(crlmm)
   # library(ff)
@@ -495,7 +494,7 @@ do.geno.import.idat <- function(idat.files,
                                  arrayInfoColNames=array.info,
                                  cdfName=idat.platform,
                                  batch=batch.info,
-                                 call.method="krlmm",
+                                 call.method=call.method,
                                  copynumber=FALSE,
                                  fitMixture=FALSE,
                                  gender=sex)
@@ -556,7 +555,7 @@ do.geno.import.idat <- function(idat.files,
     position <- position[!rem.sites]
     allele.A <- allele.A[!rem.sites]
     allele.B <- allele.B[!rem.sites]
-    logger.completed()    
+    logger.completed()
   }
   snp.mat <- new("SnpMatrix",snp.mat)
   ids <- as.character(s.anno[,s.id.col])

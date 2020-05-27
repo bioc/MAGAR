@@ -29,6 +29,7 @@ do.imputation <- function(bed.file,
   all.chroms <- unique(snp.dat$map$chromosome)
   if(!any(grepl("chr",all.chroms))){
     all.chroms <- paste0("chr",all.chroms)
+    all.chroms <- all.chroms[!grepl("X|Y|23|24",all.chroms)]
   }
   all.chroms.files <- file.path(out.dir,all.chroms)
   if(!all(file.exists(all.chroms.files))){
@@ -89,15 +90,15 @@ do.imputation <- function(bed.file,
     write.table(paste0(out.dir,"/",chr,c(".bed",".bim",".fam"),collapse="\t"),file.path(out.dir,"allfiles.txt"),append=T,col.names=F,row.names=F,quote=F)
   }
   all.files <- read.table(file.path(out.dir,"allfiles.txt"))
-  for(fi in 1:nrow(all.files)){
-    fi <- all.files[fi,]
-    cmd <- paste(qtl.getOption("plink.path"),"--bfile",gsub(".bed","",unlist(fi[1])),
-      "--make-bed --out",paste0(unlist(fi[1])))
-    system(cmd)
+#  for(fi in 1:nrow(all.files)){
+#    fi <- all.files[fi,]
+#    cmd <- paste(qtl.getOption("plink.path"),"--bfile",gsub(".bed","",unlist(fi[1])),
+#      "--make-bed --out",gsub(".bed","",paste0(unlist(fi[1]))))
+#    system(cmd)
 #    cmd <- paste(qtl.getOption("plink.path"),"--bfile",gsub(".bed","",paste0(unlist(fi[1]))),
 #                 " --flip", file.path(out.dir,"imputed_data-merge.missnp"),"--make-bed --out",file.path(out.dir,unlist(fi[1])))
 #    system(cmd)
-  }
+#  }
   
   cmd <- paste(qtl.getOption("plink.path"),"--merge-list", file.path(out.dir,"allfiles.txt"),"--missing-genotype N --make-bed --out",proc.data)
   system(cmd)

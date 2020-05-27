@@ -7,13 +7,17 @@
 qtl.setOption(
   rnbeads.options = system.file("extdata/rnbeads_options.xml", package = "methQTL"),
   meth.data.type = "idat.dir",
+  geno.data.type = "plink",
   rnbeads.report = "temp",
   rnbeads.qc = F,
   hdf5dump = F,
   hardy.weinberg.p = 0.001,
+  db.snp.ref = NULL,
   minor.allele.frequency = 0.05,
   missing.values.samples = 0.05,
+  plink.geno = 0.1,
   impute.geno.data = FALSE,
+  n.prin.comp = NULL,
   plink.path = system.file("bin/plink", package = "methQTL"),
   fast.qtl.path = system.file("bin/fastQTL.static", package = "methQTL"),
   bgzip.path = system.file("bin/bgzip", package = "methQTL"),
@@ -37,7 +41,8 @@ qtl.setOption(
   vcftools.path = NULL,
   imputation.user.token = NULL,
   imputation.reference.panel = "apps@hrc-r1.1",
-  imputation.phasing.method = "shapeit"
+  imputation.phasing.method = "shapeit",
+  imputation.population = "eur"
 )
 }
 \arguments{
@@ -45,6 +50,9 @@ qtl.setOption(
 are suitable for Illumina Beads Array data sets.}
 
 \item{meth.data.type}{Type of DNA methylation data used. Choices are listed in \code{\link{rnb.execute.import}}.}
+
+\item{geno.data.type}{The type of data to be imported. Can be either \code{'plink'} for \code{'.bed', '.bim',} and \code{'.fam'} or
+\code{'.dos'} and \code{'txt'} files or \code{'idat'} for raw IDAT files.}
 
 \item{rnbeads.report}{Path to an existing directory, in which the preprocessing report of RnBeads is to be stored.
 Defaults to the temporary file.}
@@ -57,13 +65,22 @@ Defaults to the temporary file.}
 \item{hardy.weinberg.p}{P-value used for the markers to be excluded if they do not follow the
 Hardy-Weinberg equilibrium as implemented in \code{PLINK}.}
 
+\item{db.snp.ref}{Path to a locally stored version of dbSNP[3]. If this option is specified, the reference allele
+     is determined from this file instead of from the allele frequencies of the dataset. This circumvents problems
+with some imputation methods. If \code{NULL}(default), recoding will not be performed.}
+
 \item{minor.allele.frequency}{Threshold for the minor allele frequency of the SNPs to be used in the analysis.}
 
 \item{missing.values.samples}{Threshold specifying how much missing values per SNP are allowed across the samples
 to be included in the analyis.}
 
-\item{impute.geno.data}{Flag indicating if imputation of gneotyping data is to be perfomed using the Michigan imputation
+\item{plink.geno}{Threshold for missing values per SNP}
+
+\item{impute.geno.data}{Flag indicating if imputation of genotyping data is to be perfomed using the Michigan imputation
 server (https://imputationserver.sph.umich.edu/index.html)[2].}
+
+\item{n.prin.comp}{Number of principal components of the genetic data to be used as covariates
+in the methQTL calling. \code{NULL} means that no adjustment is conducted.}
 
 \item{plink.path}{Path to an installation of PLINK (also comes with the package)}
 
@@ -141,6 +158,9 @@ for further information which panels are supported by the Michigan imputation se
 
 \item{imputation.phasing.method}{The phasing method employed by the Michigan imputation server. See
 https://imputationserver.readthedocs.io/en/latest/api/ for further information.}
+
+\item{imputation.population}{The population for the phasing method required by the Michigan imputation server. See
+https://imputationserver.readthedocs.io/en/latest/api/ for further information.}
 }
 \description{
 Change global options for methQTL calculation
@@ -159,6 +179,8 @@ qtl.getOption("rnbeads.report")
   2. Das S, Forer L, Schönherr S, Sidore C, Locke AE, et al. (2016).
    Next-generation genotype imputation service and methods. Nature Genetics 48, 1284–1287,
    https://doi.org/10.1038/ng.3656
+  3. Sherry, S. T. et al. (2001). dbSNP: the NCBI database of genetic variation.
+   Nucleic Acids Res. 29, 308–311, https://doi.org/10.1093/nar/29.1.308.
 }
 \author{
 Michael Scherer

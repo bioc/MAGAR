@@ -6,7 +6,6 @@
 \usage{
 do.import(
   data.location,
-  data.type.geno = "plink",
   s.anno = NULL,
   assembly.meth = "hg19",
   assembly.geno = "hg19",
@@ -24,9 +23,6 @@ do.import(
    (i.e. with \code{bed}, \code{bim} and \code{fam} files), or imputed, dosage files (i.e. with
    \code{dos} and \code{txt} files)}
 }}
-
-\item{data.type.geno}{The type of data to be imported. Can be either \code{'plink'} for \code{'.bed', '.bim',} and \code{'.fam'} or
-\code{'.dos'} and \code{'txt'} files or \code{'idat'} for raw IDAT files.}
 
 \item{s.anno}{Path to the sample annotation sheet. If \code{NULL}, the program searches for potential sample
 annotation sheets in the data location directories.}
