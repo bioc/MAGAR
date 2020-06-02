@@ -12,6 +12,13 @@ qtl.options2json(path = file.path(getwd(), "methQTL_options.json"))
 \description{
 This function stores the current options setting as a JSON file at the specified path
 }
+\examples{
+{
+  qtl.setOption('cluster.cor.threshold'=0.5)
+  qtl.options2json("my_opts.json")
+  qtl.json2options("my_opts.json")
+}
+}
 \author{
 Michael Scherer
 }

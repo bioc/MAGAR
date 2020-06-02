@@ -73,7 +73,11 @@ compute.correlation.blocks <- function(meth.data,
              ))
   }
   logger.start("Compute correlation matrix")
-  cor.all <- big_cor(as_FBM(t(as.matrix(meth.data)),type="double"))
+  if(qtl.getOption("correlation.type")=="pearson"){
+    cor.all <- big_cor(as_FBM(t(as.matrix(meth.data)),type="double"))
+  }else{
+    cor.all <- cor(t(as.matrix(meth.data)),qtl.getOption("correlation.type"))
+  }
   rm(meth.data)
   logger.completed()
   cor.all <- cor.all[,,drop=F]

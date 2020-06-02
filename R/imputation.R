@@ -7,9 +7,9 @@
 ##########################################################################################
 
 #' do.imputation
-#' 
+#'
 #' Function to perform imputation from PLINK data
-#' 
+#'
 #' @param bed.file Path to the PLINK BED file
 #' @param bim.file Path to the PLINK BIM file
 #' @param fam.file Path to the PLINK FAM file
@@ -56,7 +56,7 @@ do.imputation <- function(bed.file,
     system(cmd)
     cmd <- paste(qtl.getOption("bgzip.path"),paste0(out.dir,"/",chr,".vcf"))
     system(cmd)
-    cmd <- paste0("curl -H 'X-Auth-Token: ",
+    cmd <- paste0("curl -k -H 'X-Auth-Token: ",
         qtl.getOption("imputation.user.token"),
         "' -F 'input-files=@",paste0(out.dir,"/",chr,".vcf.gz'"),
         " -F 'input-refpanel=",qtl.getOption("imputation.reference.panel"),
@@ -71,21 +71,23 @@ do.imputation <- function(bed.file,
     logger.start("Waiting for imputation jobs to finish. This can take up to several days and you can check the state of the jobs in your user profile on https://imputationserver.sph.umich.edu/index.html#!pages/jobs")
     while(run){
       Sys.sleep(100)
-      cmd <- paste0("curl -H 'X-Auth-Token:",
+      cmd <- paste0("curl -k -H 'X-Auth-Token:",
       qtl.getOption("imputation.user.token"), "' https://imputationserver.sph.umich.edu/api/v2/jobs/",j.id,"/status")
       rep <- system(cmd,intern=T)
       rep <- fromJSON(rep)
       run <- !rep$complete
     }
     logger.completed()
-    imp.resu <- paste0("curl -H 'X-Auth-Token:",
+    imp.resu <- paste0("curl -k -H 'X-Auth-Token:",
       qtl.getOption("imputation.user.token"),"' https://imputationserver.sph.umich.edu/results/",j.id,"/local/chr_",substr(chr,4,nchar(chr)),".zip --output ",out.dir,"/temp.zip")
     imp.resu <- system(imp.resu)
     cat("Enter password for zip archive send per mail ")
     pwd <- readLines("stdin",n=1)
     cmd <- paste0("unzip"," -P '",pwd,"' -d ",out.dir," ",out.dir,"/temp.zip")
+    logger.info(paste("If the password entering failed, consider using the command: unzip -P '<your-password>' -d",out.dir,paste0(out.dir,"/temp.zip")))
     system(cmd)
     cmd <- paste(qtl.getOption("plink.path"),"--vcf",paste0(out.dir,"/",chr,".dose.vcf.gz"),"--recode --make-bed --out",paste0(out.dir,"/",chr))
+    logger.info(paste("If the password entering failed, use:",cmd))
     system(cmd)
     write.table(paste0(out.dir,"/",chr,c(".bed",".bim",".fam"),collapse="\t"),file.path(out.dir,"allfiles.txt"),append=T,col.names=F,row.names=F,quote=F)
   }
@@ -99,10 +101,10 @@ do.imputation <- function(bed.file,
 #                 " --flip", file.path(out.dir,"imputed_data-merge.missnp"),"--make-bed --out",file.path(out.dir,unlist(fi[1])))
 #    system(cmd)
 #  }
-  
+
   cmd <- paste(qtl.getOption("plink.path"),"--merge-list", file.path(out.dir,"allfiles.txt"),"--missing-genotype N --make-bed --out",proc.data)
   system(cmd)
-  
+
   proc.data <- file.path(out.dir,"imputed_data")
   return(c(
     bed.file=paste0(proc.data,".bed"),

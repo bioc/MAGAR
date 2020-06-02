@@ -22,7 +22,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
-This vignette describes the *methQTL* R-package (https://github.com/MPIIComputationalEpigenetics/methQTL-package) available from GitHub. The package uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). Using a linear modeling strategy, *methQTL* computes statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block is used for methQTL calling.
+This vignette describes the *methQTL* R-package (https://github.com/MPIIComputationalEpigenetics/methQTL-package) available from GitHub. The package uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). The package provides mutliple flavors of linear modeling strategies to compute *methQTL* as statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block is used for methQTL calling.
 
 # Installation
 
@@ -40,9 +40,9 @@ suppressPackageStartupMessages(library(methQTL))
 
 The *methQTL* package requires two types of data as input: DNA methylation data obtained using the Illumina Infinium BeadArrays and genotyping data obtained using genotyping microarrays or whole genome sequencing.
 
-## DNA methylation data
+## DNA methylation data (microarrays)
 
-The package utilizes the widely used [*RnBeads*](http://rnbeads.org/) software package for DNA methylation data import. It requires raw IDAT files as input, since critical preprocessing is to be perfomed within the package. In addition to the raw methylation data, a sample annotation sheet specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:
+The package utilizes the widely used [*RnBeads*](http://rnbeads.org/) software package for DNA methylation data import. It supports the various input options available in *RnBeads*, including a direct download from the Gene Expression Omnibus (GEO). For further options, we refer to the [RnBeads vignette](http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf) and documentation. In addition to the raw methylation data, a sample annotation sheet specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:
 
 ```{bash sample_annotation, eval=FALSE}
 SampleID,age,sex,barcode
@@ -61,7 +61,7 @@ cat(rnb.options2xml(),file=xml.fi)
 qtl.setOption(rnbeads.options = xml.fi)
 ```
 
-To redefine the correlation blocks, we allow including additional information such as genome-wide segmentation of the methylation landscape (see option ```use.segmentation``` and function ```qtl.run.segmentation```), and also function annotation according to the Ensembl regulatory build[@Zerbino2015].
+To redefine the correlation blocks, we allow including additional information such as genome-wide segmentation of the methylation landscape (see option ```use.segmentation``` and function ```qtl.run.segmentation```), and also function annotation according to the Ensembl regulatory build [@Zerbino2015].
 
 ## Genotyping data
 
@@ -71,7 +71,7 @@ The package supports data that has already been processed by *plink* and is avai
 
 ### IDAT files
 
-The package also support raw IDAT files and uses the [CRLMM](https://www.bioconductor.org/packages/release/bioc/html/crlmm.html) R-package, together with PLINK to perform data import. The package requires a single sample annotation sheet in the format described in the [DNA methylation data] section. In addition to the column names specified above, a column named *GenoSentrixPosition* has to be added, which specifies the IDAT file IDs.
+The package also support raw IDAT files and uses the [CRLMM](https://www.bioconductor.org/packages/release/bioc/html/crlmm.html) R-package, together with PLINK to perform genotype calling and data import. The package requires a single sample annotation sheet in the format described in the [DNA methylation data (microarray)](DNA methylation data) section. In addition to the column names specified above, a column named *GenoSentrixPosition* has to be added, which specifies the IDAT file IDs.
 
 ```{bash sample_annotation_geno, eval=FALSE}
 SampleID,age,sex,barcode,GenoSentrixPosition
@@ -82,14 +82,14 @@ Sample_3,45,m,209054857842_R03C01,9742011016_R04C01
 
 ### Imputation
 
-Illumina SNP BeadArray data is typically imputed before further analysis, and the package allows for imputation through the [Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html#!). In order to be able to perform computation on the server, an account is required. After the account is created, one has to request an API token in the user settings and specify it to the package using the option ```imputation.user.token``` option. During the imputation process, the package will stall for a while an wait for entering the password send via e-mail to the user account. The imputation process has to be split according to chromosomes, which is why multiple e-mails will be send to the account, and the imputation process can take up to several days. However, after imputation, the imputed data will be available as PLINK files, such that the imputation has to be performed only once. For preprocessing the data for upload to the imputation server, the package required the [bgzip](http://www.htslib.org/doc/bgzip.html) and [tabix](http://www.htslib.org/doc/tabix.html) tools from the [htslib](http://www.htslib.org/) package. Also see further options to configure the imputation jobs (see the Michigan Imputation Server [documentation](https://imputationserver.readthedocs.io/en/latest/) for further information):
+Illumina SNP BeadArray data is typically imputed before further analysis, and the package allows for imputation through the [Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html#!). In order to be able to perform computation on the server, an account is required. After the account is created, one has to request an API token in the user settings and specify it to the package using the option ```imputation.user.token```. During the imputation process, the package will stall for a while and wait for the job to finish. After the job is done, the package will prompt for entering the password send via e-mail to the user account. The imputation process has to be split according to chromosomes, which is why multiple e-mails will be send to the account, and the imputation process can take up to several days. However, after imputation, the imputed data will be available as PLINK files, such that the imputation has to be performed only once. For preprocessing the data for upload to the imputation server, the package requires the [bgzip](http://www.htslib.org/doc/bgzip.html) and [tabix](http://www.htslib.org/doc/tabix.html) tools from the [htslib](http://www.htslib.org/) package. Also see further options to configure the imputation jobs (see the Michigan Imputation Server [documentation](https://imputationserver.readthedocs.io/en/latest/) for further information):
 
 ```{r imputation options, eval=FALSE}
 qtl.setOption(
   impute.geno.data=TRUE,
   imputation.reference.panel="apps@hrc-r1.1",
   imputation.phasing.method="shapeit",
-	imputation.population="eur"
+  imputation.population="eur"
 )
 ```
 
@@ -102,7 +102,7 @@ idat.dir <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
 plink.dir <- "/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO/"
 anno.sheet <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv"
 qtl.setOption(hdf5dump=TRUE)
-setHDF5DumpDir(getwd())
+setHDF5DumpDir("/DEEP_fhgfs/projects/mscherer/deep/tmp/")
 imp.data <- do.import(data.location = c(idat.dir=idat.dir,geno.dir=plink.dir),
                       s.anno = anno.sheet,
                       s.id.col = "ind_IPC",
@@ -123,7 +123,7 @@ imp.data <- do.import(data.location = c(idat.dir=idat.dir,geno.dir=geno.dir),
                       out.folder = getwd())
 ```
 
-Please note that the ```recode.allele.frequencies``` option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies found. Alternatively, a path to a local version of dbSNP[@Sheery2001] can be provided through ```db.snp.ref```, and reference/alternative allele information will be automatically parsed from the database. This is especially crucial, if imputation is to be performed, since the Michigan Imputation Server is sensitive to reference mismatches. ```recode.allele.frequencies``` and ```db.snp.ref``` are mutually exclusive options.
+Please note that the ```recode.allele.frequencies``` option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies found. Alternatively, a path to a local version of dbSNP [@Sherry2001] can be provided through ```db.snp.ref```, and reference/alternative allele information will be automatically parsed from the database. This is especially crucial, if imputation is to be performed, since the Michigan Imputation Server is sensitive to reference mismatches. ```recode.allele.frequencies``` and ```db.snp.ref``` are mutually exclusive options.
 
 # methQTL calling
 
@@ -139,14 +139,18 @@ We will now present the two steps of the methQTL calling procedure in more detai
 
 Since neighboring CpGs are often highly correlated, using each CpG independently as a potential methQTL candidate leads to many redundant results. We thus aimed to approximate *DNA methylation haplotypes* by determining highly correlated CpGs in close vicinity. The procedure itself is split into six steps, and is performed for each chromosome independently:
 
-1. Compute the (Pearson) correlation matrix between all CpGs
+1. Compute the (Pearson) correlation matrix between all CpGs (futher correlation types available in option ```correlation.type```)
 2. Construct the distance matrix from the correlation matrix
-3. Discard all interactions with a correlation lower than a given threshold (option: ```cluster.cor.threshold```, default: 0.25)
-4. Weight the distance according to the genomic distance between the two CpGs with a Gaussian (option: ```standard.deviation.gauss```, default: 100)
-5. Discard all interactions ranging longer than the option ```absolute.distance.cutoff``` (default: 500,000)
+3. Discard all interactions with a correlation lower than a given threshold (option: ```cluster.cor.threshold```)
+4. Weight the distance according to the genomic distance between the two CpGs with a Gaussian (option: ```standard.deviation.gauss```). Higher values for the standard deviation lead to a lower penalty on distal CpGs, thus the cluster will become larger.
+5. Discard all interactions ranging longer than the option ```absolute.distance.cutoff```
 6. Compute the Louvain clustering on the undirected, weighted graph induced by the distance matrix
 
-This will return a clustering according to the correlation structure between neighboring CpGs that we will later use for methQTL calling.
+This will return a clustering according to the correlation structure between neighboring CpGs that we will later use for methQTL calling. Note that we used simultation experiments to determine the parameters for each data type individually. They will be automatically loaded for the dataset that is used and are:
+
+* **450k:** ```cluster.cor.threshold```=0.2, ```standard.deviation.gauss```=5,000, ```absolute.distance.cutoff```=500,000
+* **EPIC:** ```cluster.cor.threshold```=0.2, ```standard.deviation.gauss```=3,000, ```absolute.distance.cutoff```=500,000
+* **RRBS/WGBS:** ```cluster.cor.threshold```=0.2, ```standard.deviation.gauss```=250, ```absolute.distance.cutoff```=500,000
 
 ## Call methQTL per correlation block
 
@@ -155,7 +159,7 @@ From the list of correlation blocks, *methQTL* computes methQTL interactions wit
 1. Compute a representative CpG per correlation block, as specified with the option ```representative.cpg.computation``` (default: *row.medians*).
 2. Discard all SNPs that are further than ```absolute.distance.cutoff``` (default: 1,000,000) away from the representative CpG
 3. Call methQTL by using linear models. Multiple options of methQTL calling are available and can be selected via the option ```linear.model.type``` (default: *classical.linear*). Alternatively, *fastQTL* can be set as an option for
-```meth.qtl.type```. This will tell the package to use the fastQTL software[@Ongen2016].
+```meth.qtl.type```. This will tell the package to use the fastQTL software [@Ongen2016].
 
 The ```meth.qtl.type``` tells, how a methQTL interaction is defined and provides three options, in addition to the already mentioned *fastQTL*:
 
@@ -193,8 +197,8 @@ To visualize methQTL, the package provides some plotting functions. All function
 
 ```{r plots,eval=TRUE, include=TRUE}
 result.table <- result.table[order(result.table$P.value,decreasing=F),]
-qtl.plot.SNP.CpG.interaction(meth.qtl.res,result.table$CpG[1],result.table$SNP[1])
-distance.scatterplot(meth.qtl.res)
+qtl.plot.SNP.CpG.interaction(imp.data,result.table$CpG[1],result.table$SNP[1])
+qtl.distance.scatterplot(meth.qtl.res)
 ```
 
 ## Interpretation functions
@@ -202,7 +206,7 @@ distance.scatterplot(meth.qtl.res)
 The package provides a bunch of interpretation functions to characterize the detected methQTLs. This includes LOLA enrichment analysis[@LOLA] (```qtl.lola.enrichment```), genomic annotation enrichment based on putative regulatory elements defined by the Ensembl Regulatory Build[@Zerbino2015] (```qtl.annotation.enrichment```), enrichment analysis of different base substitutions in SNPs (```qtl.base.substitution.enrichment```), or TFBS motif enrichment using [TFBSTools](http://bioconductor.org/packages/release/bioc/html/TFBSTools.html). Enrichment is compared for the methQTLs that are available in the provided ```methQTLResult``` (for a single input), or to the overlapping QTLs for a list of ```methQTLResult``. The background of the enrichment is defined as all the SNPs/CpGs that have been used as input to the methQTL calling.
 
 ```{r interpretation, eval=TRUE, include=TRUE}
-res <- qtl.base.substitution.enricment(meth.qtl.res)
+res <- qtl.base.substitution.enrichment(meth.qtl.res)
 qtl.plot.base.substitution(meth.qtl.res,merge=TRUE)
 ```
 

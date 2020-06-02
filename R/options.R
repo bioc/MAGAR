@@ -10,7 +10,7 @@ QTL.OPTIONS <- new.env()
 assign('ALL',c('rnbeads.options','meth.data.type','geno.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',
              	'db.snp.ref','minor.allele.frequency','missing.values.samples','plink.geno','plink.path',
 		'fast.qtl.path','bgzip.path','tabix.path',
-		'n.prin.comp','cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
+		'n.prin.comp','correlation.type','cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
                	'linear.model.type','representative.cpg.computation','meth.qtl.type',
                	'max.cpgs','rscript.path','cluster.config','recode.allele.frequencies',
                	'n.permutations','p.value.correction','compute.cor.blocks',
@@ -29,6 +29,7 @@ assign("MINOR.ALLELE.FREQUENCY",0.05,QTL.OPTIONS)
 assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
 assign("PLINK.GENO",0.1,QTL.OPTIONS)
 assign("N.PRIN.COMP",NULL,QTL.OPTIONS)
+assign("CORRELATION.TYPE","pearson",QTL.OPTIONS)
 assign("PLINK.PATH",NULL,QTL.OPTIONS)
 assign("FAST.QTL.PATH",NULL,QTL.OPTIONS)
 assign('BGZIP.PATH',NULL,QTL.OPTIONS)
@@ -87,6 +88,9 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #' @param fast.qtl.path Path to an installation of fastQTL (comes with the package for Linux)
 #' @param bgzip.path Path to an installation of BGZIP (comes with the package for Linux)
 #' @param tabix.path Path to an installation of TABIX (comes with the package for Linux)
+#' @param correlation.type The type of correlation to be used. Please note that for \code{type='pearson'} (default) the more efficient
+#'          implementation of correlation in the \code{\link{bigstatr}} is used. Further available options are \code{'spearman'} and
+#'          \code{'kendall'}.
 #' @param cluster.cor.threshold Threshold for CpG methylatin state correlation to be considered as connected in
 #'            the distance graph used to compute the correlation clustering.
 #' @param standard.deviation.gauss Standard deviation of the Gauss distribution used to weight the correlation
@@ -172,6 +176,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL"),
                        bgzip.path=system.file("bin/bgzip",package="methQTL"),
                        tabix.path=system.file("bin/tabix",package="methQTL"),
+		                   correlation.type="pearson",
                        cluster.cor.threshold=0.25,
                        standard.deviation.gauss=250,
                        absolute.distance.cutoff=5e5,
@@ -192,8 +197,8 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        imputation.user.token=NULL,
                        imputation.reference.panel="apps@hrc-r1.1",
                        imputation.phasing.method="shapeit",
-		       imputation.population="eur"){
-  if(length(rnbeads.options)!=1 & !is.null(rnbeads.options)){
+		                   imputation.population="eur"){
+  if(length(rnbeads.options)>1 & !is.null(rnbeads.options)){
     stop("Please specify the options one by one, not as a vector or list.")
   }
   if(!missing(rnbeads.options)){
@@ -309,7 +314,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
       logger.info("Loading system default for option 'bgzip.path'")
       bgzip.path=system.file("bin/bgzip",package="methQTL")
     }
-    er <- tryCatch(system(bgzip.path),error=function(x)x)
+    er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
     if(inherits(er,"error")){
       stop("Invalid value for bgzip.path, needs to be path to an executable")
     }
@@ -320,11 +325,17 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
       logger.info("Loading system default for option 'tabix.path'")
       tabix.path=system.file("bin/tabix",package="methQTL")
     }
-    er <- tryCatch(system(tabix.path),error=function(x)x)
+    er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
     if(inherits(er,"error")){
       stop("Invalid value for tabix.path, needs to be path to an executable")
     }
     QTL.OPTIONS[['TABIX.PATH']] <- tabix.path
+  }
+  if(!missing(correlation.type)){
+    if(!(correlation.type %in% c("pearson","spearman","kendall"))){
+      stop("Invalid value for correlation.type, needs to be 'pearson', 'spearman', or 'kendall'")
+    }
+    QTL.OPTIONS[['CORRELATION.TYPE']] <- correlation.type
   }
   if(!missing(cluster.cor.threshold)){
     if(!is.numeric(cluster.cor.threshold) & cluster.cor.threshold >1){
@@ -433,16 +444,20 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     QTL.OPTIONS[['FUNCTIONAL.ANNOTATION.WEIGHT']] <- functional.annotation.weight
   }
   if(!missing(vcftools.path)){
-    if(!is.character(vcftools.path) || !file.exists(file.path(vcftools.path,"vcf-sort"))){
-      stop("Invalid value for option 'vcftools.path', needs to point to a folder with the program 'vcf-sort'")
+    if(!is.null(vcftools.path)){
+	    if(!is.character(vcftools.path) || !file.exists(file.path(vcftools.path,"vcf-sort"))){
+	      stop("Invalid value for option 'vcftools.path', needs to point to a folder with the program 'vcf-sort'")
+	    }
+	    QTL.OPTIONS[['VCFTOOLS.PATH']] <- vcftools.path
     }
-    QTL.OPTIONS[['VCFTOOLS.PATH']] <- vcftools.path
   }
   if(!missing(imputation.user.token)){
-    if(!is.character(imputation.user.token)){
-      stop("Invalid value for option 'imputation.user.token', needs to character")
+    if(!is.null(imputation.user.token)){
+	    if(!is.character(imputation.user.token)){
+	      stop("Invalid value for option 'imputation.user.token', needs to character")
+	    }
+	    QTL.OPTIONS[['IMPUTATION.USER.TOKEN']] <- imputation.user.token
     }
-    QTL.OPTIONS[['IMPUTATION.USER.TOKEN']] <- imputation.user.token
   }
   if(!missing(imputation.reference.panel)){
     if(!is.character(imputation.reference.panel)){
@@ -548,6 +563,9 @@ qtl.getOption <- function(names){
     }
     ret <- c(ret,tabix.path=QTL.OPTIONS[['TABIX.PATH']])
   }
+  if('correlation.type'%in%names){
+    ret <- c(ret,correlation.type=QTL.OPTIONS[['CORRELATION.TYPE']])
+  }
   if('cluster.cor.threshold'%in%names){
     ret <- c(ret,cluster.cor.threshold=QTL.OPTIONS[['CLUSTER.COR.THRESHOLD']])
   }
@@ -621,11 +639,16 @@ qtl.getOption <- function(names){
 #' @param path A filename, to which the option setting is to be saved
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#'   qtl.setOption('cluster.cor.threshold'=0.5)
+#'   qtl.options2json("my_opts.json")
+#'   qtl.json2options("my_opts.json")
+#' }
 qtl.options2json <- function(path=file.path(getwd(),"methQTL_options.json")){
   all.options <- as.list(QTL.OPTIONS)
   all.options <- all.options[!(names(all.options) %in% "ALL")]
   names(all.options) <- sapply(names(all.options),tolower)
-  all.options <- toJSON(all.options)
+  all.options <- rjson::toJSON(all.options)#,null = "null")
   write(all.options,path)
 }
 
@@ -641,5 +664,12 @@ qtl.json2options <- function(path){
     logger.error("Invalid value for path, needs to be a JSON file")
   }
   all.options <- fromJSON(path)
+  all.options <- lapply(all.options,function(opt){
+	if(class(opt)=="data.frame"){
+           as.list(opt)
+	}else{
+	   opt
+	}
+  })
   do.call(qtl.setOption,all.options)
 }

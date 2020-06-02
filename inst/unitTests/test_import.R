@@ -163,7 +163,9 @@ test.idat.imputed.data <- function(){
  qtl.setOption(meth.data.type="GEO")
  qtl.setOption(impute.geno.data=FALSE,
                meth.qtl.type="fastQTL",
-               geno.data.type="plink")
+               geno.data.type="plink",
+		hdf5dump=T
+)
  data.loc <- c(idat.dir="GSE79144",geno.dir=plink.files)
  rnbeads.report = out.dir
  res <- do.import(data.loc,
@@ -175,8 +177,8 @@ test.idat.imputed.data <- function(){
  res <- do.methQTL(res,
                    sel.covariates = NULL,
                    out.dir=out.dir,
-                   ncores=10)
+                   ncores=1)
 }
 library(methQTL)
-test.idat.imputation()
+test.idat.imputed.data()
 

@@ -83,6 +83,17 @@ do.import <- function(data.location,
                                 snp.location=geno.import$annotation,
                                 out.folder=out.folder)
   s.names <- intersect(meth.import$samples,geno.import$samples)
+  sel.meth <- match(s.names,meth.import$samples)
+  sel.geno <- match(s.names,geno.import$samples)
+  if(any(is.na(sel.geno))||any(is.na(sel.meth))){
+	stop("Sample IDs for methylation and genotyping data do not match")
+  }
+  meth.data <- meth.import$data[,sel.meth]
+  geno.data <- geno.import$data[,sel.geno]
+  if(qtl.getOption("hdf5dump")){
+	meth.data <- as(meth.data,"HDF5Matrix")
+	geno.data <- as(meth.data,"HDF5Matrix")
+  }
   pheno.data <- pheno.data[as.character(pheno.data[,s.id.col])%in%s.names,]
   if(is.null(s.names) || (length(unique(s.names)) < length(s.names))){
     stop("Invalid value for s.id.col, needs to specify unique identfiers in the sample annotation sheet")
@@ -93,8 +104,8 @@ do.import <- function(data.location,
   row.names(pheno.data) <- s.names
 #  pheno.data <- pheno.data[,!(colnames(pheno.data) %in% s.id.col)]
   dataset.import <- new("methQTLInput",
-    meth.data=meth.import$data,
-    geno.data=geno.import$data,
+    meth.data=meth.data,
+    geno.data=geno.data,
     anno.meth=meth.import$annotation,
     anno.geno=geno.import$annotation,
     pheno.data=pheno.data,
@@ -434,7 +445,9 @@ match.assemblies <- function(meth.qtl){
 #' @param s.anno The sample annotation sheet as a \code{'data.frame'}
 #' @param s.id.col The column in the sample annotation sheet specifying the sample identifiers
 #' @param out.dir The output directory
-#' @param idat.platform The array platform to be used. Check those available using the crlmm function \code{\link{validCdfNames}}
+#' @param idat.platform The array platform to be used. Check those available using the crlmm function \code{\link{validCdfNames}}.
+#'          Additionally, for the Illumina OmniExpress 12 v1.0 we provide a custom annotation, which
+#'          can be used using the 'OmniExpress' option.
 #' @param call.method The genotype calling method passed to \code{\link{genotype.Illumina}}
 #' @return A vector with three elements: \describe{
 #'   \item{\code{"bed.file"}}{Path to the BED file for PLINK}
@@ -483,28 +496,45 @@ do.geno.import.idat <- function(idat.files,
   }
   if(!is.null(gender.col)){
     sex <- s.anno[,gender.col]
-    if(any(grepl("f",sex))){
-      sex <- ifelse(grepl("f",sex),2,1)
+    if(any(grepl("f|F",sex))){
+      sex <- ifelse(grepl("f|F",sex),2,1)
     }
   }else{
     sex <- rep(NA,nrow(s.anno))
   }
-  crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
-                                 arrayNames=array.names,
-                                 arrayInfoColNames=array.info,
-                                 cdfName=idat.platform,
-                                 batch=batch.info,
-                                 call.method=call.method,
-                                 copynumber=FALSE,
-                                 fitMixture=FALSE,
-                                 gender=sex)
+  if(!idat.platform=="OmniExpress"){
+	  crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
+		                         arrayNames=array.names,
+		                         arrayInfoColNames=array.info,
+		                         cdfName=idat.platform,
+		                         batch=batch.info,
+		                         call.method=call.method,
+		                         copynumber=FALSE,
+		                         fitMixture=FALSE,
+		                         gender=sex)
+	  anno.data <- system.file("extdata/annotation.rda",package = paste0(idat.platform,"Crlmm"))
+	  if(!file.exists(anno.data)){
+	    stop(paste("Missing required annotation data for BeadArray",idat.platform))
+	  }
+	  load(anno.data)
+  }else{
+	my.anno <- readRDS(system.file("extdata/omni_express_annotation.rds",package="methQTL"))
+	genome <- "hg19"
+        crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
+                         arrayNames=array.names,
+                         arrayInfoColNames=array.info,
+                         cdfName="nopackage",
+			 anno=my.anno,
+			 genome=genome,
+                         batch=batch.info,
+                         call.method=call.method,
+                         copynumber=FALSE,
+                         fitMixture=FALSE,
+                         gender=sex)
+	annot <- my.anno@data
+  }
   f.dat <- featureData(crlmm.obj)
   assembly <- crlmm.obj@genome
-  anno.data <- system.file("extdata/annotation.rda",package = paste0(idat.platform,"Crlmm"))
-  if(!file.exists(anno.data)){
-    stop(paste("Missing required annotation data for BeadArray",idat.platform))
-  }
-  load(anno.data)
   if(any(!(featureNames(f.dat)%in%annot$Name))){
     stop("Provided array annotation not sufficient, Aborting")
   }
@@ -570,10 +600,15 @@ do.geno.import.idat <- function(idat.files,
               allele.1=allele.A,
               allele.2=allele.B
               )
+  # Sort data by chrosome
+  cmd <- paste(qtl.getOption('plink.path'),"--bfile",file.path(out.dir,"plink"),"--make-bed --out",file.path(out.dir,"plink_sorted"))
+  system(cmd)
+  cmd <- paste("rm -rf",file.path(out.dir,"plink.*"))
+  system(cmd)
   return(c(
-    bed.file=file.path(out.dir,"plink.bed"),
-    bim.file=file.path(out.dir,"plink.bim"),
-    fam.file=file.path(out.dir,"plink.fam")
+    bed.file=file.path(out.dir,"plink_sorted.bed"),
+    bim.file=file.path(out.dir,"plink_sorted.bim"),
+    fam.file=file.path(out.dir,"plink_sorted.fam")
   ))
 }
 

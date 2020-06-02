@@ -22,6 +22,7 @@ qtl.setOption(
   fast.qtl.path = system.file("bin/fastQTL.static", package = "methQTL"),
   bgzip.path = system.file("bin/bgzip", package = "methQTL"),
   tabix.path = system.file("bin/tabix", package = "methQTL"),
+  correlation.type = "pearson",
   cluster.cor.threshold = 0.25,
   standard.deviation.gauss = 250,
   absolute.distance.cutoff = 5e+05,
@@ -89,6 +90,10 @@ in the methQTL calling. \code{NULL} means that no adjustment is conducted.}
 \item{bgzip.path}{Path to an installation of BGZIP (comes with the package for Linux)}
 
 \item{tabix.path}{Path to an installation of TABIX (comes with the package for Linux)}
+
+\item{correlation.type}{The type of correlation to be used. Please note that for \code{type='pearson'} (default) the more efficient
+implementation of correlation in the \code{\link{bigstatr}} is used. Further available options are \code{'spearman'} and
+\code{'kendall'}.}
 
 \item{cluster.cor.threshold}{Threshold for CpG methylatin state correlation to be considered as connected in
 the distance graph used to compute the correlation clustering.}
