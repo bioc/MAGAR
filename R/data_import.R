@@ -83,6 +83,9 @@ do.import <- function(data.location,
                                 snp.location=geno.import$annotation,
                                 out.folder=out.folder)
   s.names <- intersect(meth.import$samples,geno.import$samples)
+  if(any(grepl("_",s.names))){
+    qtl.setOption(plink.double.id="--double-id")
+  }
   sel.meth <- match(s.names,meth.import$samples)
   sel.geno <- match(s.names,geno.import$samples)
   if(any(is.na(sel.geno))||any(is.na(sel.meth))){
@@ -91,8 +94,8 @@ do.import <- function(data.location,
   meth.data <- meth.import$data[,sel.meth]
   geno.data <- geno.import$data[,sel.geno]
   if(qtl.getOption("hdf5dump")){
-	meth.data <- as(meth.data,"HDF5Matrix")
-	geno.data <- as(meth.data,"HDF5Matrix")
+  	meth.data <- as(meth.data,"HDF5Matrix")
+	  geno.data <- as(geno.data,"HDF5Matrix")
   }
   pheno.data <- pheno.data[as.character(pheno.data[,s.id.col])%in%s.names,]
   if(is.null(s.names) || (length(unique(s.names)) < length(s.names))){
@@ -155,10 +158,10 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
   rnb.options(identifiers.column=s.id.col,
               assembly=assembly,
               import.table.separator=tab.sep)
-  if(qtl.getOption("meth.data.type")=="GEO"){
-    data.s <- data.location["idat.dir"]
+  if(qtl.getOption("meth.data.type")%in%c("GEO","rnb.set")){
+    data.s <- data.location[["idat.dir"]]
   }else{
-    data.s <- c(data.location["idat.dir"],s.anno)
+    data.s <- c(data.location[["idat.dir"]],s.anno)
   }
   rnb.imp <- rnb.execute.import(data.source = data.s, data.type = qtl.getOption("meth.data.type"))
   if(qtl.getOption("rnbeads.qc")){
@@ -224,9 +227,12 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
 #' @noRd
 do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   logger.start("Processing genotyping data")
-  snp.loc <- data.location["geno.dir"]
+  snp.loc <- data.location[["geno.dir"]]
   all.files <- list.files(snp.loc,full.names=T)
   data.type <- qtl.getOption("geno.data.type")
+  if(any(grepl("_",s.anno[,s.id.col]))){
+    qtl.setOption(plink.double.id="--double-id")
+  }
   if(data.type=="plink"){
     bed.file <- all.files[grepl(".bed",all.files)]
     bim.file <- all.files[grepl(".bim",all.files)]
@@ -267,13 +273,28 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   plink.file <- gsub(".bed","",bed.file)
   cmd <- paste(qtl.getOption("plink.path"),"--bfile",plink.file,"--keep",keep.file,"--hwe",qtl.getOption("hardy.weinberg.p"),
                "--maf",qtl.getOption("minor.allele.frequency"),"--mind",qtl.getOption("missing.values.samples"),
-               "--geno",qtl.getOption("plink.geno"),"--make-bed --out",proc.data)
+               "--geno",qtl.getOption("plink.geno"),qtl.getOption("plink.double.id"),"--make-bed --out",proc.data)
   system(cmd)
   snp.dat <- read.plink(bed=paste0(proc.data,".bed"),bim=paste0(proc.data,".bim"),fam=paste0(proc.data,".fam"))
   snp.mat <- t(as(snp.dat$genotypes,"numeric"))
   anno.geno <- snp.dat$map
   colnames(anno.geno) <- c("Chromosome","Name","cM","Start","Allele.1","Allele.2")
-  row.names(anno.geno) <- as.character(anno.geno$Name)
+  ids <- as.character(anno.geno$Name)
+  if(!any(grepl("rs*",ids))){
+    logger.start("Matching ids in dbSNP")
+    if(is.null(qtl.getOption("db.snp.ref"))){
+      logger.warn("Please provide a valid path to dbSNP. Cannot map ids to SNPs.")
+    }else{
+      db.snp <- fread(qtl.getOption("db.snp.ref"))
+      db.snp.gr <- makeGRangesFromDataFrame(db.snp,seqnames="#CHROM",start.field="POS",end.field="POS")
+      seqlevelsStyle(db.snp.gr) <- "UCSC"
+      anno.geno.gr <- makeGRangesFromDataFrame(anno.geno,seqnames="Chromosome",start.field = "Start",end.field = "Start")
+      op <- findOverlaps(anno.geno.gr,db.snp.gr)
+      ids[queryHits(op)] <- as.character(db.snp$ID)[subjectHits(op)]
+    }
+    logger.completed()
+  }
+  row.names(anno.geno) <- ids
   anno.geno <- anno.geno[,c("Chromosome","Start","cM","Allele.1","Allele.2")]
   if(!any(grepl("chr*",anno.geno$Chromosome))){
     anno.geno$Chromosome <- paste0("chr",anno.geno$Chromosome)
@@ -601,7 +622,7 @@ do.geno.import.idat <- function(idat.files,
               allele.2=allele.B
               )
   # Sort data by chrosome
-  cmd <- paste(qtl.getOption('plink.path'),"--bfile",file.path(out.dir,"plink"),"--make-bed --out",file.path(out.dir,"plink_sorted"))
+  cmd <- paste(qtl.getOption('plink.path'),"--bfile",file.path(out.dir,"plink"),qtl.getOption("plink.double.id"),"--make-bed --out",file.path(out.dir,"plink_sorted"))
   system(cmd)
   cmd <- paste("rm -rf",file.path(out.dir,"plink.*"))
   system(cmd)

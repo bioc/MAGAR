@@ -8,7 +8,7 @@
 QTL.OPTIONS <- new.env()
 
 assign('ALL',c('rnbeads.options','meth.data.type','geno.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',
-             	'db.snp.ref','minor.allele.frequency','missing.values.samples','plink.geno','plink.path',
+             	'db.snp.ref','minor.allele.frequency','missing.values.samples','plink.double.id','plink.geno','plink.path',
 		'fast.qtl.path','bgzip.path','tabix.path',
 		'n.prin.comp','correlation.type','cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
                	'linear.model.type','representative.cpg.computation','meth.qtl.type',
@@ -24,6 +24,7 @@ assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
 assign('RNBEADS.QC',FALSE,QTL.OPTIONS)
 assign('HDF5DUMP',FALSE,QTL.OPTIONS)
 assign("HARDY.WEINBERG.P",0.001,QTL.OPTIONS)
+assign("PLINK.DOUBLE.ID","",QTL.OPTIONS)
 assign("DB.SNP.REF",NULL,QTL.OPTIONS)
 assign("MINOR.ALLELE.FREQUENCY",0.05,QTL.OPTIONS)
 assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
@@ -73,6 +74,8 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #'            \code{\link{HDF5Array}} package.
 #' @param hardy.weinberg.p P-value used for the markers to be excluded if they do not follow the
 #'            Hardy-Weinberg equilibrium as implemented in \code{PLINK}.
+#' @param plink.double.id Character that takes on values \code{''} or \code{'--double-id'}, that is active, in case \code{'_'} are
+#'            present in the sample IDs.
 #' @param db.snp.ref Path to a locally stored version of dbSNP[3]. If this option is specified, the reference allele
 #'             is determined from this file instead of from the allele frequencies of the dataset. This circumvents problems
 #'	       with some imputation methods. If \code{NULL}(default), recoding will not be performed.
@@ -166,6 +169,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        rnbeads.qc=F,
                        hdf5dump=F,
                        hardy.weinberg.p=0.001,
+                       plink.double.id,
 		                   db.snp.ref=NULL,
                        minor.allele.frequency=0.05,
                        missing.values.samples=0.05,
@@ -247,6 +251,12 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     }
     QTL.OPTIONS[['HARDY.WEINBERG.P']] <- hardy.weinberg.p
   }
+  if(!missing(plink.double.id)){
+    if(!is.character(plink.double.id) || !(plink.double.id%in%c("","--double-id"))){
+      stop("Invalid value for plink.double.id, needs to be '' or '--double-id'.")
+    }
+    QTL.OPTIONS[['PLINK.DOUBLE.ID']] <- plink.double.id
+  }
   if(!missing(db.snp.ref)){
     if(!is.null(db.snp.ref) && !file.exists(db.snp.ref)){
       stop("Please download dbSNP from UCSC (https://genome.ucsc.edu/), and specify the path here")
@@ -291,10 +301,15 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     if(is.null(plink.path)){
       logger.info("Loading system default for option 'plink.path'")
       plink.path=system.file("bin/plink",package="methQTL")
-    }
-    er <- tryCatch(system(plink.path),error=function(x)x)
-    if(inherits(er,"error")){
-      stop("Invalid value for plink.path, needs to be path to an executable")
+      er <- tryCatch(system(plink.path),error=function(x)x)
+      if(inherits(er,"error")){
+        logger.warning("Non-functional default version of PLINK, please install it manually and specify it with 'plink.path'")
+      }
+    }else{
+      er <- tryCatch(system(plink.path),error=function(x)x)
+      if(inherits(er,"error")){
+        stop("Invalid value for plink.path, needs to be path to an executable")
+      }
     }
     QTL.OPTIONS[['PLINK.PATH']] <- plink.path
   }
@@ -302,10 +317,15 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     if(is.null(fast.qtl.path)){
       logger.info("Loading system default for option 'plink.path'")
       fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL")
-    }
-    er <- tryCatch(system(fast.qtl.path),error=function(x)x)
-    if(inherits(er,"error")){
-      stop("Invalid value for fast.qtl.path, needs to be path to an executable")
+      er <- tryCatch(system(fast.qtl.path),error=function(x)x)
+      if(inherits(er,"error")){
+        logger.warning("Non-functional default version of fastQTL, please install it manually and specify it with 'fast.qtl.path'")
+      }
+    }else{
+      er <- tryCatch(system(fast.qtl.path),error=function(x)x)
+      if(inherits(er,"error")){
+        stop("Invalid value for fast.qtl.path, needs to be path to an executable")
+      }
     }
     QTL.OPTIONS[['FAST.QTL.PATH']] <- fast.qtl.path
   }
@@ -313,10 +333,15 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     if(is.null(bgzip.path)){
       logger.info("Loading system default for option 'bgzip.path'")
       bgzip.path=system.file("bin/bgzip",package="methQTL")
-    }
-    er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
-    if(inherits(er,"error")){
-      stop("Invalid value for bgzip.path, needs to be path to an executable")
+      er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
+      if(inherits(er,"error")){
+        logger.warning("Non-functional default version of bgzip, please install it manually and specify it with 'bgzip.path'")
+      }
+    }else{
+      er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
+      if(inherits(er,"error")){
+        stop("Invalid value for bgzip.path, needs to be path to an executable")
+      }
     }
     QTL.OPTIONS[['BGZIP.PATH']] <- bgzip.path
   }
@@ -324,10 +349,15 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     if(is.null(tabix.path)){
       logger.info("Loading system default for option 'tabix.path'")
       tabix.path=system.file("bin/tabix",package="methQTL")
-    }
-    er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
-    if(inherits(er,"error")){
-      stop("Invalid value for tabix.path, needs to be path to an executable")
+      er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
+      if(inherits(er,"error")){
+        logger.warning("Non-functional default version of tabix, please install it manually and specify it with 'tabix.path'")
+      }
+    }else{
+      er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
+      if(inherits(er,"error")){
+        stop("Invalid value for tabix.path, needs to be path to an executable")
+      }
     }
     QTL.OPTIONS[['TABIX.PATH']] <- tabix.path
   }
@@ -516,6 +546,9 @@ qtl.getOption <- function(names){
   }
   if('hardy.weinberg.p'%in%names){
     ret <- c(ret,hardy.weinberg.p=QTL.OPTIONS[['HARDY.WEINBERG.P']])
+  }
+  if('plink.double.id'%in%names){
+    ret <- c(ret,plink.double.id=QTL.OPTIONS[['PLINK.DOUBLE.ID']])
   }
   if('db.snp.ref'%in%names){
     ret <- c(ret,db.snp.ref=QTL.OPTIONS[['DB.SNP.REF']])

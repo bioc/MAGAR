@@ -124,21 +124,22 @@ test.idat.imputation <- function(){
  out.dir <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/test_package/"
  idat.platform="humanomni258v1p1b"
  gender.col=NULL
- qtl.setOption(meth.data.type="GEO")
- qtl.setOption(missing.values.samples = 1)
- qtl.setOption(db.snp.ref="/DEEP_fhgfs/projects/mscherer/data/misc/common_all_20180423_hg19.vcf.gz")
- qtl.setOption(impute.geno.data=TRUE,
-               meth.qtl.type="fastQTL")
- qtl.setOption("imputation.user.token"="eyJjdHkiOiJ0ZXh0XC9wbGFpbiIsImFsZyI6IkhTMjU2In0.eyJtYWlsIjoibXNjaGVyZXJAbXBpLWluZi5tcGcuZGUiLCJleHBpcmUiOjE1OTI4MTg4MTIwMDIsIm5hbWUiOiJNaWNoYWVsIFNjaGVyZXIiLCJhcGkiOnRydWUsInVzZXJuYW1lIjoibXNjaGVyZXIifQ.PtdzP_-8wzBsNgv0nOcZ7vC9u0B5fAjIZSSO5FmXn1g")
- qtl.setOption(vcftools.path="/TL/deep-share/archive00/software/packages/vcftools/vcftools/perl/")
-  qtl.setOption(bgzip.path = "/TL/deep-share/archive00/software/packages/htslib/htslib-1.3.2/bgzip",
-                tabix.path = "/TL/deep-share/archive00/software/packages/htslib/htslib-1.3.2/tabix",
-                imputation.reference.panel="apps@hrc-r1.1"
+ qtl.setOption(meth.data.type="GEO",
+	  geno.data.type="idat",
+ 		missing.values.samples = 1,
+ 		db.snp.ref="/DEEP_fhgfs/projects/mscherer/data/misc/common_all_20180423_hg19.vcf.gz",
+ 		impute.geno.data=TRUE,
+    meth.qtl.type="fastQTL",
+		imputation.user.token="eyJjdHkiOiJ0ZXh0XC9wbGFpbiIsImFsZyI6IkhTMjU2In0.eyJtYWlsIjoibXNjaGVyZXJAbXBpLWluZi5tcGcuZGUiLCJleHBpcmUiOjE1OTI4MTg4MTIwMDIsIm5hbWUiOiJNaWNoYWVsIFNjaGVyZXIiLCJhcGkiOnRydWUsInVzZXJuYW1lIjoibXNjaGVyZXIifQ.PtdzP_-8wzBsNgv0nOcZ7vC9u0B5fAjIZSSO5FmXn1g",
+ 		vcftools.path="/TL/deep-share/archive00/software/packages/vcftools/vcftools/perl/",
+  	bgzip.path = "/TL/deep-share/archive00/software/packages/htslib/htslib-1.3.2/bgzip",
+    tabix.path = "/TL/deep-share/archive00/software/packages/htslib/htslib-1.3.2/tabix",
+    imputation.reference.panel="apps@hrc-r1.1",
+		plink.double.id="--double-id"
   )
  data.loc <- c(idat.dir="GSE79144",geno.dir=idat.files)
  rnbeads.report = out.dir
  res <- do.import(data.loc,
-                  data.type.geno="idat",
                   s.anno=s.anno,
                   tab.sep="\t",
                   s.id.col=s.id.col,
