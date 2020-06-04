@@ -8,7 +8,7 @@
 QTL.OPTIONS <- new.env()
 
 assign('ALL',c('rnbeads.options','meth.data.type','geno.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',
-             	'db.snp.ref','minor.allele.frequency','missing.values.samples','plink.double.id','plink.geno','plink.path',
+             	'db.snp.ref','minor.allele.frequency','missing.values.samples','plink.geno','plink.path',
 		'fast.qtl.path','bgzip.path','tabix.path',
 		'n.prin.comp','correlation.type','cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
                	'linear.model.type','representative.cpg.computation','meth.qtl.type',
@@ -24,7 +24,6 @@ assign('RNBEADS.REPORT',"temp",QTL.OPTIONS)
 assign('RNBEADS.QC',FALSE,QTL.OPTIONS)
 assign('HDF5DUMP',FALSE,QTL.OPTIONS)
 assign("HARDY.WEINBERG.P",0.001,QTL.OPTIONS)
-assign("PLINK.DOUBLE.ID","",QTL.OPTIONS)
 assign("DB.SNP.REF",NULL,QTL.OPTIONS)
 assign("MINOR.ALLELE.FREQUENCY",0.05,QTL.OPTIONS)
 assign("MISSING.VALUES.SAMPLES",0.05,QTL.OPTIONS)
@@ -74,8 +73,6 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #'            \code{\link{HDF5Array}} package.
 #' @param hardy.weinberg.p P-value used for the markers to be excluded if they do not follow the
 #'            Hardy-Weinberg equilibrium as implemented in \code{PLINK}.
-#' @param plink.double.id Character that takes on values \code{''} or \code{'--double-id'}, that is active, in case \code{'_'} are
-#'            present in the sample IDs.
 #' @param db.snp.ref Path to a locally stored version of dbSNP[3]. If this option is specified, the reference allele
 #'             is determined from this file instead of from the allele frequencies of the dataset. This circumvents problems
 #'	       with some imputation methods. If \code{NULL}(default), recoding will not be performed.
@@ -169,7 +166,6 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        rnbeads.qc=F,
                        hdf5dump=F,
                        hardy.weinberg.p=0.001,
-                       plink.double.id,
 		                   db.snp.ref=NULL,
                        minor.allele.frequency=0.05,
                        missing.values.samples=0.05,
@@ -250,12 +246,6 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
       stop("Invalid value for hardy.weinberg.p, needs to be numeric < 1")
     }
     QTL.OPTIONS[['HARDY.WEINBERG.P']] <- hardy.weinberg.p
-  }
-  if(!missing(plink.double.id)){
-    if(!is.character(plink.double.id) || !(plink.double.id%in%c("","--double-id"))){
-      stop("Invalid value for plink.double.id, needs to be '' or '--double-id'.")
-    }
-    QTL.OPTIONS[['PLINK.DOUBLE.ID']] <- plink.double.id
   }
   if(!missing(db.snp.ref)){
     if(!is.null(db.snp.ref) && !file.exists(db.snp.ref)){
@@ -546,9 +536,6 @@ qtl.getOption <- function(names){
   }
   if('hardy.weinberg.p'%in%names){
     ret <- c(ret,hardy.weinberg.p=QTL.OPTIONS[['HARDY.WEINBERG.P']])
-  }
-  if('plink.double.id'%in%names){
-    ret <- c(ret,plink.double.id=QTL.OPTIONS[['PLINK.DOUBLE.ID']])
   }
   if('db.snp.ref'%in%names){
     ret <- c(ret,db.snp.ref=QTL.OPTIONS[['DB.SNP.REF']])

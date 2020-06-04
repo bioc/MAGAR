@@ -134,8 +134,7 @@ test.idat.imputation <- function(){
  		vcftools.path="/TL/deep-share/archive00/software/packages/vcftools/vcftools/perl/",
   	bgzip.path = "/TL/deep-share/archive00/software/packages/htslib/htslib-1.3.2/bgzip",
     tabix.path = "/TL/deep-share/archive00/software/packages/htslib/htslib-1.3.2/tabix",
-    imputation.reference.panel="apps@hrc-r1.1",
-		plink.double.id="--double-id"
+    imputation.reference.panel="apps@hrc-r1.1"
   )
  data.loc <- c(idat.dir="GSE79144",geno.dir=idat.files)
  rnbeads.report = out.dir

@@ -83,9 +83,6 @@ do.import <- function(data.location,
                                 snp.location=geno.import$annotation,
                                 out.folder=out.folder)
   s.names <- intersect(meth.import$samples,geno.import$samples)
-  if(any(grepl("_",s.names))){
-    qtl.setOption(plink.double.id="--double-id")
-  }
   sel.meth <- match(s.names,meth.import$samples)
   sel.geno <- match(s.names,geno.import$samples)
   if(any(is.na(sel.geno))||any(is.na(sel.meth))){
@@ -230,9 +227,6 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   snp.loc <- data.location[["geno.dir"]]
   all.files <- list.files(snp.loc,full.names=T)
   data.type <- qtl.getOption("geno.data.type")
-  if(any(grepl("_",s.anno[,s.id.col]))){
-    qtl.setOption(plink.double.id="--double-id")
-  }
   if(data.type=="plink"){
     bed.file <- all.files[grepl(".bed",all.files)]
     bim.file <- all.files[grepl(".bim",all.files)]
@@ -252,6 +246,9 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
     fam.file <- res["fam.file"]
   }
   if(qtl.getOption("impute.geno.data")){
+    if(any(grepl("_"),s.anno[,s.id.col])){
+	stop("Underscores are not allowed in the sampleID if imputation is to be performed")
+    }
     res <- do.imputation(bed.file,
                          bim.file,
                          fam.file,
@@ -273,7 +270,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   plink.file <- gsub(".bed","",bed.file)
   cmd <- paste(qtl.getOption("plink.path"),"--bfile",plink.file,"--keep",keep.file,"--hwe",qtl.getOption("hardy.weinberg.p"),
                "--maf",qtl.getOption("minor.allele.frequency"),"--mind",qtl.getOption("missing.values.samples"),
-               "--geno",qtl.getOption("plink.geno"),qtl.getOption("plink.double.id"),"--make-bed --out",proc.data)
+               "--geno",qtl.getOption("plink.geno"),"--make-bed --out",proc.data)
   system(cmd)
   snp.dat <- read.plink(bed=paste0(proc.data,".bed"),bim=paste0(proc.data,".bim"),fam=paste0(proc.data,".fam"))
   snp.mat <- t(as(snp.dat$genotypes,"numeric"))
@@ -622,7 +619,7 @@ do.geno.import.idat <- function(idat.files,
               allele.2=allele.B
               )
   # Sort data by chrosome
-  cmd <- paste(qtl.getOption('plink.path'),"--bfile",file.path(out.dir,"plink"),qtl.getOption("plink.double.id"),"--make-bed --out",file.path(out.dir,"plink_sorted"))
+  cmd <- paste(qtl.getOption('plink.path'),"--bfile",file.path(out.dir,"plink"),"--make-bed --out",file.path(out.dir,"plink_sorted"))
   system(cmd)
   cmd <- paste("rm -rf",file.path(out.dir,"plink.*"))
   system(cmd)

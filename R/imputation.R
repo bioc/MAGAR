@@ -19,6 +19,8 @@
 #'   \item{\code{"bim.file"}}{Path to the BIM file for PLINK}
 #'   \item{\code{"fam.file"}}{Path to the FAM file for PLINK}
 #' }
+#' @details Since PLINK files are converted to VCF files back and forth, unserscores are not allowed
+#'    in the sample IDs in case imputation is performed.
 #' @author Michael Scherer
 #' @export
 do.imputation <- function(bed.file,
@@ -38,7 +40,7 @@ do.imputation <- function(bed.file,
   proc.data <- file.path(out.dir,"imputed_data")
   plink.loc <- gsub(".bed","",bed.file)
   cmd <- paste(qtl.getOption("plink.path"),"--bfile",plink.loc,
-               "--hwe",qtl.getOption("hardy.weinberg.p"),qtl.getOption("plink.double.id"),
+               "--hwe",qtl.getOption("hardy.weinberg.p"),
                "--maf",qtl.getOption("minor.allele.frequency"),"--mind",qtl.getOption("missing.values.samples"),
                "--snps-only just-acgt --make-bed --recode vcf --out",proc.data)
   system(cmd)
@@ -86,7 +88,7 @@ do.imputation <- function(bed.file,
     cmd <- paste0("unzip"," -P '",pwd,"' -d ",out.dir," ",out.dir,"/temp.zip")
     logger.info(paste("If the password entering failed, consider using the command: unzip -P '<your-password>' -d",out.dir,paste0(out.dir,"/temp.zip")))
     system(cmd)
-    cmd <- paste(qtl.getOption("plink.path"),"--vcf",paste0(out.dir,"/",chr,".dose.vcf.gz"),qtl.getOption("plink.double.id"),"--recode --make-bed --out",paste0(out.dir,"/",chr))
+    cmd <- paste(qtl.getOption("plink.path"),"--vcf",paste0(out.dir,"/",chr,".dose.vcf.gz"),"--recode --make-bed --out",paste0(out.dir,"/",chr))
     logger.info(paste("If the password entering failed, use:",cmd))
     system(cmd)
     write.table(paste0(out.dir,"/",chr,c(".bed",".bim",".fam"),collapse="\t"),file.path(out.dir,"allfiles.txt"),append=T,col.names=F,row.names=F,quote=F)
@@ -102,7 +104,7 @@ do.imputation <- function(bed.file,
 #    system(cmd)
 #  }
 
-  cmd <- paste(qtl.getOption("plink.path"),qtl.getOption("plink.double.id"),"--merge-list", file.path(out.dir,"allfiles.txt"),"--missing-genotype N --make-bed --out",proc.data)
+  cmd <- paste(qtl.getOption("plink.path"),"--merge-list", file.path(out.dir,"allfiles.txt"),"--missing-genotype N --make-bed --out",proc.data)
   system(cmd)
 
   proc.data <- file.path(out.dir,"imputed_data")
