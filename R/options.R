@@ -251,10 +251,6 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
     if(!is.null(db.snp.ref) && !file.exists(db.snp.ref)){
       stop("Please download dbSNP from UCSC (https://genome.ucsc.edu/), and specify the path here")
     }
-    if(QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']]){
-	logger.info("Conflicting options 'recode.allele.frequencies' and 'db.snp.ref', setting 'recode.allele.frequencies'=FALSE")
-	QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']] <- FALSE
-    }
     QTL.OPTIONS[['DB.SNP.REF']] <- db.snp.ref
   }
   if(!missing(minor.allele.frequency)){
@@ -438,10 +434,6 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
   if(!missing(recode.allele.frequencies)){
     if(!is.logical(compute.cor.blocks)){
       stop("Invalid value for recode.allele.frequencies, needs to be logical.")
-    }
-    if(!is.null(QTL.OPTIONS[['DB.SNP.REF']])){
-	logger.info("Conflicting options 'recode.allele.frequencies' and 'db.snp.ref', setting 'recode.allele.frequencies'=FALSE")
-	recode.allele.frequencies <- FALSE
     }
     QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']] <- recode.allele.frequencies
   }

@@ -280,14 +280,17 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   if(!any(grepl("rs*",ids))){
     logger.start("Matching ids in dbSNP")
     if(is.null(qtl.getOption("db.snp.ref"))){
-      logger.warn("Please provide a valid path to dbSNP. Cannot map ids to SNPs.")
+      logger.warning("Please provide a valid path to dbSNP. Cannot map ids to SNPs.")
     }else{
       db.snp <- fread(qtl.getOption("db.snp.ref"))
       db.snp.gr <- makeGRangesFromDataFrame(db.snp,seqnames="#CHROM",start.field="POS",end.field="POS")
       seqlevelsStyle(db.snp.gr) <- "UCSC"
       anno.geno.gr <- makeGRangesFromDataFrame(anno.geno,seqnames="Chromosome",start.field = "Start",end.field = "Start")
-      op <- findOverlaps(anno.geno.gr,db.snp.gr)
-      ids[queryHits(op)] <- as.character(db.snp$ID)[subjectHits(op)]
+      seqlevelsStyle(anno.geno.gr) <- "UCSC"
+      op <- findOverlaps(anno.geno.gr,db.snp.gr,select="first")
+      logger.info(paste("Replacing",length(op),"IDs with dbSNP IDs."))
+      ids[!is.na(op)] <- as.character(db.snp$ID)[op[!is.na(op)]]
+      ids <- make.unique(ids)
     }
     logger.completed()
   }
@@ -570,19 +573,6 @@ do.geno.import.idat <- function(idat.files,
   position <- position(f.dat)[!is.chr.0]
   allele.A <- allele.A[!is.chr.0]
   allele.B <- allele.B[!is.chr.0]
-  if(qtl.getOption("recode.allele.frequencies")){
-    maj.allele.frequencies <- apply(snp.mat,2,function(x){
-      x <- x[!is.na(x)]
-      (2*sum(x==1)+sum(x==2))/(2*length(x))
-    })
-    allele.frequencies <- maj.allele.frequencies<0.5
-    allele.frequencies[is.na(allele.frequencies)] <- FALSE
-    logger.info(paste("Recoding",sum(allele.frequencies),"SNPs"))
-    snp.mat[,allele.frequencies] <- 4-(snp.mat[,allele.frequencies])
-    temp <- allele.B[allele.frequencies]
-    allele.B[allele.frequencies] <- allele.A[allele.frequencies]
-    allele.A[allele.frequencies] <- temp
-  }
   if(!is.null(qtl.getOption("db.snp.ref"))){
     logger.start("Matching reference allele according to dbSNP")
     db.snp <- fread(qtl.getOption("db.snp.ref"))

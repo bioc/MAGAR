@@ -348,7 +348,7 @@ generate.fastQTL.input <- function(meth.qtl,chrom,correlation.block,sel.covariat
                           QUAL=rep(100,nrow(anno.geno)),
                           FILTER=rep("PASS",nrow(anno.geno)),
                           INFO=rep("INFO",nrow(anno.geno)),
-			  FORMAT=rep(ifelse(meth.qtl@imputed,"DS","GT"),nrow(anno.geno)),
+			  FORMAT=rep("DS",nrow(anno.geno)),
                           geno.data)
   f.name <- file.path(out.dir,paste0("genotypes_",chrom,".vcf"))
   write.table(vcf.frame,f.name,sep="\t",row.names = F,col.names = F,quote=F)
