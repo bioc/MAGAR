@@ -10,7 +10,7 @@ R package for computing DNA methylation quantitative trait loci (methQTL) from D
 The package can directly be installed in a R session using the ```devtools``` package
 ```r
 if(!requireNamespace("devtools")) install.packages("devtools")
- devtools::install_github("MPIIComputationalEpigenetics/methQTL-package")
+devtools::install_github("MPIIComputationalEpigenetics/methQTL-package")
 ```
 
 ## Documentation

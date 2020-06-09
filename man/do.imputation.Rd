@@ -25,6 +25,10 @@ A vector with three elements: \describe{
 \description{
 Function to perform imputation from PLINK data
 }
+\details{
+Since PLINK files are converted to VCF files back and forth, unserscores are not allowed
+   in the sample IDs in case imputation is performed.
+}
 \author{
 Michael Scherer
 }

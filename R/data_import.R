@@ -466,9 +466,12 @@ match.assemblies <- function(meth.qtl){
 #' @param s.anno The sample annotation sheet as a \code{'data.frame'}
 #' @param s.id.col The column in the sample annotation sheet specifying the sample identifiers
 #' @param out.dir The output directory
+#' @param store.crlmm Flag indicating, whether the intermediate \code{CNSet} object is to be stored
+#'    on disk. On this object, quality control on using the \code{CRLMM} package can be performed.
 #' @param idat.platform The array platform to be used. Check those available using the crlmm function \code{\link{validCdfNames}}.
-#'          Additionally, for the Illumina OmniExpress 12 v1.0 we provide a custom annotation, which
-#'          can be used using the 'OmniExpress' option.
+#'          Additionally, for the Illumina OmniExpress 12 v1.0, and Infinium Omni2.5-8 v1.4 we
+#'          provide two custom annotations, which can be used using the 'OmniExpress' and
+#'          'OmniExome' options, respectively.
 #' @param call.method The genotype calling method passed to \code{\link{genotype.Illumina}}
 #' @return A vector with three elements: \describe{
 #'   \item{\code{"bed.file"}}{Path to the BED file for PLINK}
@@ -483,7 +486,8 @@ do.geno.import.idat <- function(idat.files,
                                    out.dir,
                                    idat.platform="humanomni258v1a",
                                    call.method="krlmm",
-                                   gender.col=NULL){
+                                   gender.col=NULL,
+				   store.crlmm=F){
   # library(crlmm)
   # library(ff)
   # library(snpStats)
@@ -523,22 +527,7 @@ do.geno.import.idat <- function(idat.files,
   }else{
     sex <- rep(NA,nrow(s.anno))
   }
-  if(!idat.platform=="OmniExpress"){
-	  crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
-		                         arrayNames=array.names,
-		                         arrayInfoColNames=array.info,
-		                         cdfName=idat.platform,
-		                         batch=batch.info,
-		                         call.method=call.method,
-		                         copynumber=FALSE,
-		                         fitMixture=FALSE,
-		                         gender=sex)
-	  anno.data <- system.file("extdata/annotation.rda",package = paste0(idat.platform,"Crlmm"))
-	  if(!file.exists(anno.data)){
-	    stop(paste("Missing required annotation data for BeadArray",idat.platform))
-	  }
-	  load(anno.data)
-  }else{
+  if(idat.platform=="OmniExpress"){
 	my.anno <- readRDS(system.file("extdata/omni_express_annotation.rds",package="methQTL"))
 	genome <- "hg19"
         crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
@@ -553,6 +542,39 @@ do.geno.import.idat <- function(idat.files,
                          fitMixture=FALSE,
                          gender=sex)
 	annot <- my.anno@data
+  }else if(idat.platform=="OmniExome"){
+	my.anno <- readRDS(system.file("extdata/omni_exome_annotation.rds",package="methQTL"))
+	genome <- "hg19"
+        crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
+                         arrayNames=array.names,
+                         arrayInfoColNames=array.info,
+                         cdfName="nopackage",
+			 anno=my.anno,
+			 genome=genome,
+                         batch=batch.info,
+                         call.method=call.method,
+                         copynumber=FALSE,
+                         fitMixture=FALSE,
+                         gender=sex)
+	annot <- my.anno@data
+  }else{
+	  crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
+		                         arrayNames=array.names,
+		                         arrayInfoColNames=array.info,
+		                         cdfName=idat.platform,
+		                         batch=batch.info,
+		                         call.method=call.method,
+		                         copynumber=FALSE,
+		                         fitMixture=FALSE,
+		                         gender=sex)
+	  anno.data <- system.file("extdata/annotation.rda",package = paste0(idat.platform,"Crlmm"))
+	  if(!file.exists(anno.data)){
+	    stop(paste("Missing required annotation data for BeadArray",idat.platform))
+	  }
+	  load(anno.data)
+  }
+  if(store.crlmm){
+    saveRDS(crlmm.obj,file.path(out.dir,"CNSet.rds"))
   }
   f.dat <- featureData(crlmm.obj)
   assembly <- crlmm.obj@genome
