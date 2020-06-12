@@ -184,7 +184,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
                        representative.cpg.computation="row.medians",
                        meth.qtl.type="oneVSall",
                        max.cpgs=40000,
-                       rscript.path="/usr/bin/R",
+                       rscript.path="/usr/bin/Rscript",
                        cluster.config=c(h_vmem="5G",mem_free="5G"),
                        n.permutations=1000,
                        p.value.correction="uncorrected.fdr",

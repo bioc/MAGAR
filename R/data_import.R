@@ -620,15 +620,22 @@ do.geno.import.idat <- function(idat.files,
   snp.mat <- new("SnpMatrix",snp.mat)
   ids <- as.character(s.anno[,s.id.col])
   row.names(snp.mat) <- ids
+  snp.dat <- data.frame(chromosome=chroms,
+	position=position,
+	genetic.distance=rep(NA,length(chroms)),
+	allele.1=allele.A,
+	allele.2=allele.B)
+  row.names(snp.dat) <- featureNames(f.dat)[!is.chr.0]
   write.plink(file.path(out.dir,"plink"),
               snps=snp.mat,
               pedigree=ids,
               id=ids,
               sex=sex,
-              chromosome=chroms,
-              position=position,
-              allele.1=allele.A,
-              allele.2=allele.B
+              snp.data=snp.dat,
+	      chromosome=chromosome,
+	      position=position,
+	      allele.1=allele.A,
+	      allele.2=allele.B
               )
   # Sort data by chrosome
   cmd <- paste(qtl.getOption('plink.path'),"--bfile",file.path(out.dir,"plink"),"--make-bed --out",file.path(out.dir,"plink_sorted"))
