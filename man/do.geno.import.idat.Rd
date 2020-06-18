@@ -11,7 +11,8 @@ do.geno.import.idat(
   out.dir,
   idat.platform = "humanomni258v1a",
   call.method = "krlmm",
-  gender.col = NULL
+  gender.col = NULL,
+  store.crlmm = F
 )
 }
 \arguments{
@@ -29,6 +30,9 @@ provide two custom annotations, which can be used using the 'OmniExpress' and
 'OmniExome' options, respectively.}
 
 \item{call.method}{The genotype calling method passed to \code{\link{genotype.Illumina}}}
+
+\item{store.crlmm}{Flag indicating, whether the intermediate \code{CNSet} object is to be stored
+on disk. On this object, quality control on using the \code{CRLMM} package can be performed.}
 }
 \value{
 A vector with three elements: \describe{

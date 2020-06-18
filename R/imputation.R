@@ -65,7 +65,6 @@ do.imputation <- function(bed.file,
         "' -F 'input-phasing=", qtl.getOption("imputation.phasing.method"),
         "' -F 'input-population=", qtl.getOption("imputation.population"),
         "' https://imputationserver.sph.umich.edu/api/v2/jobs/submit/minimac4")
-    print(cmd)
     res <- system(cmd,intern=T)
     res <- unlist(strsplit(res,"\""))
     j.id <- res[unlist(lapply(res,function(x)grepl("job-",x)))]

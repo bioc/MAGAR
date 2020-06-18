@@ -246,7 +246,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
     fam.file <- res["fam.file"]
   }
   if(qtl.getOption("impute.geno.data")){
-    if(any(grepl("_"),s.anno[,s.id.col])){
+    if(any(grepl("_",s.anno[,s.id.col]))){
 	stop("Underscores are not allowed in the sampleID if imputation is to be performed")
     }
     res <- do.imputation(bed.file,
@@ -488,18 +488,7 @@ do.geno.import.idat <- function(idat.files,
                                    call.method="krlmm",
                                    gender.col=NULL,
 				   store.crlmm=F){
-  # library(crlmm)
-  # library(ff)
-  # library(snpStats)
-  # library(RnBeads)
-  # idat.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/idat/"
-  # s.anno <- read.table("/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/annotation/sample_annotation_genotypes_red.tsv",
-  #                      sep="\t",
-  #                      header = T)
-  # s.id.col <- "sample_id"
-  # out.dir <- getwd()
-  # idat.platform="humanomni258v1p1b"
-  # gender.col=NULL
+  logger.start("Importing genotyping IDAT files")
   if(!("GenoSentrixPosition"%in%colnames(s.anno))){
     stop("Missing required column 'GenoSentrixPosition' in the sample annotation sheet")
   }
@@ -595,6 +584,7 @@ do.geno.import.idat <- function(idat.files,
   position <- position(f.dat)[!is.chr.0]
   allele.A <- allele.A[!is.chr.0]
   allele.B <- allele.B[!is.chr.0]
+  snp.names <- featureNames(f.dat)[!is.chr.0]
   if(!is.null(qtl.getOption("db.snp.ref"))){
     logger.start("Matching reference allele according to dbSNP")
     db.snp <- fread(qtl.getOption("db.snp.ref"))
@@ -615,24 +605,25 @@ do.geno.import.idat <- function(idat.files,
     position <- position[!rem.sites]
     allele.A <- allele.A[!rem.sites]
     allele.B <- allele.B[!rem.sites]
+    snp.names <- snp.names[!rem.sites]
     logger.completed()
   }
   snp.mat <- new("SnpMatrix",snp.mat)
   ids <- as.character(s.anno[,s.id.col])
   row.names(snp.mat) <- ids
-  snp.dat <- data.frame(chromosome=chroms,
-	position=position,
-	genetic.distance=rep(NA,length(chroms)),
-	allele.1=allele.A,
-	allele.2=allele.B)
-  row.names(snp.dat) <- featureNames(f.dat)[!is.chr.0]
+#  snp.dat <- data.frame(chromosome=chroms,
+#	  position=position,
+#	  genetic.distance=rep(NA,length(chroms)),
+#	  allele.1=allele.A,
+#	  allele.2=allele.B)
+#  row.names(snp.dat) <- snp.names
   write.plink(file.path(out.dir,"plink"),
               snps=snp.mat,
               pedigree=ids,
               id=ids,
               sex=sex,
-              snp.data=snp.dat,
-	      chromosome=chromosome,
+#              snp.data=snp.dat,
+	      chromosome=chroms,
 	      position=position,
 	      allele.1=allele.A,
 	      allele.2=allele.B
@@ -642,6 +633,7 @@ do.geno.import.idat <- function(idat.files,
   system(cmd)
   cmd <- paste("rm -rf",file.path(out.dir,"plink.*"))
   system(cmd)
+  logger.completed()
   return(c(
     bed.file=file.path(out.dir,"plink_sorted.bed"),
     bim.file=file.path(out.dir,"plink_sorted.bim"),
