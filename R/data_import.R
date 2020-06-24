@@ -71,6 +71,9 @@ do.import <- function(data.location,
     }
   }
   pheno.data <- read.table(s.anno,sep=tab.sep,header = T)
+  if(ncol(pheno.data)==1){
+    logger.warning("Pheno data does only contain one column. Did you specify the wrong 'sep.tab'?")
+  }
   geno.import <- do.geno.import(data.location,pheno.data,s.id.col,out.folder,...)
   pheno.data <- geno.import$pheno.data
   s.anno <- file.path(out.folder,ifelse(tab.sep==",","sample_annotation.csv","sample_annotation.tsv"))
