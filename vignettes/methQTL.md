@@ -1,56 +1,13 @@
----
-title: "methQTL package"
-author: "Michael Scherer"
-date: "May 25, 2020"
-header-includes:
-  \usepackage{helvet}
-  \hypersetup{colorlinks,
-              urlcolor=blue}
-output:
-  pdf_document:
-    number_sections: true
-    latex_engine: xelatex
-vignette:
-  \VignetteEngine{knitr::knitr}
-bibliography: biblio.bib  
----
-
-
+# methQTL package
+## Michael Scherer
 
 # Introduction
 
-This vignette describes the *methQTL* R-package (https://github.com/MPIIComputationalEpigenetics/methQTL-package) available from GitHub. The package uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). The package provides mutliple flavors of linear modeling strategies to compute *methQTL* as statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block is used for methQTL calling.
+This vignette describes the [*methQTL* R-package](https://github.com/MPIIComputationalEpigenetics/methQTL-package) available from GitHub. The package uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). The package provides mutliple flavors of linear modeling strategies to compute *methQTL* as statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block (tag-CpG) is used for methQTL calling.
 
 # Installation
 
 The package can be directly installed from GitHub, after installing the *devtools* package.
-
-
-```r
-if(!requireNamespace("devtools")) install.packages("devtools")
-```
-
-```
-## Loading required namespace: devtools
-```
-
-```r
-if(!requireNamespace("methQTL")){
-  devtools::install_github("MPIIComputationalEpigenetics/methQTL-package")
-}  
-```
-
-```
-## Loading required namespace: methQTL
-## Setting options('download.file.method.GEOquery'='auto')
-## Setting options('GEOquery.inmemory.gpl'=FALSE)
-## Warning: no function found corresponding to methods exports from 'RnBeads' for:
-## 'samples'
-```
-
-```r
-suppressPackageStartupMessages(library(methQTL))
-```
 
 # Input data
 
@@ -79,17 +36,17 @@ cat(rnb.options2xml(),file=xml.fi)
 qtl.setOption(rnbeads.options = xml.fi)
 ```
 
-To redefine the correlation blocks, we allow including additional information such as genome-wide segmentation of the methylation landscape (see option ```use.segmentation``` and function ```qtl.run.segmentation```), and also function annotation according to the Ensembl regulatory build [@Zerbino2015].
+To redefine the correlation blocks, we allow for including additional information such as genome-wide segmentation of the methylation landscape (see option ```use.segmentation``` and function ```qtl.run.segmentation```), and also functional annotation according to the Ensembl regulatory build [@Zerbino2015].
 
 ## Genotyping data
 
 ### PLINK files
 
-The package supports data that has already been processed by *plink* and is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, as variant calling files (*.vcf*), or as imputed files in the dosage format (*.dos*). For further processing, we use the command line tool *plink*, which comes with this package, but is only applicable on Linux systems. For Windows and MacOS users, please install the *plink* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.
+The package supports data that has already been processed by [*PLINK*](http://zzz.bwh.harvard.edu/plink/) and that is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, as variant calling files (*.vcf*), or as imputed files in the dosage format (*.dos*). For further processing, we use the command line tool *PLINK*, which comes with this package. However, this installation is only valid for Linux systems. For Windows and MacOS users, please install the *PLINK* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.
 
 ### IDAT files
 
-The package also support raw IDAT files and uses the [CRLMM](https://www.bioconductor.org/packages/release/bioc/html/crlmm.html) R-package, together with PLINK to perform genotype calling and data import. The package requires a single sample annotation sheet in the format described in the [DNA methylation data (microarray)](DNA methylation data) section. In addition to the column names specified above, a column named *GenoSentrixPosition* has to be added, which specifies the IDAT file IDs.
+The package also supports raw IDAT files and uses the [*CRLMM*](https://www.bioconductor.org/packages/release/bioc/html/crlmm.html) R-package, together with PLINK to perform genotype calling and data import. The package requires a single sample annotation sheet in the format described in the [DNA methylation data](DNA methylation data  (microarray)) section. In addition to the column names specified above, a column named *GenoSentrixPosition* has to be added, which specifies the IDAT file IDs.
 
 
 ```bash
@@ -115,7 +72,7 @@ qtl.setOption(
 
 ## Perform data import
 
-The ```do.import``` function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. You'll have to specify the paths to the corresponding *IDAT* and *plink* files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory (```hdf5dump```).
+The ```do.import``` function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. In this vignette, we will describe the import of DNA methylation data in *IDAT* format and genotyping data as *PLINK* files. First, you'll have to specify the paths to the corresponding *IDAT* and *plink* files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory (```hdf5dump```).
 
 
 ```r
@@ -131,94 +88,93 @@ imp.data <- do.import(data.location = c(idat.dir=idat.dir,geno.dir=plink.dir),
 ```
 
 ```
-## 2020-05-29 13:16:34     1.3  STATUS STARTED Import methQTL data
-## 2020-05-29 13:16:34     1.3  STATUS     STARTED Processing genotyping data
-## 2020-05-29 13:16:42     1.7    INFO         Loading system default for option 'plink.path'
-## 2020-05-29 13:16:53     2.2  STATUS         STARTED Compute genotype PCA
-## 2020-05-29 13:16:54     2.2  STATUS         COMPLETED Compute genotype PCA
-## 2020-05-29 13:16:55     2.2  STATUS     COMPLETED Processing genotyping data
-## 2020-05-29 13:16:55     2.2  STATUS     STARTED Processing DNA methylation data
-## 2020-05-29 13:16:56     2.2  STATUS         STARTED Loading Data from IDAT Files
-## 2020-05-29 13:16:56     2.2    INFO             Added column barcode to the provided sample annotation table
-## 2020-05-29 13:16:57     2.2    INFO             Detected platform: MethylationEPIC
-## 2020-05-29 13:17:19     2.3  STATUS         COMPLETED Loading Data from IDAT Files
-## 2020-05-29 13:18:41     2.5  STATUS         STARTED Preprocessing
-## 2020-05-29 13:18:41     2.5    INFO             Number of cores: 1
-## 2020-05-29 13:18:41     2.5  STATUS             STARTED Filtering Procedures I
-## 2020-05-29 13:18:43     2.5  STATUS                 STARTED Removal of SNP-enriched Sites
-## 2020-05-29 13:18:43     2.5  STATUS                     Removed 139721 sites using SNP criterion "any"
-## 2020-05-29 13:18:44     2.5  STATUS                     Saved removed sites to /local/tmp/RtmpH875KL/rnbeads_preprocessing/preprocessing_data/removed_sites_snp.csv
-## 2020-05-29 13:18:44     2.5  STATUS                     Added a corresponding section to the report
-## 2020-05-29 13:18:44     2.5  STATUS                 COMPLETED Removal of SNP-enriched Sites
-## 2020-05-29 13:18:44     2.5  STATUS                 STARTED Removal of Cross-reactive Probes
-## 2020-05-29 13:18:44     2.5  STATUS                     Removed 34264 sites
-## 2020-05-29 13:18:44     2.5  STATUS                     Saved removed sites to /local/tmp/RtmpH875KL/rnbeads_preprocessing/preprocessing_data/removed_sites_cross_reactive.csv
-## 2020-05-29 13:18:44     2.5  STATUS                     Added a corresponding section to the report
-## 2020-05-29 13:18:44     2.5  STATUS                 COMPLETED Removal of Cross-reactive Probes
-## 2020-05-29 13:18:44     2.5    INFO                 Working with a p-value threshold of 0.05
-## 2020-05-29 13:18:46     2.6  STATUS                 STARTED Greedycut
-## 2020-05-29 13:19:06     2.8  STATUS                     Calculated a total of 1055 iterations
-## 2020-05-29 13:19:06     2.8    INFO                     Optimal number of iterations is 1055
-## 2020-05-29 13:19:10     2.8  STATUS                     Created ROC plot
-## 2020-05-29 13:19:14     2.8  STATUS                     Created line plots for matrix dimensions and other statistics
-## 2020-05-29 13:19:14     2.8  STATUS                     Saved removed sites to /local/tmp/RtmpH875KL/rnbeads_preprocessing/preprocessing_data/removed_sites_greedycut.csv
-## 2020-05-29 13:19:14     2.8  STATUS                 COMPLETED Greedycut
-## 2020-05-29 13:19:14     2.8  STATUS                 Retained 8 samples and 691856 sites
-## 2020-05-29 13:19:14     2.8  STATUS             COMPLETED Filtering Procedures I
-## 2020-05-29 13:19:14     2.8  STATUS             STARTED Summary of Filtering Procedures I
-## 2020-05-29 13:19:14     2.8  STATUS                 Created summary table of removed sites, samples and unreliable measurements
-## 2020-05-29 13:19:16     2.8  STATUS                 Added summary table of removed and retained items
-## 2020-05-29 13:19:16     2.8    INFO                 Subsampling 866895 sites for plotting density distributions
-## 2020-05-29 13:19:16     2.8  STATUS                 Constructed sequences of removed and retained methylation values
-## 2020-05-29 13:19:30     2.8  STATUS                 Added comparison between removed and retained beta values
-## 2020-05-29 13:19:30     2.8  STATUS             COMPLETED Summary of Filtering Procedures I
-## 2020-05-29 13:19:30     2.8  STATUS             STARTED Manipulating the object
-## 2020-05-29 13:20:29     2.8  STATUS                 Removed 175039 sites (probes)
-## 2020-05-29 13:20:29     2.8    INFO                 Retained 691856 sites and 8 samples
-## 2020-05-29 13:20:29     2.8  STATUS             COMPLETED Manipulating the object
-## 2020-05-29 13:20:29     2.8  STATUS             STARTED Normalization Procedure
-## 2020-05-29 13:21:09     3.5  STATUS                 Performed normalization with method wm.dasen
-## 2020-05-29 13:22:05     3.2  STATUS                 Performed normalization with method "wm.dasen"
-## 2020-05-29 13:22:21     3.5  STATUS                 Added comparison between non-normalized and normalized beta values
-## 2020-05-29 13:22:22     3.5  STATUS                 Added histogram of observed beta shifts (magnitude of correction)
-## 2020-05-29 13:22:24     3.5  STATUS                 Added 2D histogram of observed beta values and shifts
-## 2020-05-29 13:22:24     3.5  STATUS                 Added normalization section
-## 2020-05-29 13:22:24     3.5  STATUS             COMPLETED Normalization Procedure
-## 2020-05-29 13:22:24     3.5  STATUS             STARTED Filtering Procedures II
-## 2020-05-29 13:22:26     3.5  STATUS                 STARTED Probe Context Removal
-## 2020-05-29 13:22:26     3.5  STATUS                     Removed 1196 probe(s) having not acceptable context
-## 2020-05-29 13:22:26     3.5  STATUS                     Saved removed sites to /local/tmp/RtmpH875KL/rnbeads_preprocessing/preprocessing_data/removed_sites_context.csv
-## 2020-05-29 13:22:26     3.5  STATUS                     Added a corresponding section to the report
-## 2020-05-29 13:22:26     3.5  STATUS                 COMPLETED Probe Context Removal
-## 2020-05-29 13:22:26     3.5  STATUS                 STARTED Removal of Sites on Sex Chromosomes
-## 2020-05-29 13:22:26     3.5  STATUS                     Removed 16598 site(s) on sex chromosomes
-## 2020-05-29 13:22:26     3.5  STATUS                     Saved removed sites to /local/tmp/RtmpH875KL/rnbeads_preprocessing/preprocessing_data/removed_sites_sex.csv
-## 2020-05-29 13:22:26     3.5  STATUS                     Added a corresponding section to the report
-## 2020-05-29 13:22:26     3.5  STATUS                 COMPLETED Removal of Sites on Sex Chromosomes
-## 2020-05-29 13:22:26     3.5  STATUS                 STARTED Missing Value Removal
-## 2020-05-29 13:22:26     3.5  STATUS                     Using a sample quantile threshold of 0
-## 2020-05-29 13:22:26     3.5  STATUS                     Removed 44 site(s) with too many missing values
-## 2020-05-29 13:22:26     3.5  STATUS                     Saved removed sites to /local/tmp/RtmpH875KL/rnbeads_preprocessing/preprocessing_data/removed_sites_na.csv
-## 2020-05-29 13:22:30     3.5  STATUS                     Added a corresponding section to the report
-## 2020-05-29 13:22:30     3.5  STATUS                 COMPLETED Missing Value Removal
-## 2020-05-29 13:22:30     3.5  STATUS                 Retained 8 samples and 674018 sites
-## 2020-05-29 13:22:30     3.5  STATUS             COMPLETED Filtering Procedures II
-## 2020-05-29 13:22:30     3.5  STATUS             STARTED Summary of Filtering Procedures II
-## 2020-05-29 13:22:30     3.5  STATUS                 Created summary table of removed sites, samples and unreliable measurements
-## 2020-05-29 13:22:31     3.5  STATUS                 Added summary table of removed and retained items
-## 2020-05-29 13:22:32     3.5    INFO                 Subsampling 691856 sites for plotting density distributions
-## 2020-05-29 13:22:32     3.5  STATUS                 Constructed sequences of removed and retained methylation values
-## 2020-05-29 13:22:41     3.3  STATUS                 Added comparison between removed and retained beta values
-## 2020-05-29 13:22:41     3.3  STATUS             COMPLETED Summary of Filtering Procedures II
-## 2020-05-29 13:22:41     3.3  STATUS             STARTED Manipulating the object## 2020-05-29 13:23:37     3.3  STATUS                 Removed 17838 sites (probes)
-## 2020-05-29 13:23:37     3.3    INFO                 Retained 674018 sites and 8 samples
-## 2020-05-29 13:23:37     3.3  STATUS             COMPLETED Manipulating the object
-## 2020-05-29 13:23:38     3.3    INFO             No missing values present, imputation skipped
-## 2020-05-29 13:23:38     3.3  STATUS         COMPLETED Preprocessing
-## 2020-05-29 13:24:07     3.3  STATUS         STARTED Removing 870 CpGs overlapping with SNPs
-## 2020-05-29 13:25:05     3.3  STATUS         COMPLETED Removing 870 CpGs overlapping with SNPs
-## 2020-05-29 13:25:09     3.3  STATUS     COMPLETED Processing DNA methylation data
-## 2020-05-29 13:25:09     3.3  STATUS COMPLETED Import methQTL data
+## 2020-06-24 12:36:27     1.3  STATUS STARTED Import methQTL data
+## 2020-06-24 12:36:27     1.3  STATUS     STARTED Processing genotyping data
+## 2020-06-24 12:36:36     1.7    INFO         Loading system default for option 'plink.path'
+## 2020-06-24 12:36:47     2.2  STATUS         STARTED Compute genotype PCA
+## 2020-06-24 12:36:48     2.2  STATUS         COMPLETED Compute genotype PCA
+## 2020-06-24 12:36:49     2.2  STATUS     COMPLETED Processing genotyping data
+## 2020-06-24 12:36:49     2.2  STATUS     STARTED Processing DNA methylation data
+## 2020-06-24 12:36:53     2.2  STATUS         STARTED Loading Data from IDAT Files
+## 2020-06-24 12:36:53     2.2    INFO             Added column barcode to the provided sample annotation table
+## 2020-06-24 12:36:54     2.2    INFO             Detected platform: MethylationEPIC
+## 2020-06-24 12:37:17     2.4  STATUS         COMPLETED Loading Data from IDAT Files
+## 2020-06-24 12:38:39     2.5  STATUS         STARTED Preprocessing
+## 2020-06-24 12:38:39     2.5    INFO             Number of cores: 1
+## 2020-06-24 12:38:39     2.5  STATUS             STARTED Filtering Procedures I
+## 2020-06-24 12:38:41     2.5  STATUS                 STARTED Removal of SNP-enriched Sites
+## 2020-06-24 12:38:41     2.5  STATUS                     Removed 139721 sites using SNP criterion "any"
+## 2020-06-24 12:38:41     2.5  STATUS                     Saved removed sites to /local/tmp/RtmpbsG9W8/rnbeads_preprocessing/preprocessing_data/removed_sites_snp.csv
+## 2020-06-24 12:38:41     2.5  STATUS                     Added a corresponding section to the report
+## 2020-06-24 12:38:41     2.5  STATUS                 COMPLETED Removal of SNP-enriched Sites
+## 2020-06-24 12:38:41     2.5  STATUS                 STARTED Removal of Cross-reactive Probes
+## 2020-06-24 12:38:41     2.5  STATUS                     Removed 34264 sites
+## 2020-06-24 12:38:42     2.5  STATUS                     Saved removed sites to /local/tmp/RtmpbsG9W8/rnbeads_preprocessing/preprocessing_data/removed_sites_cross_reactive.csv
+## 2020-06-24 12:38:42     2.5  STATUS                     Added a corresponding section to the report
+## 2020-06-24 12:38:42     2.5  STATUS                 COMPLETED Removal of Cross-reactive Probes
+## 2020-06-24 12:38:42     2.5    INFO                 Working with a p-value threshold of 0.05
+## 2020-06-24 12:38:44     2.6  STATUS                 STARTED Greedycut
+## 2020-06-24 12:39:05     2.8  STATUS                     Calculated a total of 1055 iterations
+## 2020-06-24 12:39:05     2.8    INFO                     Optimal number of iterations is 1055
+## 2020-06-24 12:39:09     2.8  STATUS                     Created ROC plot
+## 2020-06-24 12:39:12     2.8  STATUS                     Created line plots for matrix dimensions and other statistics
+## 2020-06-24 12:39:12     2.8  STATUS                     Saved removed sites to /local/tmp/RtmpbsG9W8/rnbeads_preprocessing/preprocessing_data/removed_sites_greedycut.csv
+## 2020-06-24 12:39:12     2.8  STATUS                 COMPLETED Greedycut
+## 2020-06-24 12:39:12     2.8  STATUS                 Retained 8 samples and 691856 sites
+## 2020-06-24 12:39:12     2.8  STATUS             COMPLETED Filtering Procedures I
+## 2020-06-24 12:39:12     2.8  STATUS             STARTED Summary of Filtering Procedures I
+## 2020-06-24 12:39:13     2.7  STATUS                 Created summary table of removed sites, samples and unreliable measurements
+## 2020-06-24 12:39:14     2.7  STATUS                 Added summary table of removed and retained items
+## 2020-06-24 12:39:14     2.7    INFO                 Subsampling 866895 sites for plotting density distributions
+## 2020-06-24 12:39:15     2.8  STATUS                 Constructed sequences of removed and retained methylation values
+## 2020-06-24 12:39:28     2.8  STATUS                 Added comparison between removed and retained beta values
+## 2020-06-24 12:39:29     2.8  STATUS             COMPLETED Summary of Filtering Procedures I
+## 2020-06-24 12:39:29     2.8  STATUS             STARTED Manipulating the object
+## 2020-06-24 12:40:29     2.8  STATUS                 Removed 175039 sites (probes)
+## 2020-06-24 12:40:29     2.8    INFO                 Retained 691856 sites and 8 samples
+## 2020-06-24 12:40:29     2.8  STATUS             COMPLETED Manipulating the object
+## 2020-06-24 12:40:29     2.8  STATUS             STARTED Normalization Procedure
+## 2020-06-24 12:41:09     3.6  STATUS                 Performed normalization with method wm.dasen
+## 2020-06-24 12:42:04     3.3  STATUS                 Performed normalization with method "wm.dasen"
+## 2020-06-24 12:42:22     3.6  STATUS                 Added 2D histogram of observed beta values and shifts
+## 2020-06-24 12:42:22     3.5  STATUS                 Added normalization section
+## 2020-06-24 12:42:22     3.5  STATUS             COMPLETED Normalization Procedure
+## 2020-06-24 12:42:22     3.5  STATUS             STARTED Filtering Procedures II
+## 2020-06-24 12:42:24     3.5  STATUS                 STARTED Probe Context Removal
+## 2020-06-24 12:42:24     3.5  STATUS                     Removed 1196 probe(s) having not acceptable context
+## 2020-06-24 12:42:24     3.5  STATUS                     Saved removed sites to /local/tmp/RtmpbsG9W8/rnbeads_preprocessing/preprocessing_data/removed_sites_context.csv
+## 2020-06-24 12:42:24     3.5  STATUS                     Added a corresponding section to the report
+## 2020-06-24 12:42:24     3.5  STATUS                 COMPLETED Probe Context Removal
+## 2020-06-24 12:42:24     3.5  STATUS                 STARTED Removal of Sites on Sex Chromosomes
+## 2020-06-24 12:42:24     3.5  STATUS                     Removed 16598 site(s) on sex chromosomes
+## 2020-06-24 12:42:24     3.5  STATUS                     Saved removed sites to /local/tmp/RtmpbsG9W8/rnbeads_preprocessing/preprocessing_data/removed_sites_sex.csv
+## 2020-06-24 12:42:24     3.5  STATUS                     Added a corresponding section to the report
+## 2020-06-24 12:42:24     3.5  STATUS                 COMPLETED Removal of Sites on Sex Chromosomes
+## 2020-06-24 12:42:24     3.5  STATUS                 STARTED Missing Value Removal
+## 2020-06-24 12:42:24     3.5  STATUS                     Using a sample quantile threshold of 0
+## 2020-06-24 12:42:24     3.5  STATUS                     Removed 44 site(s) with too many missing values
+## 2020-06-24 12:42:25     3.5  STATUS                     Saved removed sites to /local/tmp/RtmpbsG9W8/rnbeads_preprocessing/preprocessing_data/removed_sites_na.csv
+## 2020-06-24 12:42:30     3.3  STATUS                     Added a corresponding section to the report
+## 2020-06-24 12:42:30     3.3  STATUS                 COMPLETED Missing Value Removal
+## 2020-06-24 12:42:30     3.3  STATUS                 Retained 8 samples and 674018 sites
+## 2020-06-24 12:42:30     3.3  STATUS             COMPLETED Filtering Procedures II
+## 2020-06-24 12:42:30     3.3  STATUS             STARTED Summary of Filtering Procedures II
+## 2020-06-24 12:42:30     3.3  STATUS                 Created summary table of removed sites, samples and unreliable measurements
+## 2020-06-24 12:42:31     3.3  STATUS                 Added summary table of removed and retained items
+## 2020-06-24 12:42:31     3.3    INFO                 Subsampling 691856 sites for plotting density distributions
+## 2020-06-24 12:42:32     3.3  STATUS                 Constructed sequences of removed and retained methylation values
+## 2020-06-24 12:42:39     3.3  STATUS                 Added comparison between removed and retained beta values
+## 2020-06-24 12:42:39     3.3  STATUS             COMPLETED Summary of Filtering Procedures II
+## 2020-06-24 12:42:39     3.3  STATUS             STARTED Manipulating the object
+## 2020-06-24 12:43:35     3.1  STATUS                 Removed 17838 sites (probes)
+## 2020-06-24 12:43:35     3.1    INFO                 Retained 674018 sites and 8 samples
+## 2020-06-24 12:43:35     3.1  STATUS             COMPLETED Manipulating the object
+## 2020-06-24 12:43:35     3.1    INFO             No missing values present, imputation skipped
+## 2020-06-24 12:43:36     3.1  STATUS         COMPLETED Preprocessing
+## 2020-06-24 12:44:06     3.1  STATUS         STARTED Removing 870 CpGs overlapping with SNPs
+## 2020-06-24 12:45:02     3.1  STATUS         COMPLETED Removing 870 CpGs overlapping with SNPs
+## 2020-06-24 12:45:06     3.1  STATUS     COMPLETED Processing DNA methylation data
+## 2020-06-24 12:45:06     3.1  STATUS COMPLETED Import methQTL data
 ```
 
 For imputed data, no further processing is performed on the genotyping data and the dosage values are used as they are:
@@ -236,7 +192,7 @@ imp.data <- do.import(data.location = c(idat.dir=idat.dir,geno.dir=geno.dir),
                       out.folder = getwd())
 ```
 
-Please note that the ```recode.allele.frequencies``` option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies found. Alternatively, a path to a local version of dbSNP [@Sherry2001] can be provided through ```db.snp.ref```, and reference/alternative allele information will be automatically parsed from the database. This is especially crucial, if imputation is to be performed, since the Michigan Imputation Server is sensitive to reference mismatches. ```recode.allele.frequencies``` and ```db.snp.ref``` are mutually exclusive options.
+Please note that the ```recode.allele.frequencies``` option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies found. Alternatively, a path to a local version of dbSNP [@Sherry2001] can be provided through ```db.snp.ref```, and reference/alternative allele information will be automatically parsed from the database. This is especially crucial, if imputation is to be performed, since the Michigan Imputation Server is sensitive to reference mismatches.
 
 # methQTL calling
 
@@ -244,530 +200,530 @@ Although *methQTL* conceptually splits the methQTL calling into two steps ((i) c
 
 
 ```r
-meth.qtl.res <- do.methQTL(imp.data,)
+meth.qtl.res <- do.methQTL(imp.data)
 ```
 
 ```
-## 2020-05-29 13:25:09     3.3    INFO Loading default option setting
-## 2020-05-29 13:25:10     3.3  STATUS STARTED Imputation procedure knn 
-## 2020-05-29 13:25:18     3.3  STATUS COMPLETED Imputation procedure knn 
+## 2020-06-24 12:45:06     3.1    INFO Loading default option setting
+## 2020-06-24 12:45:08     3.1  STATUS STARTED Imputation procedure knn 
+## 2020-06-24 12:45:15     3.1  STATUS COMPLETED Imputation procedure knn 
 ## 
-## 2020-05-29 13:25:20     3.3  STATUS STARTED Computing methQTLs
-## 2020-05-29 13:25:20     3.3  STATUS     STARTED Computing methQTL for chromosome chr1
-## 2020-05-29 13:25:20     3.3  STATUS         STARTED Compute correlation blocks
-## 2020-05-29 13:25:20     3.3    INFO             Split workload, since facing 66034 CpGs (Maximum is 40000 )
-## 2020-05-29 13:25:20     3.3  STATUS             STARTED Compute correlation blocks
-## 2020-05-29 13:25:20     3.3  STATUS                 STARTED Compute correlation matrix
-## 2020-05-29 13:25:54    19.6  STATUS                 COMPLETED Compute correlation matrix
-## 2020-05-29 13:36:45     3.8  STATUS                 STARTED Compute pairwise distances
-## 2020-05-29 13:37:11    13.0  STATUS                 COMPLETED Compute pairwise distances
-## 2020-05-29 13:38:00    10.2  STATUS                 STARTED Weight distances
-## 2020-05-29 13:43:57    27.2  STATUS                 COMPLETED Weight distances
-## 2020-05-29 13:43:58    15.8  STATUS                 STARTED Compute graph
-## 2020-05-29 13:44:51    32.1  STATUS                 COMPLETED Compute graph
-## 2020-05-29 13:44:51    32.1  STATUS                 STARTED Compute clustering
-## 2020-05-29 13:44:53    32.1  STATUS                 COMPLETED Compute clustering
-## 2020-05-29 13:44:53    32.1  STATUS             COMPLETED Compute correlation blocks
-## 2020-05-29 13:44:53    32.1  STATUS             STARTED Compute correlation blocks
-## 2020-05-29 13:44:53    32.1  STATUS                 STARTED Compute correlation matrix
-## 2020-05-29 13:45:25    48.3  STATUS                 COMPLETED Compute correlation matrix
-## 2020-05-29 13:56:15    38.2  STATUS                 STARTED Compute pairwise distances
-## 2020-05-29 13:56:40    22.4  STATUS                 COMPLETED Compute pairwise distances
-## 2020-05-29 13:57:27    10.2  STATUS                 STARTED Weight distances
-## 2020-05-29 14:03:44    37.4  STATUS                 COMPLETED Weight distances
-## 2020-05-29 14:03:46    19.1  STATUS                 STARTED Compute graph
-## 2020-05-29 14:04:35    43.4  STATUS                 COMPLETED Compute graph
-## 2020-05-29 14:04:35    43.4  STATUS                 STARTED Compute clustering
-## 2020-05-29 14:04:36    43.4  STATUS                 COMPLETED Compute clustering
-## 2020-05-29 14:04:36    43.4  STATUS             COMPLETED Compute correlation blocks
-## 2020-05-29 14:04:36    43.4  STATUS             STARTED Compute methQTL per correlation block
-## 2020-05-29 14:04:36    43.4  STATUS                 STARTED Setting up Multicore
-## 2020-05-29 14:04:36    43.4    INFO                     Using 1 cores
-## 2020-05-29 14:04:36    43.4  STATUS                 COMPLETED Setting up Multicore
-## 2020-05-29 14:04:37    43.4    INFO                 No SNP closer than 500000
-## 2020-05-29 14:54:47     6.1    INFO                 No SNP closer than 500000
-## 2020-05-29 14:54:47     6.1    INFO                 No SNP closer than 500000
-## 2020-05-29 14:54:47     6.1    INFO                 No SNP closer than 500000
-## 2020-05-29 14:54:48     6.1    INFO                 No SNP closer than 500000
-## 2020-05-29 14:54:48     6.1    INFO                 No SNP closer than 500000
-## 2020-05-29 14:54:48     6.1    INFO                 No SNP closer than 500000
-## 2020-05-29 14:54:49     6.1    INFO                 No SNP closer than 500000
-## 2020-05-29 14:54:49     6.1    INFO                 No SNP closer than 500000
-## 2020-05-29 14:54:49     6.1    INFO                 No SNP closer than 500000
-## 2020-05-29 14:54:50     6.1    INFO                 No SNP closer than 500000
-## 2020-05-29 14:54:50     6.1    INFO                 No SNP closer than 500000
-## 2020-05-29 15:40:36     6.1  STATUS             COMPLETED Compute methQTL per correlation block
-## 2020-05-29 15:40:36     6.1  STATUS         COMPLETED Compute correlation blocks
-## 2020-05-29 15:40:36     6.1  STATUS         STARTED Computing methQTL for chromosome chr2
-## 2020-05-29 15:40:36     6.1  STATUS             STARTED Compute correlation blocks
-## 2020-05-29 15:40:36     6.1    INFO                 Split workload, since facing 52088 CpGs (Maximum is 40000 )
-## 2020-05-29 15:40:36     6.1  STATUS                 STARTED Compute correlation blocks
-## 2020-05-29 15:40:36     6.1  STATUS                     STARTED Compute correlation matrix
-## 2020-05-29 15:40:55    16.3  STATUS                     COMPLETED Compute correlation matrix
-## 2020-05-29 15:47:45    11.2  STATUS                     STARTED Compute pairwise distances
-## 2020-05-29 15:48:01     9.2  STATUS                     COMPLETED Compute pairwise distances
-## 2020-05-29 15:48:38     7.1  STATUS                     STARTED Weight distances
-## 2020-05-29 15:52:24    16.8  STATUS                     COMPLETED Weight distances
-## 2020-05-29 15:52:25    12.1  STATUS                     STARTED Compute graph
-## 2020-05-29 15:52:55    34.3  STATUS                     COMPLETED Compute graph
-## 2020-05-29 15:52:55    34.3  STATUS                     STARTED Compute clustering
-## 2020-05-29 15:52:56    34.3  STATUS                     COMPLETED Compute clustering
-## 2020-05-29 15:52:56    34.3  STATUS                 COMPLETED Compute correlation blocks
-## 2020-05-29 15:52:56    34.3  STATUS                 STARTED Compute correlation blocks
-## 2020-05-29 15:52:56    34.3  STATUS                     STARTED Compute correlation matrix
-## 2020-05-29 15:53:15    39.4  STATUS                     COMPLETED Compute correlation matrix
-## 2020-05-29 16:00:02    18.3  STATUS                     STARTED Compute pairwise distances
-## 2020-05-29 16:00:18    14.7  STATUS                     COMPLETED Compute pairwise distances
-## 2020-05-29 16:00:47     7.1  STATUS                     STARTED Weight distances
-## 2020-05-29 16:04:28    17.4  STATUS                     COMPLETED Weight distances
-## 2020-05-29 16:04:29    12.1  STATUS                     STARTED Compute graph
-## 2020-05-29 16:04:59    34.3  STATUS                     COMPLETED Compute graph
-## 2020-05-29 16:04:59    34.3  STATUS                     STARTED Compute clustering
-## 2020-05-29 16:05:00    34.3  STATUS                     COMPLETED Compute clustering
-## 2020-05-29 16:05:00    34.3  STATUS                 COMPLETED Compute correlation blocks
-## 2020-05-29 16:05:01    34.3  STATUS                 STARTED Compute methQTL per correlation block
-## 2020-05-29 16:05:01    34.3  STATUS                     STARTED Setting up Multicore
-## 2020-05-29 16:05:01    34.3    INFO                         Using 1 cores
-## 2020-05-29 16:05:01    34.3  STATUS                     COMPLETED Setting up Multicore
-## 2020-05-29 17:39:39     6.1  STATUS                 COMPLETED Compute methQTL per correlation block
-## 2020-05-29 17:39:39     6.1  STATUS             COMPLETED Compute correlation blocks
-## 2020-05-29 17:39:39     6.1  STATUS             STARTED Computing methQTL for chromosome chr3
-## 2020-05-29 17:39:39     6.1  STATUS                 STARTED Compute correlation blocks
-## 2020-05-29 17:39:39     6.1  STATUS                     STARTED Compute correlation matrix
-## 2020-05-29 17:40:26    29.8  STATUS                     COMPLETED Compute correlation matrix
-## 2020-05-29 17:56:06    18.6  STATUS                     STARTED Compute pairwise distances
-## 2020-05-29 17:56:37    18.6  STATUS                     COMPLETED Compute pairwise distances
-## 2020-05-29 17:57:44    13.9  STATUS                     STARTED Weight distances
-## 2020-05-29 18:06:16    39.0  STATUS                     COMPLETED Weight distances
-## 2020-05-29 18:06:17    25.7  STATUS                     STARTED Compute graph
-## 2020-05-29 18:10:43    49.4  STATUS                     COMPLETED Compute graph
-## 2020-05-29 18:10:43    49.4  STATUS                     STARTED Compute clustering
-## 2020-05-29 18:10:44    49.4  STATUS                     COMPLETED Compute clustering
-## 2020-05-29 18:10:44    49.4  STATUS                 COMPLETED Compute correlation blocks
-## 2020-05-29 18:10:45    49.4  STATUS                 STARTED Compute methQTL per correlation block
-## 2020-05-29 18:10:45    49.4  STATUS                     STARTED Setting up Multicore
-## 2020-05-29 18:10:45    49.4    INFO                         Using 1 cores
-## 2020-05-29 18:10:45    49.4  STATUS                     COMPLETED Setting up Multicore
-## 2020-05-29 19:24:07     6.1  STATUS                 COMPLETED Compute methQTL per correlation block
-## 2020-05-29 19:24:07     6.1  STATUS             COMPLETED Computing methQTL for chromosome chr3
-## 2020-05-29 19:24:07     6.1  STATUS             STARTED Computing methQTL for chromosome chr4
-## 2020-05-29 19:24:07     6.1  STATUS                 STARTED Compute correlation blocks
-## 2020-05-29 19:24:07     6.1  STATUS                     STARTED Compute correlation matrix
-## 2020-05-29 19:24:32    18.6  STATUS                     COMPLETED Compute correlation matrix
-## 2020-05-29 19:32:52    25.0  STATUS                     STARTED Compute pairwise distances
-## 2020-05-29 19:33:10    10.9  STATUS                     COMPLETED Compute pairwise distances
-## 2020-05-29 19:33:48     8.3  STATUS                     STARTED Weight distances
-## 2020-05-29 19:38:22    25.2  STATUS                     COMPLETED Weight distances
-## 2020-05-29 19:38:23    14.5  STATUS                     STARTED Compute graph
-## 2020-05-29 19:38:58    43.6  STATUS                     COMPLETED Compute graph
-## 2020-05-29 19:38:58    43.6  STATUS                     STARTED Compute clustering
-## 2020-05-29 19:38:59    43.6  STATUS                     COMPLETED Compute clustering
-## 2020-05-29 19:38:59    43.6  STATUS                 COMPLETED Compute correlation blocks
-## 2020-05-29 19:38:59    43.6  STATUS                 STARTED Compute methQTL per correlation block
-## 2020-05-29 19:38:59    43.6  STATUS                     STARTED Setting up Multicore
-## 2020-05-29 19:38:59    43.6    INFO                         Using 1 cores
-## 2020-05-29 19:38:59    43.6  STATUS                     COMPLETED Setting up Multicore
-## 2020-05-29 20:38:20     6.1  STATUS                 COMPLETED Compute methQTL per correlation block
-## 2020-05-29 20:38:20     6.1  STATUS             COMPLETED Computing methQTL for chromosome chr4
-## 2020-05-29 20:38:20     6.1  STATUS             STARTED Computing methQTL for chromosome chr5
-## 2020-05-29 20:38:20     6.1  STATUS                 STARTED Compute correlation blocks
-## 2020-05-29 20:38:20     6.1  STATUS                     STARTED Compute correlation matrix
-## 2020-05-29 20:39:00    25.3  STATUS                     COMPLETED Compute correlation matrix
-## 2020-05-29 20:51:48    16.5  STATUS                     STARTED Compute pairwise distances
-## 2020-05-29 20:52:14    15.5  STATUS                     COMPLETED Compute pairwise distances
-## 2020-05-29 20:53:10    11.6  STATUS                     STARTED Weight distances
-## 2020-05-29 21:00:04    30.5  STATUS                     COMPLETED Weight distances
-## 2020-05-29 21:00:06    21.2  STATUS                     STARTED Compute graph
-## 2020-05-29 21:01:06    40.4  STATUS                     COMPLETED Compute graph
-## 2020-05-29 21:01:06    40.4  STATUS                     STARTED Compute clustering
-## 2020-05-29 21:01:07    40.4  STATUS                     COMPLETED Compute clustering
-## 2020-05-29 21:01:07    40.4  STATUS                 COMPLETED Compute correlation blocks
-## 2020-05-29 21:01:08    40.4  STATUS                 STARTED Compute methQTL per correlation block
-## 2020-05-29 21:01:08    40.4  STATUS                     STARTED Setting up Multicore
-## 2020-05-29 21:01:08    40.4    INFO                         Using 1 cores
-## 2020-05-29 21:01:08    40.4  STATUS                     COMPLETED Setting up Multicore
-## 2020-05-29 21:24:46     6.1    INFO                     No SNP closer than 500000
-## 2020-05-29 21:24:46     6.1    INFO                     No SNP closer than 500000
-## 2020-05-29 22:05:42     6.1  STATUS                 COMPLETED Compute methQTL per correlation block
-## 2020-05-29 22:05:42     6.1  STATUS             COMPLETED Computing methQTL for chromosome chr5
-## 2020-05-29 22:05:42     6.1  STATUS             STARTED Computing methQTL for chromosome chr6
-## 2020-05-29 22:05:42     6.1  STATUS                 STARTED Compute correlation blocks
-## 2020-05-29 22:05:42     6.1    INFO                     Split workload, since facing 41991 CpGs (Maximum is 40000 )
-## 2020-05-29 22:05:42     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-29 22:05:42     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-29 22:05:54    12.7  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-29 22:09:57     7.3  STATUS                         STARTED Compute pairwise distances
-## 2020-05-29 22:10:08    10.3  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-29 22:10:26     6.1  STATUS                         STARTED Weight distances
-## 2020-05-29 22:12:52     9.2  STATUS                         COMPLETED Weight distances
-## 2020-05-29 22:12:54     9.2  STATUS                         STARTED Compute graph
-## 2020-05-29 22:13:14    23.9  STATUS                         COMPLETED Compute graph
-## 2020-05-29 22:13:14    23.9  STATUS                         STARTED Compute clustering
-## 2020-05-29 22:13:16    23.9  STATUS                         COMPLETED Compute clustering
-## 2020-05-29 22:13:16    23.9  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-29 22:13:16    23.9  STATUS                     STARTED Compute correlation blocks
-## 2020-05-29 22:13:16    23.9  STATUS                         STARTED Compute correlation matrix
-## 2020-05-29 22:13:29    27.2  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-29 22:17:41    13.0  STATUS                         STARTED Compute pairwise distances
-## 2020-05-29 22:17:52    10.3  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-29 22:18:11     6.1  STATUS                         STARTED Weight distances
-## 2020-05-29 22:20:32    13.1  STATUS                         COMPLETED Weight distances
-## 2020-05-29 22:20:34     9.2  STATUS                         STARTED Compute graph
-## 2020-05-29 22:20:55    23.9  STATUS                         COMPLETED Compute graph
-## 2020-05-29 22:20:55    23.9  STATUS                         STARTED Compute clustering
-## 2020-05-29 22:20:56    23.9  STATUS                         COMPLETED Compute clustering
-## 2020-05-29 22:20:56    23.9  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-29 22:20:56    23.9  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-29 22:20:56    23.9  STATUS                         STARTED Setting up Multicore
-## 2020-05-29 22:20:56    23.9    INFO                             Using 1 cores
-## 2020-05-29 22:20:56    23.9  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-29 23:33:08     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-29 23:33:08     6.1  STATUS                 COMPLETED Compute correlation blocks
-## 2020-05-29 23:33:08     6.1  STATUS                 STARTED Computing methQTL for chromosome chr7
-## 2020-05-29 23:33:08     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-29 23:33:08     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-29 23:33:48    26.2  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-29 23:47:00    16.3  STATUS                         STARTED Compute pairwise distances
-## 2020-05-29 23:47:27    16.1  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-29 23:48:25    12.1  STATUS                         STARTED Weight distances
-## 2020-05-29 23:55:39    28.6  STATUS                         COMPLETED Weight distances
-## 2020-05-29 23:55:41    22.1  STATUS                         STARTED Compute graph
-## 2020-05-29 23:59:15    42.2  STATUS                         COMPLETED Compute graph
-## 2020-05-29 23:59:15    42.2  STATUS                         STARTED Compute clustering
-## 2020-05-29 23:59:17    42.2  STATUS                         COMPLETED Compute clustering
-## 2020-05-29 23:59:17    42.2  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-29 23:59:17    42.2  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-29 23:59:17    42.2  STATUS                         STARTED Setting up Multicore
-## 2020-05-29 23:59:17    42.2    INFO                             Using 1 cores
-## 2020-05-29 23:59:17    42.2  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 00:57:27     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 00:57:27     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr7
-## 2020-05-30 00:57:27     6.1  STATUS                 STARTED Computing methQTL for chromosome chr8
-## 2020-05-30 00:57:27     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 00:57:27     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 00:57:53    19.9  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 01:07:24    13.3  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 01:07:43    13.9  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 01:08:22     8.9  STATUS                         STARTED Weight distances
-## 2020-05-30 01:13:31    27.1  STATUS                         COMPLETED Weight distances
-## 2020-05-30 01:13:33    15.7  STATUS                         STARTED Compute graph
-## 2020-05-30 01:14:18    29.5  STATUS                         COMPLETED Compute graph
-## 2020-05-30 01:14:18    29.5  STATUS                         STARTED Compute clustering
-## 2020-05-30 01:14:19    29.5  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 01:14:19    29.5  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 01:14:20    29.5  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 01:14:20    29.5  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 01:14:20    29.5    INFO                             Using 1 cores
-## 2020-05-30 01:14:20    29.5  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 02:09:43     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 02:09:43     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr8
-## 2020-05-30 02:09:43     6.1  STATUS                 STARTED Computing methQTL for chromosome chr9
-## 2020-05-30 02:09:43     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 02:09:43     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 02:09:55    12.7  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 02:14:06    11.8  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 02:14:17    10.0  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 02:14:35     6.1  STATUS                         STARTED Weight distances
-## 2020-05-30 02:17:02     9.2  STATUS                         COMPLETED Weight distances
-## 2020-05-30 02:17:03     9.2  STATUS                         STARTED Compute graph
-## 2020-05-30 02:17:23    23.8  STATUS                         COMPLETED Compute graph
-## 2020-05-30 02:17:23    23.8  STATUS                         STARTED Compute clustering
-## 2020-05-30 02:17:24    23.8  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 02:17:24    23.8  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 02:17:24    23.8  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 02:17:24    23.8  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 02:17:24    23.8    INFO                             Using 1 cores
-## 2020-05-30 02:17:24    23.8  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 02:30:53     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:54     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:54     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:54     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:55     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:55     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:56     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:57     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:58     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:58     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:58     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:59     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:59     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:30:59     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:31:00     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:31:00     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:31:05     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:31:06     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 02:31:06     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 03:02:44     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 03:02:44     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr9
-## 2020-05-30 03:02:44     6.1  STATUS                 STARTED Computing methQTL for chromosome chr10
-## 2020-05-30 03:02:44     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 03:02:44     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 03:03:15    22.8  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 03:14:35    15.0  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 03:14:59    13.8  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 03:15:56    10.4  STATUS                         STARTED Weight distances
-## 2020-05-30 03:22:05    23.8  STATUS                         COMPLETED Weight distances
-## 2020-05-30 03:22:06    17.9  STATUS                         STARTED Compute graph
-## 2020-05-30 03:23:21    34.6  STATUS                         COMPLETED Compute graph
-## 2020-05-30 03:23:21    34.6  STATUS                         STARTED Compute clustering
-## 2020-05-30 03:23:22    34.6  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 03:23:22    34.6  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 03:23:22    34.6  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 03:23:22    34.6  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 03:23:22    34.6    INFO                             Using 1 cores
-## 2020-05-30 03:23:22    34.6  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 04:20:44     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 04:20:44     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr10
-## 2020-05-30 04:20:44     6.1  STATUS                 STARTED Computing methQTL for chromosome chr11
-## 2020-05-30 04:20:44     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 04:20:44     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 04:21:27    29.5  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 04:36:52    18.1  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 04:37:23    19.2  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 04:38:29    13.8  STATUS                         STARTED Weight distances
-## 2020-05-30 04:46:51    37.0  STATUS                         COMPLETED Weight distances
-## 2020-05-30 04:46:53    25.5  STATUS                         STARTED Compute graph
-## 2020-05-30 04:54:19    48.9  STATUS                         COMPLETED Compute graph
-## 2020-05-30 04:54:19    48.9  STATUS                         STARTED Compute clustering
-## 2020-05-30 04:54:22    48.9  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 04:54:22    48.9  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 04:54:22    48.9  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 04:54:22    48.9  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 04:54:22    48.9    INFO                             Using 1 cores
-## 2020-05-30 04:54:22    48.9  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 05:48:46     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 05:48:46     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr11
-## 2020-05-30 05:48:46     6.1  STATUS                 STARTED Computing methQTL for chromosome chr12
-## 2020-05-30 05:48:46     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 05:48:46     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 05:49:21    25.6  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 06:02:33    12.3  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 06:02:58    15.9  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 06:03:56    11.8  STATUS                         STARTED Weight distances
-## 2020-05-30 06:11:04    31.6  STATUS                         COMPLETED Weight distances
-## 2020-05-30 06:11:05    21.6  STATUS                         STARTED Compute graph
-## 2020-05-30 06:12:07    41.1  STATUS                         COMPLETED Compute graph
-## 2020-05-30 06:12:07    41.1  STATUS                         STARTED Compute clustering
-## 2020-05-30 06:12:08    41.1  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 06:12:08    41.1  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 06:12:09    41.1  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 06:12:09    41.1  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 06:12:09    41.1    INFO                             Using 1 cores
-## 2020-05-30 06:12:09    41.1  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 07:07:30     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 07:07:30     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr12
-## 2020-05-30 07:07:30     6.1  STATUS                 STARTED Computing methQTL for chromosome chr13
-## 2020-05-30 07:07:30     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 07:07:30     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 07:07:38    10.2  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 07:10:11    16.5  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 07:10:18     7.1  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 07:10:32     6.1  STATUS                         STARTED Weight distances
-## 2020-05-30 07:11:59    10.9  STATUS                         COMPLETED Weight distances
-## 2020-05-30 07:12:00     8.1  STATUS                         STARTED Compute graph
-## 2020-05-30 07:12:12    14.2  STATUS                         COMPLETED Compute graph
-## 2020-05-30 07:12:12    14.2  STATUS                         STARTED Compute clustering
-## 2020-05-30 07:12:13    14.2  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 07:12:13    14.2  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 07:12:13    14.2  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 07:12:13    14.2  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 07:12:13    14.2    INFO                             Using 1 cores
-## 2020-05-30 07:12:13    14.2  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 07:48:48     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 07:48:48     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr13
-## 2020-05-30 07:48:48     6.1  STATUS                 STARTED Computing methQTL for chromosome chr14
-## 2020-05-30 07:48:48     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 07:48:48     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 07:49:05    14.4  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 07:54:20     7.4  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 07:54:35     7.8  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 07:55:04     6.2  STATUS                         STARTED Weight distances
-## 2020-05-30 07:58:10    14.5  STATUS                         COMPLETED Weight distances
-## 2020-05-30 07:58:11    10.4  STATUS                         STARTED Compute graph
-## 2020-05-30 07:58:36    29.4  STATUS                         COMPLETED Compute graph
-## 2020-05-30 07:58:36    29.4  STATUS                         STARTED Compute clustering
-## 2020-05-30 07:58:37    29.4  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 07:58:37    29.4  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 07:58:37    29.4  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 07:58:37    29.4  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 07:58:37    29.4    INFO                             Using 1 cores
-## 2020-05-30 07:58:37    29.4  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 08:34:09     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 08:34:28     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 08:34:28     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr14
-## 2020-05-30 08:34:28     6.1  STATUS                 STARTED Computing methQTL for chromosome chr15
-## 2020-05-30 08:34:28     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 08:34:28     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 08:34:41    13.8  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 08:39:53     6.4  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 08:40:04     8.9  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 08:40:28     6.1  STATUS                         STARTED Weight distances
-## 2020-05-30 08:43:21    12.8  STATUS                         COMPLETED Weight distances
-## 2020-05-30 08:43:23     9.9  STATUS                         STARTED Compute graph
-## 2020-05-30 08:43:45    27.3  STATUS                         COMPLETED Compute graph
-## 2020-05-30 08:43:45    27.3  STATUS                         STARTED Compute clustering
-## 2020-05-30 08:43:46    27.3  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 08:43:46    27.3  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 08:43:46    27.3  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 08:43:46    27.3  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 08:43:46    27.3    INFO                             Using 1 cores
-## 2020-05-30 08:43:46    27.3  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 08:43:49    27.3    INFO                         No SNP closer than 500000
-## 2020-05-30 08:43:49    27.3    INFO                         No SNP closer than 500000
-## 2020-05-30 08:43:50    27.3    INFO                         No SNP closer than 500000
-## 2020-05-30 08:43:50    27.3    INFO                         No SNP closer than 500000
-## 2020-05-30 08:43:50    27.3    INFO                         No SNP closer than 500000
-## 2020-05-30 08:43:51    27.3    INFO                         No SNP closer than 500000
-## 2020-05-30 08:43:51    27.3    INFO                         No SNP closer than 500000
-## 2020-05-30 08:43:51    27.3    INFO                         No SNP closer than 500000
-## 2020-05-30 08:43:52    27.3    INFO                         No SNP closer than 500000
-## 2020-05-30 09:19:46     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 09:19:46     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr15
-## 2020-05-30 09:19:46     6.1  STATUS                 STARTED Computing methQTL for chromosome chr16
-## 2020-05-30 09:19:46     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 09:19:46     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 09:20:10    19.0  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 09:28:40    12.6  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 09:28:59    11.2  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 09:29:39     8.5  STATUS                         STARTED Weight distances
-## 2020-05-30 09:34:22    20.2  STATUS                         COMPLETED Weight distances
-## 2020-05-30 09:34:24    15.0  STATUS                         STARTED Compute graph
-## 2020-05-30 09:35:02    45.1  STATUS                         COMPLETED Compute graph
-## 2020-05-30 09:35:02    45.1  STATUS                         STARTED Compute clustering
-## 2020-05-30 09:35:04    45.1  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 09:35:04    45.1  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 09:35:04    45.1  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 09:35:04    45.1  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 09:35:04    45.1    INFO                             Using 1 cores
-## 2020-05-30 09:35:04    45.1  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 09:48:04     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 09:48:04     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 09:48:05     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 09:48:05     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 09:48:05     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 09:48:06     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 09:48:06     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 09:48:06     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 10:07:18     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 10:07:18     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr16
-## 2020-05-30 10:07:18     6.1  STATUS                 STARTED Computing methQTL for chromosome chr17
-## 2020-05-30 10:07:18     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 10:07:18     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 10:07:52    24.9  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 10:20:19    34.7  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 10:20:45    15.6  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 10:21:39    11.5  STATUS                         STARTED Weight distances
-## 2020-05-30 10:28:29    27.8  STATUS                         COMPLETED Weight distances
-## 2020-05-30 10:28:31    20.9  STATUS                         STARTED Compute graph
-## 2020-05-30 10:32:09    39.7  STATUS                         COMPLETED Compute graph
-## 2020-05-30 10:32:09    39.7  STATUS                         STARTED Compute clustering
-## 2020-05-30 10:32:11    39.7  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 10:32:11    39.7  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 10:32:11    39.7  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 10:32:11    39.7  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 10:32:11    39.7    INFO                             Using 1 cores
-## 2020-05-30 10:32:11    39.7  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 11:05:43     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 11:05:43     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr17
-## 2020-05-30 11:05:43     6.1  STATUS                 STARTED Computing methQTL for chromosome chr18
-## 2020-05-30 11:05:43     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 11:05:43     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 11:05:47     7.2  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 11:07:08    10.4  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 11:07:13     6.1  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 11:07:21     6.1  STATUS                         STARTED Weight distances
-## 2020-05-30 11:08:06    13.3  STATUS                         COMPLETED Weight distances
-## 2020-05-30 11:08:08     7.2  STATUS                         STARTED Compute graph
-## 2020-05-30 11:08:12    10.9  STATUS                         COMPLETED Compute graph
-## 2020-05-30 11:08:12    10.9  STATUS                         STARTED Compute clustering
-## 2020-05-30 11:08:12    10.9  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 11:08:12    10.9  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 11:08:13    10.9  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 11:08:13    10.9  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 11:08:13    10.9    INFO                             Using 1 cores
-## 2020-05-30 11:08:13    10.9  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 11:34:53     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 11:34:53     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr18
-## 2020-05-30 11:34:53     6.1  STATUS                 STARTED Computing methQTL for chromosome chr19
-## 2020-05-30 11:34:53     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 11:34:53     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 11:35:22    19.9  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 11:45:20    13.1  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 11:45:40    11.8  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 11:46:23     9.0  STATUS                         STARTED Weight distances
-## 2020-05-30 11:51:22    20.3  STATUS                         COMPLETED Weight distances
-## 2020-05-30 11:51:23    15.8  STATUS                         STARTED Compute graph
-## 2020-05-30 11:52:09    29.5  STATUS                         COMPLETED Compute graph
-## 2020-05-30 11:52:09    29.5  STATUS                         STARTED Compute clustering
-## 2020-05-30 11:52:11    29.5  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 11:52:11    29.5  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 11:52:12    29.5  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 11:52:12    29.5  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 11:52:12    29.5    INFO                             Using 1 cores
-## 2020-05-30 11:52:12    29.5  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 12:14:59     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 12:14:59     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr19
-## 2020-05-30 12:14:59     6.1  STATUS                 STARTED Computing methQTL for chromosome chr20
-## 2020-05-30 12:14:59     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 12:14:59     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 12:15:09    11.4  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 12:18:27    20.1  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 12:18:36     8.7  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 12:18:51     6.1  STATUS                         STARTED Weight distances
-## 2020-05-30 12:20:41    14.0  STATUS                         COMPLETED Weight distances
-## 2020-05-30 12:20:43     7.5  STATUS                         STARTED Compute graph
-## 2020-05-30 12:20:56    12.7  STATUS                         COMPLETED Compute graph
-## 2020-05-30 12:20:56    12.7  STATUS                         STARTED Compute clustering
-## 2020-05-30 12:20:57    12.7  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 12:20:57    12.7  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 12:20:57    12.7  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 12:20:57    12.7  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 12:20:57    12.7    INFO                             Using 1 cores
-## 2020-05-30 12:20:57    12.7  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 12:47:22     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 12:47:22     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr20
-## 2020-05-30 12:47:22     6.1  STATUS                 STARTED Computing methQTL for chromosome chr21
-## 2020-05-30 12:47:22     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 12:47:22     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 12:47:24     6.6  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 12:48:03     6.1  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 12:48:06     6.1  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 12:48:11     6.1  STATUS                         STARTED Weight distances
-## 2020-05-30 12:48:23     6.6  STATUS                         COMPLETED Weight distances
-## 2020-05-30 12:48:25     6.1  STATUS                         STARTED Compute graph
-## 2020-05-30 12:48:25     6.1  STATUS                         COMPLETED Compute graph
-## 2020-05-30 12:48:25     6.1  STATUS                         STARTED Compute clustering
-## 2020-05-30 12:48:26     6.1  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 12:48:26     6.1  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 12:48:26     6.1  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 12:48:26     6.1  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 12:48:26     6.1    INFO                             Using 1 cores
-## 2020-05-30 12:48:26     6.1  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 12:48:26     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 12:48:26     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 12:48:27     6.1    INFO                         No SNP closer than 500000
-## 2020-05-30 13:01:54     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 13:01:54     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr21
-## 2020-05-30 13:01:54     6.1  STATUS                 STARTED Computing methQTL for chromosome chr22
-## 2020-05-30 13:01:54     6.1  STATUS                     STARTED Compute correlation blocks
-## 2020-05-30 13:01:54     6.1  STATUS                         STARTED Compute correlation matrix
-## 2020-05-30 13:02:00     7.6  STATUS                         COMPLETED Compute correlation matrix
-## 2020-05-30 13:04:16     6.1  STATUS                         STARTED Compute pairwise distances
-## 2020-05-30 13:04:22     6.1  STATUS                         COMPLETED Compute pairwise distances
-## 2020-05-30 13:04:35     6.1  STATUS                         STARTED Weight distances
-## 2020-05-30 13:05:48     8.5  STATUS                         COMPLETED Weight distances
-## 2020-05-30 13:05:49     7.6  STATUS                         STARTED Compute graph
-## 2020-05-30 13:05:59    12.1  STATUS                         COMPLETED Compute graph
-## 2020-05-30 13:05:59    12.1  STATUS                         STARTED Compute clustering
-## 2020-05-30 13:06:00    12.1  STATUS                         COMPLETED Compute clustering
-## 2020-05-30 13:06:00    12.1  STATUS                     COMPLETED Compute correlation blocks
-## 2020-05-30 13:06:00    12.1  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-05-30 13:06:00    12.1  STATUS                         STARTED Setting up Multicore
-## 2020-05-30 13:06:00    12.1    INFO                             Using 1 cores
-## 2020-05-30 13:06:00    12.1  STATUS                         COMPLETED Setting up Multicore
-## 2020-05-30 13:22:56     6.1  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-05-30 13:22:56     6.1  STATUS                 COMPLETED Computing methQTL for chromosome chr22
-## 2020-05-30 13:23:05     7.0  STATUS             COMPLETED Computing methQTL for chromosome chr6
+## 2020-06-24 12:45:18     3.1  STATUS STARTED Computing methQTLs
+## 2020-06-24 12:45:18     3.1  STATUS     STARTED Computing methQTL for chromosome chr1
+## 2020-06-24 12:45:18     3.1  STATUS         STARTED Compute correlation blocks
+## 2020-06-24 12:45:18     3.1    INFO             Split workload, since facing 66034 CpGs (Maximum is 40000 )
+## 2020-06-24 12:45:18     3.1  STATUS             STARTED Compute correlation blocks
+## 2020-06-24 12:45:18     3.1  STATUS                 STARTED Compute correlation matrix
+## 2020-06-24 12:45:52    19.3  STATUS                 COMPLETED Compute correlation matrix
+## 2020-06-24 12:56:50    13.4  STATUS                 STARTED Compute pairwise distances
+## 2020-06-24 12:57:15    13.5  STATUS                 COMPLETED Compute pairwise distances
+## 2020-06-24 12:58:05    10.4  STATUS                 STARTED Weight distances
+## 2020-06-24 13:03:57    27.3  STATUS                 COMPLETED Weight distances
+## 2020-06-24 13:03:58    18.5  STATUS                 STARTED Compute graph
+## 2020-06-24 13:04:51    34.7  STATUS                 COMPLETED Compute graph
+## 2020-06-24 13:04:51    34.7  STATUS                 STARTED Compute clustering
+## 2020-06-24 13:04:53    34.7  STATUS                 COMPLETED Compute clustering
+## 2020-06-24 13:04:53    34.7  STATUS             COMPLETED Compute correlation blocks
+## 2020-06-24 13:04:53    34.7  STATUS             STARTED Compute correlation blocks
+## 2020-06-24 13:04:53    34.7  STATUS                 STARTED Compute correlation matrix
+## 2020-06-24 13:05:24    51.0  STATUS                 COMPLETED Compute correlation matrix
+## 2020-06-24 13:16:16    38.4  STATUS                 STARTED Compute pairwise distances
+## 2020-06-24 13:16:39    20.8  STATUS                 COMPLETED Compute pairwise distances
+## 2020-06-24 13:17:24    10.4  STATUS                 STARTED Weight distances
+## 2020-06-24 13:23:36    37.2  STATUS                 COMPLETED Weight distances
+## 2020-06-24 13:23:38    19.0  STATUS                 STARTED Compute graph
+## 2020-06-24 13:24:28    35.3  STATUS                 COMPLETED Compute graph
+## 2020-06-24 13:24:28    35.3  STATUS                 STARTED Compute clustering
+## 2020-06-24 13:24:29    35.3  STATUS                 COMPLETED Compute clustering
+## 2020-06-24 13:24:29    35.3  STATUS             COMPLETED Compute correlation blocks
+## 2020-06-24 13:24:29    35.3  STATUS             STARTED Compute methQTL per correlation block
+## 2020-06-24 13:24:29    35.3  STATUS                 STARTED Setting up Multicore
+## 2020-06-24 13:24:29    35.3    INFO                     Using 1 cores
+## 2020-06-24 13:24:29    35.3  STATUS                 COMPLETED Setting up Multicore
+## 2020-06-24 13:24:30    35.3    INFO                 No SNP closer than 500000
+## 2020-06-24 14:06:58    10.9    INFO                 No SNP closer than 500000
+## 2020-06-24 14:06:58    10.9    INFO                 No SNP closer than 500000
+## 2020-06-24 14:06:59    10.9    INFO                 No SNP closer than 500000
+## 2020-06-24 14:06:59    10.9    INFO                 No SNP closer than 500000
+## 2020-06-24 14:06:59    10.9    INFO                 No SNP closer than 500000
+## 2020-06-24 14:07:00    10.9    INFO                 No SNP closer than 500000
+## 2020-06-24 14:07:00    10.9    INFO                 No SNP closer than 500000
+## 2020-06-24 14:07:00    10.9    INFO                 No SNP closer than 500000
+## 2020-06-24 14:07:01    10.9    INFO                 No SNP closer than 500000
+## 2020-06-24 14:07:01    10.9    INFO                 No SNP closer than 500000
+## 2020-06-24 14:07:01    10.9    INFO                 No SNP closer than 500000
+## 2020-06-24 14:45:29    10.9  STATUS             COMPLETED Compute methQTL per correlation block
+## 2020-06-24 14:45:29    10.9  STATUS         COMPLETED Compute correlation blocks
+## 2020-06-24 14:45:29    10.9  STATUS         STARTED Computing methQTL for chromosome chr2
+## 2020-06-24 14:45:29    10.9  STATUS             STARTED Compute correlation blocks
+## 2020-06-24 14:45:29    10.9    INFO                 Split workload, since facing 52088 CpGs (Maximum is 40000 )
+## 2020-06-24 14:45:29    10.9  STATUS                 STARTED Compute correlation blocks
+## 2020-06-24 14:45:29    10.9  STATUS                     STARTED Compute correlation matrix
+## 2020-06-24 14:45:47    21.0  STATUS                     COMPLETED Compute correlation matrix
+## 2020-06-24 14:52:30    21.0  STATUS                     STARTED Compute pairwise distances
+## 2020-06-24 14:52:44    10.9  STATUS                     COMPLETED Compute pairwise distances
+## 2020-06-24 14:53:15    10.9  STATUS                     STARTED Weight distances
+## 2020-06-24 14:56:58    17.7  STATUS                     COMPLETED Weight distances
+## 2020-06-24 14:57:00    15.9  STATUS                     STARTED Compute graph
+## 2020-06-24 14:57:30    36.2  STATUS                     COMPLETED Compute graph
+## 2020-06-24 14:57:30    36.2  STATUS                     STARTED Compute clustering
+## 2020-06-24 14:57:31    36.2  STATUS                     COMPLETED Compute clustering
+## 2020-06-24 14:57:31    36.2  STATUS                 COMPLETED Compute correlation blocks
+## 2020-06-24 14:57:31    36.2  STATUS                 STARTED Compute correlation blocks
+## 2020-06-24 14:57:31    36.2  STATUS                     STARTED Compute correlation matrix
+## 2020-06-24 14:57:49    41.2  STATUS                     COMPLETED Compute correlation matrix
+## 2020-06-24 15:04:35    18.5  STATUS                     STARTED Compute pairwise distances
+## 2020-06-24 15:04:50    14.9  STATUS                     COMPLETED Compute pairwise distances
+## 2020-06-24 15:05:20    10.8  STATUS                     STARTED Weight distances
+## 2020-06-24 15:08:56    17.7  STATUS                     COMPLETED Weight distances
+## 2020-06-24 15:08:57    15.9  STATUS                     STARTED Compute graph
+## 2020-06-24 15:09:27    36.1  STATUS                     COMPLETED Compute graph
+## 2020-06-24 15:09:27    36.1  STATUS                     STARTED Compute clustering
+## 2020-06-24 15:09:28    36.1  STATUS                     COMPLETED Compute clustering
+## 2020-06-24 15:09:28    36.1  STATUS                 COMPLETED Compute correlation blocks
+## 2020-06-24 15:09:29    36.1  STATUS                 STARTED Compute methQTL per correlation block
+## 2020-06-24 15:09:29    36.1  STATUS                     STARTED Setting up Multicore
+## 2020-06-24 15:09:29    36.1    INFO                         Using 1 cores
+## 2020-06-24 15:09:29    36.1  STATUS                     COMPLETED Setting up Multicore
+## 2020-06-24 16:28:32    10.8  STATUS                 COMPLETED Compute methQTL per correlation block
+## 2020-06-24 16:28:32    10.8  STATUS             COMPLETED Compute correlation blocks
+## 2020-06-24 16:28:32    10.8  STATUS             STARTED Computing methQTL for chromosome chr3
+## 2020-06-24 16:28:32    10.8  STATUS                 STARTED Compute correlation blocks
+## 2020-06-24 16:28:32    10.8  STATUS                     STARTED Compute correlation matrix
+## 2020-06-24 16:29:20    34.5  STATUS                     COMPLETED Compute correlation matrix
+## 2020-06-24 16:44:55    22.7  STATUS                     STARTED Compute pairwise distances
+## 2020-06-24 16:45:25    18.8  STATUS                     COMPLETED Compute pairwise distances
+## 2020-06-24 16:46:32    14.1  STATUS                     STARTED Weight distances
+## 2020-06-24 16:54:56    39.2  STATUS                     COMPLETED Weight distances
+## 2020-06-24 16:54:58    25.9  STATUS                     STARTED Compute graph
+## 2020-06-24 16:58:36    49.6  STATUS                     COMPLETED Compute graph
+## 2020-06-24 16:58:36    49.6  STATUS                     STARTED Compute clustering
+## 2020-06-24 16:58:37    49.6  STATUS                     COMPLETED Compute clustering
+## 2020-06-24 16:58:37    49.6  STATUS                 COMPLETED Compute correlation blocks
+## 2020-06-24 16:58:38    49.6  STATUS                 STARTED Compute methQTL per correlation block
+## 2020-06-24 16:58:38    49.6  STATUS                     STARTED Setting up Multicore
+## 2020-06-24 16:58:38    49.6    INFO                         Using 1 cores
+## 2020-06-24 16:58:38    49.6  STATUS                     COMPLETED Setting up Multicore
+## 2020-06-24 18:00:13    10.9  STATUS                 COMPLETED Compute methQTL per correlation block
+## 2020-06-24 18:00:13    10.9  STATUS             COMPLETED Computing methQTL for chromosome chr3
+## 2020-06-24 18:00:13    10.9  STATUS             STARTED Computing methQTL for chromosome chr4
+## 2020-06-24 18:00:13    10.9  STATUS                 STARTED Compute correlation blocks
+## 2020-06-24 18:00:13    10.9  STATUS                     STARTED Compute correlation matrix
+## 2020-06-24 18:00:38    23.4  STATUS                     COMPLETED Compute correlation matrix
+## 2020-06-24 18:08:52    10.8  STATUS                     STARTED Compute pairwise distances
+## 2020-06-24 18:09:10    17.9  STATUS                     COMPLETED Compute pairwise distances
+## 2020-06-24 18:09:44    10.8  STATUS                     STARTED Weight distances
+## 2020-06-24 18:14:09    24.8  STATUS                     COMPLETED Weight distances
+## 2020-06-24 18:14:11    17.1  STATUS                     STARTED Compute graph
+## 2020-06-24 18:14:45    44.2  STATUS                     COMPLETED Compute graph
+## 2020-06-24 18:14:45    44.2  STATUS                     STARTED Compute clustering
+## 2020-06-24 18:14:46    44.2  STATUS                     COMPLETED Compute clustering
+## 2020-06-24 18:14:46    44.2  STATUS                 COMPLETED Compute correlation blocks
+## 2020-06-24 18:14:47    44.2  STATUS                 STARTED Compute methQTL per correlation block
+## 2020-06-24 18:14:47    44.2  STATUS                     STARTED Setting up Multicore
+## 2020-06-24 18:14:47    44.2    INFO                         Using 1 cores
+## 2020-06-24 18:14:47    44.2  STATUS                     COMPLETED Setting up Multicore
+## 2020-06-24 19:04:08    10.8  STATUS                 COMPLETED Compute methQTL per correlation block
+## 2020-06-24 19:04:08    10.8  STATUS             COMPLETED Computing methQTL for chromosome chr4
+## 2020-06-24 19:04:08    10.8  STATUS             STARTED Computing methQTL for chromosome chr5
+## 2020-06-24 19:04:08    10.8  STATUS                 STARTED Compute correlation blocks
+## 2020-06-24 19:04:08    10.8  STATUS                     STARTED Compute correlation matrix
+## 2020-06-24 19:04:43    30.0  STATUS                     COMPLETED Compute correlation matrix
+## 2020-06-24 19:17:14    30.0  STATUS                     STARTED Compute pairwise distances
+## 2020-06-24 19:17:40    18.0  STATUS                     COMPLETED Compute pairwise distances
+## 2020-06-24 19:18:34    11.8  STATUS                     STARTED Weight distances
+## 2020-06-24 19:25:22    28.5  STATUS                     COMPLETED Weight distances
+## 2020-06-24 19:25:23    21.4  STATUS                     STARTED Compute graph
+## 2020-06-24 19:26:24    40.6  STATUS                     COMPLETED Compute graph
+## 2020-06-24 19:26:24    40.6  STATUS                     STARTED Compute clustering
+## 2020-06-24 19:26:25    40.6  STATUS                     COMPLETED Compute clustering
+## 2020-06-24 19:26:25    40.6  STATUS                 COMPLETED Compute correlation blocks
+## 2020-06-24 19:26:26    40.6  STATUS                 STARTED Compute methQTL per correlation block
+## 2020-06-24 19:26:26    40.6  STATUS                     STARTED Setting up Multicore
+## 2020-06-24 19:26:26    40.6    INFO                         Using 1 cores
+## 2020-06-24 19:26:26    40.6  STATUS                     COMPLETED Setting up Multicore
+## 2020-06-24 19:46:13    10.9    INFO                     No SNP closer than 500000
+## 2020-06-24 19:46:13    10.9    INFO                     No SNP closer than 500000
+## 2020-06-24 20:20:40    10.9  STATUS                 COMPLETED Compute methQTL per correlation block
+## 2020-06-24 20:20:40    10.9  STATUS             COMPLETED Computing methQTL for chromosome chr5
+## 2020-06-24 20:20:40    10.9  STATUS             STARTED Computing methQTL for chromosome chr6
+## 2020-06-24 20:20:40    10.9  STATUS                 STARTED Compute correlation blocks
+## 2020-06-24 20:20:40    10.9    INFO                     Split workload, since facing 41991 CpGs (Maximum is 40000 )
+## 2020-06-24 20:20:40    10.9  STATUS                     STARTED Compute correlation blocks
+## 2020-06-24 20:20:40    10.9  STATUS                         STARTED Compute correlation matrix
+## 2020-06-24 20:20:51    14.2  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-24 20:24:54    22.9  STATUS                         STARTED Compute pairwise distances
+## 2020-06-24 20:25:03    10.9  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-24 20:25:23    10.8  STATUS                         STARTED Weight distances
+## 2020-06-24 20:27:39    12.4  STATUS                         COMPLETED Weight distances
+## 2020-06-24 20:27:41    12.4  STATUS                         STARTED Compute graph
+## 2020-06-24 20:28:01    25.5  STATUS                         COMPLETED Compute graph
+## 2020-06-24 20:28:01    25.5  STATUS                         STARTED Compute clustering
+## 2020-06-24 20:28:03    25.5  STATUS                         COMPLETED Compute clustering
+## 2020-06-24 20:28:03    25.5  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-24 20:28:03    25.5  STATUS                     STARTED Compute correlation blocks
+## 2020-06-24 20:28:03    25.5  STATUS                         STARTED Compute correlation matrix
+## 2020-06-24 20:28:16    28.8  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-24 20:32:24    14.1  STATUS                         STARTED Compute pairwise distances
+## 2020-06-24 20:32:34    10.8  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-24 20:32:53    10.8  STATUS                         STARTED Weight distances
+## 2020-06-24 20:35:23    14.0  STATUS                         COMPLETED Weight distances
+## 2020-06-24 20:35:24    12.4  STATUS                         STARTED Compute graph
+## 2020-06-24 20:35:45    25.5  STATUS                         COMPLETED Compute graph
+## 2020-06-24 20:35:45    25.5  STATUS                         STARTED Compute clustering
+## 2020-06-24 20:35:46    25.5  STATUS                         COMPLETED Compute clustering
+## 2020-06-24 20:35:46    25.5  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-24 20:35:46    25.5  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-24 20:35:46    25.5  STATUS                         STARTED Setting up Multicore
+## 2020-06-24 20:35:46    25.5    INFO                             Using 1 cores
+## 2020-06-24 20:35:46    25.5  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-24 21:37:16    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-24 21:37:16    10.8  STATUS                 COMPLETED Compute correlation blocks
+## 2020-06-24 21:37:16    10.8  STATUS                 STARTED Computing methQTL for chromosome chr7
+## 2020-06-24 21:37:16    10.8  STATUS                     STARTED Compute correlation blocks
+## 2020-06-24 21:37:16    10.8  STATUS                         STARTED Compute correlation matrix
+## 2020-06-24 21:37:56    30.9  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-24 21:51:24    20.9  STATUS                         STARTED Compute pairwise distances
+## 2020-06-24 21:51:50    16.3  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-24 21:53:01    12.3  STATUS                         STARTED Weight distances
+## 2020-06-24 22:00:27    30.6  STATUS                         COMPLETED Weight distances
+## 2020-06-24 22:00:29    22.3  STATUS                         STARTED Compute graph
+## 2020-06-24 22:04:16    42.4  STATUS                         COMPLETED Compute graph
+## 2020-06-24 22:04:16    42.4  STATUS                         STARTED Compute clustering
+## 2020-06-24 22:04:18    42.4  STATUS                         COMPLETED Compute clustering
+## 2020-06-24 22:04:18    42.4  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-24 22:04:18    42.4  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-24 22:04:18    42.4  STATUS                         STARTED Setting up Multicore
+## 2020-06-24 22:04:18    42.4    INFO                             Using 1 cores
+## 2020-06-24 22:04:18    42.4  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-24 22:53:27    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-24 22:53:27    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr7
+## 2020-06-24 22:53:27    10.9  STATUS                 STARTED Computing methQTL for chromosome chr8
+## 2020-06-24 22:53:27    10.9  STATUS                     STARTED Compute correlation blocks
+## 2020-06-24 22:53:27    10.9  STATUS                         STARTED Compute correlation matrix
+## 2020-06-24 22:53:52    24.6  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-24 23:02:59    11.3  STATUS                         STARTED Compute pairwise distances
+## 2020-06-24 23:03:19    19.5  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-24 23:03:57    10.8  STATUS                         STARTED Weight distances
+## 2020-06-24 23:10:09    23.3  STATUS                         COMPLETED Weight distances
+## 2020-06-24 23:10:10    17.6  STATUS                         STARTED Compute graph
+## 2020-06-24 23:10:56    31.4  STATUS                         COMPLETED Compute graph
+## 2020-06-24 23:10:56    31.4  STATUS                         STARTED Compute clustering
+## 2020-06-24 23:10:57    31.4  STATUS                         COMPLETED Compute clustering
+## 2020-06-24 23:10:57    31.4  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-24 23:10:58    31.4  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-24 23:10:58    31.4  STATUS                         STARTED Setting up Multicore
+## 2020-06-24 23:10:58    31.4    INFO                             Using 1 cores
+## 2020-06-24 23:10:58    31.4  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-24 23:58:15    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-24 23:58:15    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr8
+## 2020-06-24 23:58:15    10.8  STATUS                 STARTED Computing methQTL for chromosome chr9
+## 2020-06-24 23:58:15    10.8  STATUS                     STARTED Compute correlation blocks
+## 2020-06-24 23:58:15    10.8  STATUS                         STARTED Compute correlation matrix
+## 2020-06-24 23:58:27    14.1  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 00:02:35    10.9  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 00:02:45    10.8  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 00:03:04    10.8  STATUS                         STARTED Weight distances
+## 2020-06-25 00:05:21    16.3  STATUS                         COMPLETED Weight distances
+## 2020-06-25 00:05:22    14.0  STATUS                         STARTED Compute graph
+## 2020-06-25 00:05:42    27.0  STATUS                         COMPLETED Compute graph
+## 2020-06-25 00:05:42    27.0  STATUS                         STARTED Compute clustering
+## 2020-06-25 00:05:42    27.0  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 00:05:42    27.0  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 00:05:43    27.0  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 00:05:43    27.0  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 00:05:43    27.0    INFO                             Using 1 cores
+## 2020-06-25 00:05:43    27.0  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 00:17:26    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:26    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:27    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:27    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:27    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:28    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:29    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:30    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:30    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:30    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:31    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:31    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:31    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:32    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:32    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:32    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:36    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:37    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:17:37    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 00:45:06    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 00:45:06    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr9
+## 2020-06-25 00:45:06    10.8  STATUS                 STARTED Computing methQTL for chromosome chr10
+## 2020-06-25 00:45:06    10.8  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 00:45:06    10.8  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 00:45:35    27.5  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 00:57:42    19.2  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 00:58:05    14.2  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 00:58:54    10.9  STATUS                         STARTED Weight distances
+## 2020-06-25 01:05:00    30.6  STATUS                         COMPLETED Weight distances
+## 2020-06-25 01:05:02    19.2  STATUS                         STARTED Compute graph
+## 2020-06-25 01:06:12    35.9  STATUS                         COMPLETED Compute graph
+## 2020-06-25 01:06:12    35.9  STATUS                         STARTED Compute clustering
+## 2020-06-25 01:06:13    35.9  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 01:06:13    35.9  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 01:06:13    35.9  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 01:06:13    35.9  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 01:06:13    35.9    INFO                             Using 1 cores
+## 2020-06-25 01:06:13    35.9  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 01:55:42    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 01:55:42    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr10
+## 2020-06-25 01:55:42    10.9  STATUS                 STARTED Computing methQTL for chromosome chr11
+## 2020-06-25 01:55:42    10.9  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 01:55:42    10.9  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 01:56:27    34.3  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 02:11:46    34.5  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 02:12:17    21.7  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 02:13:21    14.0  STATUS                         STARTED Weight distances
+## 2020-06-25 02:21:43    42.8  STATUS                         COMPLETED Weight distances
+## 2020-06-25 02:21:45    25.7  STATUS                         STARTED Compute graph
+## 2020-06-25 02:28:53    49.1  STATUS                         COMPLETED Compute graph
+## 2020-06-25 02:28:53    49.1  STATUS                         STARTED Compute clustering
+## 2020-06-25 02:28:55    49.1  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 02:28:55    49.1  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 02:28:56    49.1  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 02:28:56    49.1  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 02:28:56    49.1    INFO                             Using 1 cores
+## 2020-06-25 02:28:56    49.1  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 03:15:44    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 03:15:44    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr11
+## 2020-06-25 03:15:44    10.9  STATUS                 STARTED Computing methQTL for chromosome chr12
+## 2020-06-25 03:15:44    10.9  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 03:15:44    10.9  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 03:16:18    30.4  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 03:29:17    14.9  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 03:29:45    26.7  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 03:30:37    12.1  STATUS                         STARTED Weight distances
+## 2020-06-25 03:37:35    30.0  STATUS                         COMPLETED Weight distances
+## 2020-06-25 03:37:37    21.8  STATUS                         STARTED Compute graph
+## 2020-06-25 03:38:39    41.3  STATUS                         COMPLETED Compute graph
+## 2020-06-25 03:38:39    41.3  STATUS                         STARTED Compute clustering
+## 2020-06-25 03:38:40    41.3  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 03:38:40    41.3  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 03:38:41    41.3  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 03:38:41    41.3  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 03:38:41    41.3    INFO                             Using 1 cores
+## 2020-06-25 03:38:41    41.3  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 04:26:03    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 04:26:03    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr12
+## 2020-06-25 04:26:03    10.9  STATUS                 STARTED Computing methQTL for chromosome chr13
+## 2020-06-25 04:26:03    10.9  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 04:26:03    10.9  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 04:26:11    12.9  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 04:28:44    15.6  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 04:28:51    10.9  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 04:29:05    10.9  STATUS                         STARTED Weight distances
+## 2020-06-25 04:30:29    14.5  STATUS                         COMPLETED Weight distances
+## 2020-06-25 04:30:31    12.1  STATUS                         STARTED Compute graph
+## 2020-06-25 04:30:39    19.2  STATUS                         COMPLETED Compute graph
+## 2020-06-25 04:30:39    19.2  STATUS                         STARTED Compute clustering
+## 2020-06-25 04:30:40    19.2  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 04:30:40    19.2  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 04:30:40    19.2  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 04:30:40    19.2  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 04:30:40    19.2    INFO                             Using 1 cores
+## 2020-06-25 04:30:40    19.2  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 05:02:03    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 05:02:03    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr13
+## 2020-06-25 05:02:03    10.9  STATUS                 STARTED Computing methQTL for chromosome chr14
+## 2020-06-25 05:02:03    10.9  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 05:02:03    10.9  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 05:02:19    19.2  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 05:07:37    19.2  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 05:07:50    10.9  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 05:08:17    10.9  STATUS                         STARTED Weight distances
+## 2020-06-25 05:11:16    15.6  STATUS                         COMPLETED Weight distances
+## 2020-06-25 05:11:18    15.0  STATUS                         STARTED Compute graph
+## 2020-06-25 05:11:42    31.6  STATUS                         COMPLETED Compute graph
+## 2020-06-25 05:11:42    31.6  STATUS                         STARTED Compute clustering
+## 2020-06-25 05:11:43    31.6  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 05:11:43    31.6  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 05:11:44    31.6  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 05:11:44    31.6  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 05:11:44    31.6    INFO                             Using 1 cores
+## 2020-06-25 05:11:44    31.6  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 05:41:57    10.9    INFO                         No SNP closer than 500000
+## 2020-06-25 05:42:11    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 05:42:11    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr14
+## 2020-06-25 05:42:11    10.9  STATUS                 STARTED Computing methQTL for chromosome chr15
+## 2020-06-25 05:42:11    10.9  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 05:42:11    10.9  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 05:42:24    14.7  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 05:47:10    10.9  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 05:47:21    11.9  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 05:47:43    10.8  STATUS                         STARTED Weight distances
+## 2020-06-25 05:50:25    16.1  STATUS                         COMPLETED Weight distances
+## 2020-06-25 05:50:26    14.2  STATUS                         STARTED Compute graph
+## 2020-06-25 05:50:50    29.5  STATUS                         COMPLETED Compute graph
+## 2020-06-25 05:50:50    29.5  STATUS                         STARTED Compute clustering
+## 2020-06-25 05:50:50    29.5  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 05:50:50    29.5  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 05:50:51    29.5  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 05:50:51    29.5  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 05:50:51    29.5    INFO                             Using 1 cores
+## 2020-06-25 05:50:51    29.5  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 05:50:53    29.5    INFO                         No SNP closer than 500000
+## 2020-06-25 05:50:53    29.5    INFO                         No SNP closer than 500000
+## 2020-06-25 05:50:54    29.5    INFO                         No SNP closer than 500000
+## 2020-06-25 05:50:54    29.5    INFO                         No SNP closer than 500000
+## 2020-06-25 05:50:54    29.5    INFO                         No SNP closer than 500000
+## 2020-06-25 05:50:55    29.5    INFO                         No SNP closer than 500000
+## 2020-06-25 05:50:55    29.5    INFO                         No SNP closer than 500000
+## 2020-06-25 05:50:55    29.5    INFO                         No SNP closer than 500000
+## 2020-06-25 05:50:56    29.5    INFO                         No SNP closer than 500000
+## 2020-06-25 06:21:27    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 06:21:27    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr15
+## 2020-06-25 06:21:27    10.8  STATUS                 STARTED Computing methQTL for chromosome chr16
+## 2020-06-25 06:21:27    10.8  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 06:21:27    10.8  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 06:21:51    23.8  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 06:30:21    10.8  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 06:30:39    12.2  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 06:31:18    10.8  STATUS                         STARTED Weight distances
+## 2020-06-25 06:35:56    21.4  STATUS                         COMPLETED Weight distances
+## 2020-06-25 06:35:58    17.3  STATUS                         STARTED Compute graph
+## 2020-06-25 06:36:34    45.3  STATUS                         COMPLETED Compute graph
+## 2020-06-25 06:36:34    45.3  STATUS                         STARTED Compute clustering
+## 2020-06-25 06:36:35    45.3  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 06:36:35    45.3  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 06:36:36    45.3  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 06:36:36    45.3  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 06:36:36    45.3    INFO                             Using 1 cores
+## 2020-06-25 06:36:36    45.3  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 06:47:40    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 06:47:41    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 06:47:41    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 06:47:41    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 06:47:42    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 06:47:42    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 06:47:42    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 06:47:43    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 07:04:16    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 07:04:16    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr16
+## 2020-06-25 07:04:16    10.8  STATUS                 STARTED Computing methQTL for chromosome chr17
+## 2020-06-25 07:04:16    10.8  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 07:04:16    10.8  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 07:04:51    29.7  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 07:17:12    20.4  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 07:17:40    23.6  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 07:18:29    11.7  STATUS                         STARTED Weight distances
+## 2020-06-25 07:25:14    30.4  STATUS                         COMPLETED Weight distances
+## 2020-06-25 07:25:16    21.1  STATUS                         STARTED Compute graph
+## 2020-06-25 07:28:32    40.0  STATUS                         COMPLETED Compute graph
+## 2020-06-25 07:28:32    40.0  STATUS                         STARTED Compute clustering
+## 2020-06-25 07:28:34    40.0  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 07:28:34    40.0  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 07:28:35    40.0  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 07:28:35    40.0  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 07:28:35    40.0    INFO                             Using 1 cores
+## 2020-06-25 07:28:35    40.0  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 07:56:18    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 07:56:18    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr17
+## 2020-06-25 07:56:18    10.9  STATUS                 STARTED Computing methQTL for chromosome chr18
+## 2020-06-25 07:56:18    10.9  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 07:56:18    10.9  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 07:56:22    11.9  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 07:57:42    11.9  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 07:57:47    10.9  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 07:57:54    10.9  STATUS                         STARTED Weight distances
+## 2020-06-25 07:58:37    14.0  STATUS                         COMPLETED Weight distances
+## 2020-06-25 07:58:39    11.9  STATUS                         STARTED Compute graph
+## 2020-06-25 07:58:42    11.9  STATUS                         COMPLETED Compute graph
+## 2020-06-25 07:58:42    11.9  STATUS                         STARTED Compute clustering
+## 2020-06-25 07:58:43    11.9  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 07:58:43    11.9  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 07:58:43    11.9  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 07:58:43    11.9  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 07:58:43    11.9    INFO                             Using 1 cores
+## 2020-06-25 07:58:43    11.9  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 08:20:22    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 08:20:22    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr18
+## 2020-06-25 08:20:22    10.9  STATUS                 STARTED Computing methQTL for chromosome chr19
+## 2020-06-25 08:20:22    10.9  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 08:20:22    10.9  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 08:20:49    24.6  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 08:30:11    24.6  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 08:30:30    12.9  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 08:31:11    10.8  STATUS                         STARTED Weight distances
+## 2020-06-25 08:36:11    22.2  STATUS                         COMPLETED Weight distances
+## 2020-06-25 08:36:12    17.6  STATUS                         STARTED Compute graph
+## 2020-06-25 08:36:57    31.4  STATUS                         COMPLETED Compute graph
+## 2020-06-25 08:36:57    31.4  STATUS                         STARTED Compute clustering
+## 2020-06-25 08:36:59    31.4  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 08:36:59    31.4  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 08:36:59    31.4  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 08:36:59    31.4  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 08:36:59    31.4    INFO                             Using 1 cores
+## 2020-06-25 08:36:59    31.4  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 08:55:20    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 08:55:20    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr19
+## 2020-06-25 08:55:20    10.8  STATUS                 STARTED Computing methQTL for chromosome chr20
+## 2020-06-25 08:55:20    10.8  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 08:55:20    10.8  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 08:55:30    13.5  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 08:58:47    17.9  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 08:58:55    10.8  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 08:59:12    10.8  STATUS                         STARTED Weight distances
+## 2020-06-25 09:01:02    17.7  STATUS                         COMPLETED Weight distances
+## 2020-06-25 09:01:04    13.5  STATUS                         STARTED Compute graph
+## 2020-06-25 09:01:16    18.7  STATUS                         COMPLETED Compute graph
+## 2020-06-25 09:01:16    18.7  STATUS                         STARTED Compute clustering
+## 2020-06-25 09:01:17    18.7  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 09:01:17    18.7  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 09:01:17    18.7  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 09:01:17    18.7  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 09:01:17    18.7    INFO                             Using 1 cores
+## 2020-06-25 09:01:17    18.7  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 09:22:49    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 09:22:49    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr20
+## 2020-06-25 09:22:49    10.8  STATUS                 STARTED Computing methQTL for chromosome chr21
+## 2020-06-25 09:22:49    10.8  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 09:22:49    10.8  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 09:22:51    11.3  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 09:23:30    11.3  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 09:23:33    10.8  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 09:23:38    10.8  STATUS                         STARTED Weight distances
+## 2020-06-25 09:23:51    10.8  STATUS                         COMPLETED Weight distances
+## 2020-06-25 09:23:52    10.8  STATUS                         STARTED Compute graph
+## 2020-06-25 09:23:53    10.8  STATUS                         COMPLETED Compute graph
+## 2020-06-25 09:23:53    10.8  STATUS                         STARTED Compute clustering
+## 2020-06-25 09:23:53    10.8  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 09:23:53    10.8  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 09:23:54    10.8  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 09:23:54    10.8  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 09:23:54    10.8    INFO                             Using 1 cores
+## 2020-06-25 09:23:54    10.8  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 09:23:54    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 09:23:54    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 09:23:54    10.8    INFO                         No SNP closer than 500000
+## 2020-06-25 09:34:58    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 09:34:58    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr21
+## 2020-06-25 09:34:58    10.8  STATUS                 STARTED Computing methQTL for chromosome chr22
+## 2020-06-25 09:34:58    10.8  STATUS                     STARTED Compute correlation blocks
+## 2020-06-25 09:34:58    10.8  STATUS                         STARTED Compute correlation matrix
+## 2020-06-25 09:35:03    12.4  STATUS                         COMPLETED Compute correlation matrix
+## 2020-06-25 09:37:16    10.8  STATUS                         STARTED Compute pairwise distances
+## 2020-06-25 09:37:22    10.8  STATUS                         COMPLETED Compute pairwise distances
+## 2020-06-25 09:37:34    10.8  STATUS                         STARTED Weight distances
+## 2020-06-25 09:38:43    10.8  STATUS                         COMPLETED Weight distances
+## 2020-06-25 09:38:45    10.8  STATUS                         STARTED Compute graph
+## 2020-06-25 09:38:55    15.4  STATUS                         COMPLETED Compute graph
+## 2020-06-25 09:38:55    15.4  STATUS                         STARTED Compute clustering
+## 2020-06-25 09:38:55    15.4  STATUS                         COMPLETED Compute clustering
+## 2020-06-25 09:38:55    15.4  STATUS                     COMPLETED Compute correlation blocks
+## 2020-06-25 09:38:56    15.4  STATUS                     STARTED Compute methQTL per correlation block
+## 2020-06-25 09:38:56    15.4  STATUS                         STARTED Setting up Multicore
+## 2020-06-25 09:38:56    15.4    INFO                             Using 1 cores
+## 2020-06-25 09:38:56    15.4  STATUS                         COMPLETED Setting up Multicore
+## 2020-06-25 09:52:52    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
+## 2020-06-25 09:52:52    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr22
+## 2020-06-25 09:53:00    10.8  STATUS             COMPLETED Computing methQTL for chromosome chr6
 ```
 
 We will now present the two steps of the methQTL calling procedure in more detail.
@@ -779,7 +735,7 @@ Since neighboring CpGs are often highly correlated, using each CpG independently
 1. Compute the (Pearson) correlation matrix between all CpGs (futher correlation types available in option ```correlation.type```)
 2. Construct the distance matrix from the correlation matrix
 3. Discard all interactions with a correlation lower than a given threshold (option: ```cluster.cor.threshold```)
-4. Weight the distance according to the genomic distance between the two CpGs with a Gaussian (option: ```standard.deviation.gauss```). Higher values for the standard deviation lead to a lower penalty on distal CpGs, thus the cluster will become larger.
+4. Weight the distance according to the genomic distance between the two CpGs with a Gaussian (option: ```standard.deviation.gauss```). Higher values for the standard deviation lead to a lower penalty on distal CpGs, thus the clusters will become larger.
 5. Discard all interactions ranging longer than the option ```absolute.distance.cutoff```
 6. Compute the Louvain clustering on the undirected, weighted graph induced by the distance matrix
 
@@ -793,10 +749,9 @@ This will return a clustering according to the correlation structure between nei
 
 From the list of correlation blocks, *methQTL* computes methQTL interactions with all SNPs on the same chromosome. The process is split into three steps:
 
-1. Compute a representative CpG per correlation block, as specified with the option ```representative.cpg.computation``` (default: *row.medians*).
+1. Compute a representative CpG (tag-CpG) per correlation block, as specified with the option ```representative.cpg.computation``` (default: *row.medians*).
 2. Discard all SNPs that are further than ```absolute.distance.cutoff``` (default: 1,000,000) away from the representative CpG
-3. Call methQTL by using linear models. Multiple options of methQTL calling are available and can be selected via the option ```linear.model.type``` (default: *classical.linear*). Alternatively, *fastQTL* can be set as an option for
-```meth.qtl.type```. This will tell the package to use the fastQTL software [@Ongen2016].
+3. Call methQTL by using linear models. Multiple options of methQTL calling are available and can be selected via the option ```linear.model.type``` (default: *classical.linear*). Alternatively, *fastQTL* can be set as an option for ```meth.qtl.type```. This will tell the package to use the fastQTL software [@Ongen2016].
 
 The ```meth.qtl.type``` tells, how a methQTL interaction is defined and provides three options, in addition to the already mentioned *fastQTL*:
 
@@ -810,7 +765,7 @@ In the latest stage, potential covariates can be specified using the option *sel
 
 ## How to use *methQTLResult*
 
-The above procedure will create an object of class ```methQTLResult```, which contains the methQTL that are called in the previous step. To get a table of all the methQTL, you need to extract the information from the object. In most of the function below, there is the option ```type```, which takes on the values:
+The above procedure will create an object of class ```methQTLResult```, which contains the methQTL that are called in the previous step. To get a table of all the methQTL, you need to extract the information from the object. In the majority of the function calls below, there is the option ```type```, which takes on the values:
 * 'SNP': To characterize the SNPs that influence any DNA methylation state
 * 'CpG': To characterize the representative CpGs per correlation block that are influences by any genotype
 * 'cor.block': To characterize all CpGs, which are part of a correlation block, whose representative CpG is influenced by any genotype
@@ -824,20 +779,20 @@ head(result.table)
 ```
 
 ```
-##            CpG        SNP       Beta      P.value Chromosome Position.CpG
-## 91  cg00040738  rs3008409  0.9521075 1.128036e-06       chr1     31632794
-## 354 cg00045114 rs10489293 -0.9731047 7.033229e-07       chr1    172674159
-## 380 cg00090105  rs2038891  0.9311737 1.993551e-07       chr1    182538701
-## 500 cg00102184  rs2045349 -1.4149612 2.694043e-07       chr1    240194783
-## 476 cg00207189  rs3790973  0.6759185 7.521751e-07       chr1    231244795
-## 153 cg00330609 rs10493281  0.6840097 3.069889e-06       chr1     60345404
-##     Position.SNP Distance p.val.adj.fdr
-## 91      32041838  -409044     1.0000000
-## 354    172186787   487372     1.0000000
-## 380    182367548   171153     0.6264101
-## 500    240444305  -249522     0.7155086
-## 476    230908863   335932     1.0000000
-## 153     60739301  -393897     1.0000000
+##           CpG       SNP       Beta     SE.Beta      P.value Chromosome
+## 59 cg00090105  rs185580 -0.1662472 0.009373958 2.064279e-06       chr1
+## 80 cg00102184 rs6685121  0.1838105 0.012800985 7.142140e-06       chr1
+## 76 cg00207189 rs4847021 -0.2098301 0.008611342 3.140927e-07       chr1
+## 75 cg00553601 rs2176600 -0.3349320 0.018777130 1.995429e-06       chr1
+## 62 cg00972755  rs185580 -0.2248021 0.015113092 5.809094e-06       chr1
+## 26 cg01023592  rs863087 -0.1164647 0.007975658 6.472797e-06       chr1
+##    Position.CpG Position.SNP Distance p.val.adj.fdr
+## 59    182538701    182519861    18840             1
+## 80    240194783    239774670   420113             1
+## 76    231244795    230959298   285497             1
+## 75    224268136    224395782  -127646             1
+## 62    182859418    182519861   339557             1
+## 26     64435362     64525961   -90599             1
 ```
 
 ```r
@@ -913,16 +868,11 @@ qtl.distance.scatterplot(meth.qtl.res)
 
 ## Interpretation functions
 
-The package provides a bunch of interpretation functions to characterize the detected methQTLs. This includes LOLA enrichment analysis[@LOLA] (```qtl.lola.enrichment```), genomic annotation enrichment based on putative regulatory elements defined by the Ensembl Regulatory Build[@Zerbino2015] (```qtl.annotation.enrichment```), enrichment analysis of different base substitutions in SNPs (```qtl.base.substitution.enrichment```), or TFBS motif enrichment using [TFBSTools](http://bioconductor.org/packages/release/bioc/html/TFBSTools.html). Enrichment is compared for the methQTLs that are available in the provided ```methQTLResult``` (for a single input), or to the overlapping QTLs for a list of ```methQTLResult``. The background of the enrichment is defined as all the SNPs/CpGs that have been used as input to the methQTL calling.
+The package provides a bunch of interpretation functions to characterize the detected methQTLs. This includes LOLA enrichment analysis[@LOLA] (```qtl.lola.enrichment```), genomic annotation enrichment based on putative regulatory elements defined by the Ensembl Regulatory Build[@Zerbino2015] (```qtl.annotation.enrichment```), enrichment analysis of different base substitutions in SNPs (```qtl.base.substitution.enrichment```), or TFBS motif enrichment using [TFBSTools](http://bioconductor.org/packages/release/bioc/html/TFBSTools.html). Enrichment is compared for the methQTLs that are available in the provided ```methQTLResult``` (for a single input), or to the overlapping QTLs for a list of ```methQTLResult```. The background of the enrichment is defined as all the SNPs/CpGs that have been used as input to the methQTL calling.
 
 
 ```r
 res <- qtl.base.substitution.enrichment(meth.qtl.res)
-```
-
-```
-## Warning in matrix(c(tps, fns, fps, tns), 2, 2): data length [3] is not a sub-
-## multiple or multiple of the number of rows [2]
 ```
 
 ```r
@@ -931,7 +881,7 @@ qtl.plot.base.substitution(meth.qtl.res,merge=TRUE)
 
 ## Lists of methQTL results
 
-Most of the functions discussed above either support a single ```methQTLResult``` as input, or a list of such objects. In case a list is specified, the functions with typically overlap the methQTLs found and compare those with all SNPs/CpGs that have been used for methQTL calling. Additionally, there are functions that particularly work on a list of ```methQTLResult``` objects and that perform overlapping, or determine the methQTLs specific to a dataset.
+Most of the functions discussed above either support a single ```methQTLResult``` as input, or a list of such objects. In case a list is specified, the functions will typically overlap the methQTLs found and compare those with all SNPs/CpGs that have been used for methQTL calling. Additionally, there are functions that particularly work on a list of ```methQTLResult``` objects and that perform overlapping, or determine the methQTLs specific to a dataset.
 
 
 ```r

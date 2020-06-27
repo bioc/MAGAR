@@ -1,7 +1,7 @@
 ---
 title: "methQTL package"
 author: "Michael Scherer"
-date: "May 25, 2020"
+date: "June 24, 2020"
 header-includes:
   \usepackage{helvet}
   \hypersetup{colorlinks,
@@ -10,6 +10,9 @@ output:
   pdf_document:
     number_sections: true
     latex_engine: xelatex
+    toc: true
+  md_document:
+    toc: true  
 vignette:
   \VignetteEngine{knitr::knitr}
 bibliography: biblio.bib  
@@ -22,13 +25,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
-This vignette describes the *methQTL* R-package (https://github.com/MPIIComputationalEpigenetics/methQTL-package) available from GitHub. The package uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). The package provides mutliple flavors of linear modeling strategies to compute *methQTL* as statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block is used for methQTL calling.
+This vignette describes the [*methQTL* R-package](https://github.com/MPIIComputationalEpigenetics/methQTL-package) available from GitHub. The package uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). The package provides mutliple flavors of linear modeling strategies to compute *methQTL* as statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block (tag-CpG) is used for methQTL calling.
 
 # Installation
 
 The package can be directly installed from GitHub, after installing the *devtools* package.
 
-```{r installation}
+```{r installation, echo=FALSE}
 if(!requireNamespace("devtools")) install.packages("devtools")
 if(!requireNamespace("methQTL")){
   devtools::install_github("MPIIComputationalEpigenetics/methQTL-package")
@@ -61,17 +64,17 @@ cat(rnb.options2xml(),file=xml.fi)
 qtl.setOption(rnbeads.options = xml.fi)
 ```
 
-To redefine the correlation blocks, we allow including additional information such as genome-wide segmentation of the methylation landscape (see option ```use.segmentation``` and function ```qtl.run.segmentation```), and also function annotation according to the Ensembl regulatory build [@Zerbino2015].
+To redefine the correlation blocks, we allow for including additional information such as genome-wide segmentation of the methylation landscape (see option ```use.segmentation``` and function ```qtl.run.segmentation```), and also functional annotation according to the Ensembl regulatory build [@Zerbino2015].
 
 ## Genotyping data
 
 ### PLINK files
 
-The package supports data that has already been processed by *plink* and is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, as variant calling files (*.vcf*), or as imputed files in the dosage format (*.dos*). For further processing, we use the command line tool *plink*, which comes with this package, but is only applicable on Linux systems. For Windows and MacOS users, please install the *plink* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.
+The package supports data that has already been processed by [*PLINK*](http://zzz.bwh.harvard.edu/plink/) and that is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, as variant calling files (*.vcf*), or as imputed files in the dosage format (*.dos*). For further processing, we use the command line tool *PLINK*, which comes with this package. However, this installation is only valid for Linux systems. For Windows and MacOS users, please install the *PLINK* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.
 
 ### IDAT files
 
-The package also support raw IDAT files and uses the [CRLMM](https://www.bioconductor.org/packages/release/bioc/html/crlmm.html) R-package, together with PLINK to perform genotype calling and data import. The package requires a single sample annotation sheet in the format described in the [DNA methylation data (microarray)](DNA methylation data) section. In addition to the column names specified above, a column named *GenoSentrixPosition* has to be added, which specifies the IDAT file IDs.
+The package also supports raw IDAT files and uses the [*CRLMM*](https://www.bioconductor.org/packages/release/bioc/html/crlmm.html) R-package, together with PLINK to perform genotype calling and data import. The package requires a single sample annotation sheet in the format described in the [DNA methylation data](DNA methylation data  (microarray)) section. In addition to the column names specified above, a column named *GenoSentrixPosition* has to be added, which specifies the IDAT file IDs.
 
 ```{bash sample_annotation_geno, eval=FALSE}
 SampleID,age,sex,barcode,GenoSentrixPosition
@@ -95,7 +98,7 @@ qtl.setOption(
 
 ## Perform data import
 
-The ```do.import``` function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. You'll have to specify the paths to the corresponding *IDAT* and *plink* files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory (```hdf5dump```).
+The ```do.import``` function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. In this vignette, we will describe the import of DNA methylation data in *IDAT* format and genotyping data as *PLINK* files. First, you'll have to specify the paths to the corresponding *IDAT* and *plink* files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory (```hdf5dump```).
 
 ```{r import,eval=TRUE}
 idat.dir <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
@@ -123,14 +126,14 @@ imp.data <- do.import(data.location = c(idat.dir=idat.dir,geno.dir=geno.dir),
                       out.folder = getwd())
 ```
 
-Please note that the ```recode.allele.frequencies``` option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies found. Alternatively, a path to a local version of dbSNP [@Sherry2001] can be provided through ```db.snp.ref```, and reference/alternative allele information will be automatically parsed from the database. This is especially crucial, if imputation is to be performed, since the Michigan Imputation Server is sensitive to reference mismatches. ```recode.allele.frequencies``` and ```db.snp.ref``` are mutually exclusive options.
+Please note that the ```recode.allele.frequencies``` option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies found. Alternatively, a path to a local version of dbSNP [@Sherry2001] can be provided through ```db.snp.ref```, and reference/alternative allele information will be automatically parsed from the database. This is especially crucial, if imputation is to be performed, since the Michigan Imputation Server is sensitive to reference mismatches.
 
 # methQTL calling
 
 Although *methQTL* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter, or as global parameters using ```?qtl.setOption```.
 
 ```{r call_methQTL, eval=TRUE}
-meth.qtl.res <- do.methQTL(imp.data,)
+meth.qtl.res <- do.methQTL(imp.data)
 ```
 
 We will now present the two steps of the methQTL calling procedure in more detail.
@@ -142,7 +145,7 @@ Since neighboring CpGs are often highly correlated, using each CpG independently
 1. Compute the (Pearson) correlation matrix between all CpGs (futher correlation types available in option ```correlation.type```)
 2. Construct the distance matrix from the correlation matrix
 3. Discard all interactions with a correlation lower than a given threshold (option: ```cluster.cor.threshold```)
-4. Weight the distance according to the genomic distance between the two CpGs with a Gaussian (option: ```standard.deviation.gauss```). Higher values for the standard deviation lead to a lower penalty on distal CpGs, thus the cluster will become larger.
+4. Weight the distance according to the genomic distance between the two CpGs with a Gaussian (option: ```standard.deviation.gauss```). Higher values for the standard deviation lead to a lower penalty on distal CpGs, thus the clusters will become larger.
 5. Discard all interactions ranging longer than the option ```absolute.distance.cutoff```
 6. Compute the Louvain clustering on the undirected, weighted graph induced by the distance matrix
 
@@ -156,7 +159,7 @@ This will return a clustering according to the correlation structure between nei
 
 From the list of correlation blocks, *methQTL* computes methQTL interactions with all SNPs on the same chromosome. The process is split into three steps:
 
-1. Compute a representative CpG per correlation block, as specified with the option ```representative.cpg.computation``` (default: *row.medians*).
+1. Compute a representative CpG (tag-CpG) per correlation block, as specified with the option ```representative.cpg.computation``` (default: *row.medians*).
 2. Discard all SNPs that are further than ```absolute.distance.cutoff``` (default: 1,000,000) away from the representative CpG
 3. Call methQTL by using linear models. Multiple options of methQTL calling are available and can be selected via the option ```linear.model.type``` (default: *classical.linear*). Alternatively, *fastQTL* can be set as an option for
 ```meth.qtl.type```. This will tell the package to use the fastQTL software [@Ongen2016].
@@ -173,7 +176,7 @@ In the latest stage, potential covariates can be specified using the option *sel
 
 ## How to use *methQTLResult*
 
-The above procedure will create an object of class ```methQTLResult```, which contains the methQTL that are called in the previous step. To get a table of all the methQTL, you need to extract the information from the object. In most of the function below, there is the option ```type```, which takes on the values:
+The above procedure will create an object of class ```methQTLResult```, which contains the methQTL that are called in the previous step. To get a table of all the methQTL, you need to extract the information from the object. In the majority of the function calls below, there is the option ```type```, which takes on the values:
 * 'SNP': To characterize the SNPs that influence any DNA methylation state
 * 'CpG': To characterize the representative CpGs per correlation block that are influences by any genotype
 * 'cor.block': To characterize all CpGs, which are part of a correlation block, whose representative CpG is influenced by any genotype
@@ -203,7 +206,7 @@ qtl.distance.scatterplot(meth.qtl.res)
 
 ## Interpretation functions
 
-The package provides a bunch of interpretation functions to characterize the detected methQTLs. This includes LOLA enrichment analysis[@LOLA] (```qtl.lola.enrichment```), genomic annotation enrichment based on putative regulatory elements defined by the Ensembl Regulatory Build[@Zerbino2015] (```qtl.annotation.enrichment```), enrichment analysis of different base substitutions in SNPs (```qtl.base.substitution.enrichment```), or TFBS motif enrichment using [TFBSTools](http://bioconductor.org/packages/release/bioc/html/TFBSTools.html). Enrichment is compared for the methQTLs that are available in the provided ```methQTLResult``` (for a single input), or to the overlapping QTLs for a list of ```methQTLResult``. The background of the enrichment is defined as all the SNPs/CpGs that have been used as input to the methQTL calling.
+The package provides a bunch of interpretation functions to characterize the detected methQTLs. This includes LOLA enrichment analysis[@LOLA] (```qtl.lola.enrichment```), genomic annotation enrichment based on putative regulatory elements defined by the Ensembl Regulatory Build[@Zerbino2015] (```qtl.annotation.enrichment```), enrichment analysis of different base substitutions in SNPs (```qtl.base.substitution.enrichment```), or TFBS motif enrichment using [TFBSTools](http://bioconductor.org/packages/release/bioc/html/TFBSTools.html). Enrichment is compared for the methQTLs that are available in the provided ```methQTLResult``` (for a single input), or to the overlapping QTLs for a list of ```methQTLResult```. The background of the enrichment is defined as all the SNPs/CpGs that have been used as input to the methQTL calling.
 
 ```{r interpretation, eval=TRUE, include=TRUE}
 res <- qtl.base.substitution.enrichment(meth.qtl.res)
@@ -212,7 +215,7 @@ qtl.plot.base.substitution(meth.qtl.res,merge=TRUE)
 
 ## Lists of methQTL results
 
-Most of the functions discussed above either support a single ```methQTLResult``` as input, or a list of such objects. In case a list is specified, the functions with typically overlap the methQTLs found and compare those with all SNPs/CpGs that have been used for methQTL calling. Additionally, there are functions that particularly work on a list of ```methQTLResult``` objects and that perform overlapping, or determine the methQTLs specific to a dataset.
+Most of the functions discussed above either support a single ```methQTLResult``` as input, or a list of such objects. In case a list is specified, the functions will typically overlap the methQTLs found and compare those with all SNPs/CpGs that have been used for methQTL calling. Additionally, there are functions that particularly work on a list of ```methQTLResult``` objects and that perform overlapping, or determine the methQTLs specific to a dataset.
 
 ```{r list, eval=FALSE}
 meth.qtl.list <- list(First=meth.qtl.res.1,Second=meth.qtl.res.2,Third=meth.qtl.res.3)
