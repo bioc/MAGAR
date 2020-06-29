@@ -42,7 +42,7 @@ assign("REPRESENTATIVE.CPG.COMPUTATION","row.medians",QTL.OPTIONS)
 assign("METH.QTL.TYPE","oneVSall",QTL.OPTIONS)
 assign("MAX.CPGS",40000,QTL.OPTIONS)
 assign("RSCRIPT.PATH","/usr/bin/Rscript",QTL.OPTIONS)
-assign("CLUSTER.CONFIG",list(c(h_vmem="5G",mem_free="5G")),QTL.OPTIONS)
+assign("CLUSTER.CONFIG",c(h_vmem="5G",mem_free="5G"),QTL.OPTIONS)
 assign("N.PERMUTATIONS",100,QTL.OPTIONS)
 assign("P.VALUE.CORRECTION","uncorrected.fdr",QTL.OPTIONS)
 assign("COMPUTE.COR.BLOCKS",TRUE,QTL.OPTIONS)
@@ -159,24 +159,24 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #'    https://doi.org/10.1038/ng.3656
 #'   3. Sherry, S. T. et al. (2001). dbSNP: the NCBI database of genetic variation.
 #'    Nucleic Acids Res. 29, 308–311, https://doi.org/10.1093/nar/29.1.308.
-qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.xml",package="methQTL"),
+qtl.setOption <- function(rnbeads.options=NULL,
                        meth.data.type="idat.dir",
                        geno.data.type="plink",
                        rnbeads.report="temp",
                        rnbeads.qc=F,
                        hdf5dump=F,
                        hardy.weinberg.p=0.001,
-		                   db.snp.ref=NULL,
+		       db.snp.ref=NULL,
                        minor.allele.frequency=0.05,
                        missing.values.samples=0.05,
-		                   plink.geno=0.1,
+		       plink.geno=0.1,
                        impute.geno.data=FALSE,
-		                   n.prin.comp=NULL,
-                       plink.path=system.file("bin/plink",package="methQTL"),
-                       fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL"),
-                       bgzip.path=system.file("bin/bgzip",package="methQTL"),
-                       tabix.path=system.file("bin/tabix",package="methQTL"),
-		                   correlation.type="pearson",
+		       n.prin.comp=NULL,
+                       plink.path=NULL,
+                       fast.qtl.path=NULL,
+                       bgzip.path=NULL,
+                       tabix.path=NULL,
+		       correlation.type="pearson",
                        cluster.cor.threshold=0.25,
                        standard.deviation.gauss=250,
                        absolute.distance.cutoff=5e5,
@@ -291,6 +291,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
       if(inherits(er,"error")){
         logger.warning("Non-functional default version of PLINK, please install it manually and specify it with 'plink.path'")
       }
+      plink.path <- NULL
     }else{
       er <- tryCatch(system(plink.path),error=function(x)x)
       if(inherits(er,"error")){
@@ -307,6 +308,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
       if(inherits(er,"error")){
         logger.warning("Non-functional default version of fastQTL, please install it manually and specify it with 'fast.qtl.path'")
       }
+      fast.qtl.path <- NULL
     }else{
       er <- tryCatch(system(fast.qtl.path),error=function(x)x)
       if(inherits(er,"error")){
@@ -323,6 +325,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
       if(inherits(er,"error")){
         logger.warning("Non-functional default version of bgzip, please install it manually and specify it with 'bgzip.path'")
       }
+      bgzip.path <- NULL
     }else{
       er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
@@ -338,6 +341,7 @@ qtl.setOption <- function(rnbeads.options=system.file("extdata/rnbeads_options.x
       er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         logger.warning("Non-functional default version of tabix, please install it manually and specify it with 'tabix.path'")
+	tabix.path <- NULL
       }
     }else{
       er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
@@ -678,7 +682,7 @@ qtl.json2options <- function(path){
   all.options <- fromJSON(path)
   all.options <- lapply(all.options,function(opt){
 	if(class(opt)=="data.frame"){
-           as.list(opt)
+           unlist(opt)
 	}else{
 	   opt
 	}
