@@ -131,11 +131,12 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
   ph.dat <- getPheno(meth.qtl)
   n.comps <- qtl.getOption('n.prin.comp')
   if(!is.null(n.comps)){
-    sel.covariates <- c(paste0("PC",1:n.comps))
+    sel.covariates <- c(sel.covariates,paste0("PC",1:n.comps))
   }
   if(is.null(sel.covariates)){
     ph.dat <- NULL
   }else{
+    logger.info(paste("Using covariates",paste(sel.covariates,collapse="")))
     if(!all(sel.covariates %in% colnames(ph.dat))){
       logger.warning("Not all the covariates are present in the sample annotation sheet.")
       sel.covariates <- sel.covariates[sel.covariates %in% colnames(ph.dat)]
