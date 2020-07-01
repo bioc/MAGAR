@@ -13,8 +13,9 @@
 The package furthermore uses established software tools for handling DNA methylation and genotyping data, including [*RnBeads*](https://rnbeads.org), [*PLINK*](http://zzz.bwh.harvard.edu/plink/), and [*CRLMM*](https://www.bioconductor.org/packages/release/bioc/html/crlmm.html). Thus, raw DNA methylation data (IDAT, BED files) and genotyping data (IDAT, PLINK files) can be used as input.
 
 ## Installation
-The package can directly be installed in a R session using the ```devtools``` package
+The package needs some Bioconductor dependencies, most notably RnBeads, which can be directly installed from the [*RnBeads* website](https://rnbeads.org). Atfer instaling RnBeads, the *methQTL* package can be installed in a R session using the ```devtools``` package
 ```r
+source("https://rnbeads.org/data/install.R")
 if(!requireNamespace("devtools")) install.packages("devtools")
 devtools::install_github("MPIIComputationalEpigenetics/methQTL-package")
 ```
