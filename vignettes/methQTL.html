@@ -1,50 +1,58 @@
+<h1 id="methqtl-package">methQTL package</h1>
+<h2 id="michael-scherer">Michael Scherer</h2>
 <h1 id="introduction">Introduction</h1>
 <p>This vignette describes the <a href="https://github.com/MPIIComputationalEpigenetics/methQTL-package"><em>methQTL</em> R-package</a> available from GitHub. The package uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). The package provides mutliple flavors of linear modeling strategies to compute <em>methQTL</em> as statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block (tag-CpG) is used for methQTL calling.</p>
 <h1 id="installation">Installation</h1>
-<p>The package can be directly installed from GitHub, after installing the <em>devtools</em> package.</p>
+<p>The package relies on some dependencies that are exclusively available from Bioconductor and not from CRAN, most notably <a href="https://rnbeads.org"><em>RnBeads</em></a>. After installing the dependencies, <em>methQTL</em> can be installed from GitHub, after installing the <em>devtools</em> package.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="cf">if</span>(<span class="op">!</span><span class="kw">requireNamespace</span>(<span class="st">&quot;devtools&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;devtools&quot;</span>)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">source</span>(<span class="st">&quot;https://rnbeads.org/data/install.R&quot;</span>)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="cf">if</span>(<span class="op">!</span><span class="kw">requireNamespace</span>(<span class="st">&quot;methQTL&quot;</span>)){</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">  devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;MPIIComputationalEpigenetics/methQTL-package&quot;</span>)</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">}  </a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="kw">suppressPackageStartupMessages</span>(<span class="kw">library</span>(methQTL))</a></code></pre></div>
 <h1 id="input-data">Input data</h1>
 <p>The <em>methQTL</em> package requires two types of data as input: DNA methylation data obtained using the Illumina Infinium BeadArrays and genotyping data obtained using genotyping microarrays or whole genome sequencing.</p>
 <h2 id="dna-methylation-data-microarrays">DNA methylation data (microarrays)</h2>
 <p>The package utilizes the widely used <a href="http://rnbeads.org/"><em>RnBeads</em></a> software package for DNA methylation data import. It supports the various input options available in <em>RnBeads</em>, including a direct download from the Gene Expression Omnibus (GEO). For further options, we refer to the <a href="http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf">RnBeads vignette</a> and documentation. In addition to the raw methylation data, a sample annotation sheet specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="ex">SampleID</span>,age,sex,barcode</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="ex">Sample_1</span>,14,f,209054857842_R01C01</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="ex">Sample_2</span>,42,f,209054857842_R02C01</a>
-<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="ex">Sample_3</span>,45,m,209054857842_R03C01</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="ex">SampleID</span>,age,sex,barcode</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="ex">Sample_1</span>,14,f,209054857842_R01C01</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="ex">Sample_2</span>,42,f,209054857842_R02C01</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="ex">Sample_3</span>,45,m,209054857842_R03C01</a></code></pre></div>
 <p>For further details on the import process, we refer to the <a href="http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf">RnBeads vignette</a>. Most importantly, analysis options need to be specified for the import and preprocessing modules of <em>RnBeads</em>. <em>methQTL</em> provides a default setting, which is available in <em>extdata/rnbeads_options.xml</em>. You can use this file as a template for your own setting and then specify it to the methQTL package:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">opts &lt;-<span class="st"> </span><span class="kw">rnb.xml2options</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata/rnbeads_options.xml&quot;</span>,<span class="dt">package=</span><span class="st">&quot;methQTL&quot;</span>))</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">rnb.options</span>(<span class="dt">identifiers.column=</span><span class="st">&quot;ind_IPC&quot;</span>)</a>
-<a class="sourceLine" id="cb2-3" data-line-number="3">xml.fi &lt;-<span class="st"> </span><span class="kw">file.path</span>(<span class="kw">getwd</span>(),<span class="st">&quot;rnbeads_options.xml&quot;</span>)</a>
-<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="kw">cat</span>(<span class="kw">rnb.options2xml</span>(),<span class="dt">file=</span>xml.fi)</a>
-<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="kw">qtl.setOption</span>(<span class="dt">rnbeads.options =</span> xml.fi)</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">opts &lt;-<span class="st"> </span><span class="kw">rnb.xml2options</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata/rnbeads_options.xml&quot;</span>,<span class="dt">package=</span><span class="st">&quot;methQTL&quot;</span>))</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="kw">rnb.options</span>(<span class="dt">identifiers.column=</span><span class="st">&quot;ind_IPC&quot;</span>)</a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">xml.fi &lt;-<span class="st"> </span><span class="kw">file.path</span>(<span class="kw">getwd</span>(),<span class="st">&quot;rnbeads_options.xml&quot;</span>)</a>
+<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="kw">cat</span>(<span class="kw">rnb.options2xml</span>(),<span class="dt">file=</span>xml.fi)</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="kw">qtl.setOption</span>(<span class="dt">rnbeads.options =</span> xml.fi)</a></code></pre></div>
 <p>To redefine the correlation blocks, we allow for including additional information such as genome-wide segmentation of the methylation landscape (see option <code>use.segmentation</code> and function <code>qtl.run.segmentation</code>), and also functional annotation according to the Ensembl regulatory build <span class="citation" data-cites="Zerbino2015">(Zerbino et al. 2015)</span>.</p>
 <h2 id="genotyping-data">Genotyping data</h2>
 <h3 id="plink-files">PLINK files</h3>
 <p>The package supports data that has already been processed by <a href="http://zzz.bwh.harvard.edu/plink/"><em>PLINK</em></a> and that is available either in the form of binary <em>.bed</em>, <em>.bim</em> and <em>.fam</em> files, as <em>.ped</em> and <em>.map</em>, as variant calling files (<em>.vcf</em>), or as imputed files in the dosage format (<em>.dos</em>). For further processing, we use the command line tool <em>PLINK</em>, which comes with this package. However, this installation is only valid for Linux systems. For Windows and MacOS users, please install the <em>PLINK</em> tool from <a href="https://www.cog-genomics.org/plink/1.9/">here</a> and specify it using the option <code>plink.path</code>. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.</p>
 <h3 id="idat-files">IDAT files</h3>
 <p>The package also supports raw IDAT files and uses the <a href="https://www.bioconductor.org/packages/release/bioc/html/crlmm.html"><em>CRLMM</em></a> R-package, together with PLINK to perform genotype calling and data import. The package requires a single sample annotation sheet in the format described in the <a href="DNA%20methylation%20data%20(microarray)">DNA methylation data</a> section. In addition to the column names specified above, a column named <em>GenoSentrixPosition</em> has to be added, which specifies the IDAT file IDs.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="ex">SampleID</span>,age,sex,barcode,GenoSentrixPosition</a>
-<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="ex">Sample_1</span>,14,f,209054857842_R01C01,9701756058_R05C01</a>
-<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="ex">Sample_2</span>,42,f,209054857842_R02C01,9701756058_R07C01</a>
-<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="ex">Sample_3</span>,45,m,209054857842_R03C01,9742011016_R04C01</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="ex">SampleID</span>,age,sex,barcode,GenoSentrixPosition</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="ex">Sample_1</span>,14,f,209054857842_R01C01,9701756058_R05C01</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="ex">Sample_2</span>,42,f,209054857842_R02C01,9701756058_R07C01</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="ex">Sample_3</span>,45,m,209054857842_R03C01,9742011016_R04C01</a></code></pre></div>
 <h3 id="imputation">Imputation</h3>
 <p>Illumina SNP BeadArray data is typically imputed before further analysis, and the package allows for imputation through the <a href="https://imputationserver.sph.umich.edu/index.html#!">Michigan Imputation Server</a>. In order to be able to perform computation on the server, an account is required. After the account is created, one has to request an API token in the user settings and specify it to the package using the option <code>imputation.user.token</code>. During the imputation process, the package will stall for a while and wait for the job to finish. After the job is done, the package will prompt for entering the password send via e-mail to the user account. The imputation process has to be split according to chromosomes, which is why multiple e-mails will be send to the account, and the imputation process can take up to several days. However, after imputation, the imputed data will be available as PLINK files, such that the imputation has to be performed only once. For preprocessing the data for upload to the imputation server, the package requires the <a href="http://www.htslib.org/doc/bgzip.html">bgzip</a> and <a href="http://www.htslib.org/doc/tabix.html">tabix</a> tools from the <a href="http://www.htslib.org/">htslib</a> package. Also see further options to configure the imputation jobs (see the Michigan Imputation Server <a href="https://imputationserver.readthedocs.io/en/latest/">documentation</a> for further information):</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="kw">qtl.setOption</span>(</a>
-<a class="sourceLine" id="cb4-2" data-line-number="2">  <span class="dt">impute.geno.data=</span><span class="ot">TRUE</span>,</a>
-<a class="sourceLine" id="cb4-3" data-line-number="3">  <span class="dt">imputation.reference.panel=</span><span class="st">&quot;apps@hrc-r1.1&quot;</span>,</a>
-<a class="sourceLine" id="cb4-4" data-line-number="4">  <span class="dt">imputation.phasing.method=</span><span class="st">&quot;shapeit&quot;</span>,</a>
-<a class="sourceLine" id="cb4-5" data-line-number="5">  <span class="dt">imputation.population=</span><span class="st">&quot;eur&quot;</span></a>
-<a class="sourceLine" id="cb4-6" data-line-number="6">)</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw">qtl.setOption</span>(</a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">  <span class="dt">impute.geno.data=</span><span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">  <span class="dt">imputation.reference.panel=</span><span class="st">&quot;apps@hrc-r1.1&quot;</span>,</a>
+<a class="sourceLine" id="cb5-4" data-line-number="4">  <span class="dt">imputation.phasing.method=</span><span class="st">&quot;shapeit&quot;</span>,</a>
+<a class="sourceLine" id="cb5-5" data-line-number="5">  <span class="dt">imputation.population=</span><span class="st">&quot;eur&quot;</span></a>
+<a class="sourceLine" id="cb5-6" data-line-number="6">)</a></code></pre></div>
 <h2 id="perform-data-import">Perform data import</h2>
 <p>The <code>do.import</code> function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. In this vignette, we will describe the import of DNA methylation data in <em>IDAT</em> format and genotyping data as <em>PLINK</em> files. First, you’ll have to specify the paths to the corresponding <em>IDAT</em> and <em>plink</em> files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory (<code>hdf5dump</code>).</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">idat.dir &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/&quot;</span></a>
-<a class="sourceLine" id="cb5-2" data-line-number="2">plink.dir &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO/&quot;</span></a>
-<a class="sourceLine" id="cb5-3" data-line-number="3">anno.sheet &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv&quot;</span></a>
-<a class="sourceLine" id="cb5-4" data-line-number="4"><span class="kw">qtl.setOption</span>(<span class="dt">hdf5dump=</span><span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb5-5" data-line-number="5"><span class="kw">setHDF5DumpDir</span>(<span class="st">&quot;/DEEP_fhgfs/projects/mscherer/deep/tmp/&quot;</span>)</a>
-<a class="sourceLine" id="cb5-6" data-line-number="6">imp.data &lt;-<span class="st"> </span><span class="kw">do.import</span>(<span class="dt">data.location =</span> <span class="kw">c</span>(<span class="dt">idat.dir=</span>idat.dir,<span class="dt">geno.dir=</span>plink.dir),</a>
-<a class="sourceLine" id="cb5-7" data-line-number="7">                      <span class="dt">s.anno =</span> anno.sheet,</a>
-<a class="sourceLine" id="cb5-8" data-line-number="8">                      <span class="dt">s.id.col =</span> <span class="st">&quot;ind_IPC&quot;</span>,</a>
-<a class="sourceLine" id="cb5-9" data-line-number="9">                      <span class="dt">tab.sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">idat.dir &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/&quot;</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2">plink.dir &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO/&quot;</span></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3">anno.sheet &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv&quot;</span></a>
+<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="kw">qtl.setOption</span>(<span class="dt">hdf5dump=</span><span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb6-5" data-line-number="5"><span class="kw">setHDF5DumpDir</span>(<span class="st">&quot;/DEEP_fhgfs/projects/mscherer/deep/tmp/&quot;</span>)</a>
+<a class="sourceLine" id="cb6-6" data-line-number="6">imp.data &lt;-<span class="st"> </span><span class="kw">do.import</span>(<span class="dt">data.location =</span> <span class="kw">c</span>(<span class="dt">idat.dir=</span>idat.dir,<span class="dt">geno.dir=</span>plink.dir),</a>
+<a class="sourceLine" id="cb6-7" data-line-number="7">                      <span class="dt">s.anno =</span> anno.sheet,</a>
+<a class="sourceLine" id="cb6-8" data-line-number="8">                      <span class="dt">s.id.col =</span> <span class="st">&quot;ind_IPC&quot;</span>,</a>
+<a class="sourceLine" id="cb6-9" data-line-number="9">                      <span class="dt">tab.sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>)</a></code></pre></div>
 <pre><code>## 2020-06-24 12:36:27     1.3  STATUS STARTED Import methQTL data
 ## 2020-06-24 12:36:27     1.3  STATUS     STARTED Processing genotyping data
 ## 2020-06-24 12:36:36     1.7    INFO         Loading system default for option &#39;plink.path&#39;
@@ -133,19 +141,19 @@
 ## 2020-06-24 12:45:06     3.1  STATUS     COMPLETED Processing DNA methylation data
 ## 2020-06-24 12:45:06     3.1  STATUS COMPLETED Import methQTL data</code></pre>
 <p>For imputed data, no further processing is performed on the genotyping data and the dosage values are used as they are:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">idat.dir &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/&quot;</span></a>
-<a class="sourceLine" id="cb7-2" data-line-number="2">geno.dir &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO_IMPUTED/&quot;</span></a>
-<a class="sourceLine" id="cb7-3" data-line-number="3">anno.sheet &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv&quot;</span></a>
-<a class="sourceLine" id="cb7-4" data-line-number="4"><span class="kw">qtl.setOption</span>(<span class="dt">hdf5dump=</span><span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb7-5" data-line-number="5">imp.data &lt;-<span class="st"> </span><span class="kw">do.import</span>(<span class="dt">data.location =</span> <span class="kw">c</span>(<span class="dt">idat.dir=</span>idat.dir,<span class="dt">geno.dir=</span>geno.dir),</a>
-<a class="sourceLine" id="cb7-6" data-line-number="6">                      <span class="dt">s.anno =</span> anno.sheet,</a>
-<a class="sourceLine" id="cb7-7" data-line-number="7">                      <span class="dt">s.id.col =</span> <span class="st">&quot;ind_IPC&quot;</span>,</a>
-<a class="sourceLine" id="cb7-8" data-line-number="8">                      <span class="dt">tab.sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>,</a>
-<a class="sourceLine" id="cb7-9" data-line-number="9">                      <span class="dt">out.folder =</span> <span class="kw">getwd</span>())</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">idat.dir &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/&quot;</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">geno.dir &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO_IMPUTED/&quot;</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3">anno.sheet &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv&quot;</span></a>
+<a class="sourceLine" id="cb8-4" data-line-number="4"><span class="kw">qtl.setOption</span>(<span class="dt">hdf5dump=</span><span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb8-5" data-line-number="5">imp.data &lt;-<span class="st"> </span><span class="kw">do.import</span>(<span class="dt">data.location =</span> <span class="kw">c</span>(<span class="dt">idat.dir=</span>idat.dir,<span class="dt">geno.dir=</span>geno.dir),</a>
+<a class="sourceLine" id="cb8-6" data-line-number="6">                      <span class="dt">s.anno =</span> anno.sheet,</a>
+<a class="sourceLine" id="cb8-7" data-line-number="7">                      <span class="dt">s.id.col =</span> <span class="st">&quot;ind_IPC&quot;</span>,</a>
+<a class="sourceLine" id="cb8-8" data-line-number="8">                      <span class="dt">tab.sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>,</a>
+<a class="sourceLine" id="cb8-9" data-line-number="9">                      <span class="dt">out.folder =</span> <span class="kw">getwd</span>())</a></code></pre></div>
 <p>Please note that the <code>recode.allele.frequencies</code> option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies found. Alternatively, a path to a local version of dbSNP <span class="citation" data-cites="Sherry2001">(Sherry et al. 2001)</span> can be provided through <code>db.snp.ref</code>, and reference/alternative allele information will be automatically parsed from the database. This is especially crucial, if imputation is to be performed, since the Michigan Imputation Server is sensitive to reference mismatches.</p>
 <h1 id="methqtl-calling">methQTL calling</h1>
 <p>Although <em>methQTL</em> conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input <code>methQTLInput</code> object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter, or as global parameters using <code>?qtl.setOption</code>.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">meth.qtl.res &lt;-<span class="st"> </span><span class="kw">do.methQTL</span>(imp.data)</a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">meth.qtl.res &lt;-<span class="st"> </span><span class="kw">do.methQTL</span>(imp.data)</a></code></pre></div>
 <pre><code>## 2020-06-24 12:45:06     3.1    INFO Loading default option setting
 ## 2020-06-24 12:45:08     3.1  STATUS STARTED Imputation procedure knn 
 ## 2020-06-24 12:45:15     3.1  STATUS COMPLETED Imputation procedure knn 
@@ -701,8 +709,8 @@
 <h2 id="how-to-use-methqtlresult">How to use <em>methQTLResult</em></h2>
 <p>The above procedure will create an object of class <code>methQTLResult</code>, which contains the methQTL that are called in the previous step. To get a table of all the methQTL, you need to extract the information from the object. In the majority of the function calls below, there is the option <code>type</code>, which takes on the values: * ‘SNP’: To characterize the SNPs that influence any DNA methylation state * ‘CpG’: To characterize the representative CpGs per correlation block that are influences by any genotype * ‘cor.block’: To characterize all CpGs, which are part of a correlation block, whose representative CpG is influenced by any genotype</p>
 <p>Furthermore, you can obtain genomic annotations for both the CpGs and the SNPs involved in the methQTL interactions:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">result.table &lt;-<span class="st"> </span><span class="kw">getResult</span>(meth.qtl.res)</a>
-<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="kw">head</span>(result.table)</a></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">result.table &lt;-<span class="st"> </span><span class="kw">getResult</span>(meth.qtl.res)</a>
+<a class="sourceLine" id="cb11-2" data-line-number="2"><span class="kw">head</span>(result.table)</a></code></pre></div>
 <pre><code>##           CpG       SNP       Beta     SE.Beta      P.value Chromosome
 ## 59 cg00090105  rs185580 -0.1662472 0.009373958 2.064279e-06       chr1
 ## 80 cg00102184 rs6685121  0.1838105 0.012800985 7.142140e-06       chr1
@@ -717,8 +725,8 @@
 ## 75    224268136    224395782  -127646             1
 ## 62    182859418    182519861   339557             1
 ## 26     64435362     64525961   -90599             1</code></pre>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">anno.meth &lt;-<span class="st"> </span><span class="kw">getAnno</span>(meth.qtl.res,<span class="st">&quot;meth&quot;</span>)</a>
-<a class="sourceLine" id="cb12-2" data-line-number="2"><span class="kw">head</span>(anno.meth)</a></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">anno.meth &lt;-<span class="st"> </span><span class="kw">getAnno</span>(meth.qtl.res,<span class="st">&quot;meth&quot;</span>)</a>
+<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="kw">head</span>(anno.meth)</a></code></pre></div>
 <pre><code>##            Chromosome  Start    End Strand Strand.1 AddressA AddressB Design
 ## cg26928153       chr1  10848  10849      -        - 91693541 47784201      I
 ## cg16269199       chr1  10850  10851      -        - 82663207  3701821      I
@@ -747,8 +755,8 @@
 ## cg15560884         0              0
 ## cg01014490         0              0
 ## cg10692041         0              0</code></pre>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">anno.geno &lt;-<span class="st"> </span><span class="kw">getAnno</span>(meth.qtl.res,<span class="st">&quot;geno&quot;</span>)</a>
-<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="kw">head</span>(anno.geno)</a></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">anno.geno &lt;-<span class="st"> </span><span class="kw">getAnno</span>(meth.qtl.res,<span class="st">&quot;geno&quot;</span>)</a>
+<a class="sourceLine" id="cb15-2" data-line-number="2"><span class="kw">head</span>(anno.geno)</a></code></pre></div>
 <pre><code>##            Chromosome  Start cM Allele.1 Allele.2 Allele.1.Freq Allele.2.Freq
 ## rs3094315        chr1 752566 NA        A        G        0.7500        0.2500
 ## rs3131972        chr1 752721 NA        G        A        0.7500        0.2500
@@ -759,32 +767,33 @@
 <p>For more detailed information about the output, also see the function <code>getResults.GWASMap</code>.</p>
 <h2 id="plots">Plots</h2>
 <p>To visualize methQTL, the package provides some plotting functions. All functions return an object of type <code>ggplot</code>, which can be subsequently stored or viewed. Either all methQTL can be simultaneously visualized in a single plot, or a specific methQTL can be visualized:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">result.table &lt;-<span class="st"> </span>result.table[<span class="kw">order</span>(result.table<span class="op">$</span>P.value,<span class="dt">decreasing=</span>F),]</a>
-<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="kw">qtl.plot.SNP.CpG.interaction</span>(imp.data,result.table<span class="op">$</span>CpG[<span class="dv">1</span>],result.table<span class="op">$</span>SNP[<span class="dv">1</span>])</a></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">result.table &lt;-<span class="st"> </span>result.table[<span class="kw">order</span>(result.table<span class="op">$</span>P.value,<span class="dt">decreasing=</span>F),]</a>
+<a class="sourceLine" id="cb17-2" data-line-number="2"><span class="kw">qtl.plot.SNP.CpG.interaction</span>(imp.data,result.table<span class="op">$</span>CpG[<span class="dv">1</span>],result.table<span class="op">$</span>SNP[<span class="dv">1</span>])</a></code></pre></div>
 <figure>
 <img src="figure/plots-1.png" alt="plot of chunk plots" /><figcaption>plot of chunk plots</figcaption>
 </figure>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="kw">qtl.distance.scatterplot</span>(meth.qtl.res)</a></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1"><span class="kw">qtl.distance.scatterplot</span>(meth.qtl.res)</a></code></pre></div>
 <figure>
 <img src="figure/plots-2.png" alt="plot of chunk plots" /><figcaption>plot of chunk plots</figcaption>
 </figure>
 <h2 id="interpretation-functions">Interpretation functions</h2>
 <p>The package provides a bunch of interpretation functions to characterize the detected methQTLs. This includes LOLA enrichment analysis<span class="citation" data-cites="LOLA">(Sheffield and Bock 2016)</span> (<code>qtl.lola.enrichment</code>), genomic annotation enrichment based on putative regulatory elements defined by the Ensembl Regulatory Build<span class="citation" data-cites="Zerbino2015">(Zerbino et al. 2015)</span> (<code>qtl.annotation.enrichment</code>), enrichment analysis of different base substitutions in SNPs (<code>qtl.base.substitution.enrichment</code>), or TFBS motif enrichment using <a href="http://bioconductor.org/packages/release/bioc/html/TFBSTools.html">TFBSTools</a>. Enrichment is compared for the methQTLs that are available in the provided <code>methQTLResult</code> (for a single input), or to the overlapping QTLs for a list of <code>methQTLResult</code>. The background of the enrichment is defined as all the SNPs/CpGs that have been used as input to the methQTL calling.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">res &lt;-<span class="st"> </span><span class="kw">qtl.base.substitution.enrichment</span>(meth.qtl.res)</a></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="kw">qtl.plot.base.substitution</span>(meth.qtl.res,<span class="dt">merge=</span><span class="ot">TRUE</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1">res &lt;-<span class="st"> </span><span class="kw">qtl.base.substitution.enrichment</span>(meth.qtl.res)</a></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1"><span class="kw">qtl.plot.base.substitution</span>(meth.qtl.res,<span class="dt">merge=</span><span class="ot">TRUE</span>)</a></code></pre></div>
 <h2 id="lists-of-methqtl-results">Lists of methQTL results</h2>
 <p>Most of the functions discussed above either support a single <code>methQTLResult</code> as input, or a list of such objects. In case a list is specified, the functions will typically overlap the methQTLs found and compare those with all SNPs/CpGs that have been used for methQTL calling. Additionally, there are functions that particularly work on a list of <code>methQTLResult</code> objects and that perform overlapping, or determine the methQTLs specific to a dataset.</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1">meth.qtl.list &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">First=</span>meth.qtl.res<span class="fl">.1</span>,<span class="dt">Second=</span>meth.qtl.res<span class="fl">.2</span>,<span class="dt">Third=</span>meth.qtl.res<span class="fl">.3</span>)</a>
-<a class="sourceLine" id="cb20-2" data-line-number="2"><span class="kw">qtl.venn.plot</span>(meth.qtl.list)</a>
-<a class="sourceLine" id="cb20-3" data-line-number="3"><span class="kw">qtl.upset.plot</span>(meth.qtl.list,<span class="dt">type =</span> <span class="st">&quot;cor.block&quot;</span>)</a>
-<a class="sourceLine" id="cb20-4" data-line-number="4">spec.first &lt;-<span class="st"> </span><span class="kw">get.specific.qtl</span>(meth.qtl.list<span class="op">$</span>First,meth.qtl.list[<span class="op">-</span><span class="dv">1</span>])</a></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">meth.qtl.list &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">First=</span>meth.qtl.res<span class="fl">.1</span>,<span class="dt">Second=</span>meth.qtl.res<span class="fl">.2</span>,<span class="dt">Third=</span>meth.qtl.res<span class="fl">.3</span>)</a>
+<a class="sourceLine" id="cb21-2" data-line-number="2"><span class="kw">qtl.venn.plot</span>(meth.qtl.list)</a>
+<a class="sourceLine" id="cb21-3" data-line-number="3"><span class="kw">qtl.upset.plot</span>(meth.qtl.list,<span class="dt">type =</span> <span class="st">&quot;cor.block&quot;</span>)</a>
+<a class="sourceLine" id="cb21-4" data-line-number="4">spec.first &lt;-<span class="st"> </span><span class="kw">get.specific.qtl</span>(meth.qtl.list<span class="op">$</span>First,meth.qtl.list[<span class="op">-</span><span class="dv">1</span>])</a></code></pre></div>
 <h1 id="advanced-configuration">Advanced configuration</h1>
 <h2 id="employ-methqtl-on-a-scientific-compute-cluster">Employ methQTL on a scientific compute cluster</h2>
 <p><em>methQTL</em> can automatically distribute jobs across a high performance compute cluster, which has been setup using the Sun Grid Engine (SGE) technology. You can pass the option <code>cluster.submit</code> to <code>do.methQTL</code> and thus activate the cluster submission. Note that you’ll also have to specify a path to an executable <em>Rscript</em> and potentially specify resource requirements using the option setting <code>cluster.config</code>.</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="kw">qtl.setOption</span>(<span class="dt">cluster.config =</span> <span class="kw">c</span>(<span class="dt">h_vmem=</span><span class="st">&quot;60G&quot;</span>,<span class="dt">mem_free=</span><span class="st">&quot;20G&quot;</span>))</a>
-<a class="sourceLine" id="cb21-2" data-line-number="2"><span class="kw">qtl.setOption</span>(<span class="dt">rscript.path =</span> <span class="st">&quot;/usr/bin/Rscript&quot;</span>)</a>
-<a class="sourceLine" id="cb21-3" data-line-number="3">meth.qtl.res &lt;-<span class="st"> </span><span class="kw">do.methQTL</span>(<span class="dt">meth.qtl =</span> imp.data,</a>
-<a class="sourceLine" id="cb21-4" data-line-number="4">                          <span class="dt">cluster.submit =</span> T)</a></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1"><span class="kw">qtl.setOption</span>(<span class="dt">cluster.config =</span> <span class="kw">c</span>(<span class="dt">h_vmem=</span><span class="st">&quot;60G&quot;</span>,<span class="dt">mem_free=</span><span class="st">&quot;20G&quot;</span>))</a>
+<a class="sourceLine" id="cb22-2" data-line-number="2"><span class="kw">qtl.setOption</span>(<span class="dt">rscript.path =</span> <span class="st">&quot;/usr/bin/Rscript&quot;</span>)</a>
+<a class="sourceLine" id="cb22-3" data-line-number="3">meth.qtl.res &lt;-<span class="st"> </span><span class="kw">do.methQTL</span>(<span class="dt">meth.qtl =</span> imp.data,</a>
+<a class="sourceLine" id="cb22-4" data-line-number="4">                          <span class="dt">cluster.submit =</span> T)</a></code></pre></div>
+<h1 id="references" class="unnumbered">References</h1>
 <div id="refs" class="references">
 <div id="ref-Ongen2016">
 <p>Ongen, Halit, Alfonso Buil, Andrew Anand Brown, Emmanouil T. Dermitzakis, and Olivier Delaneau. 2016. “Fast and efficient QTL mapper for thousands of molecular phenotypes.” <em>Bioinformatics</em> 32 (10): 1479–85. <a href="https://doi.org/10.1093/bioinformatics/btv722">https://doi.org/10.1093/bioinformatics/btv722</a>.</p>

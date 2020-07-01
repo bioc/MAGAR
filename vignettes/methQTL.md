@@ -7,7 +7,15 @@ This vignette describes the [*methQTL* R-package](https://github.com/MPIIComputa
 
 # Installation
 
-The package can be directly installed from GitHub, after installing the *devtools* package.
+The package relies on some dependencies that are exclusively available from Bioconductor and not from CRAN, most notably [*RnBeads*](https://rnbeads.org). After installing the dependencies, *methQTL* can be installed from GitHub, after installing the *devtools* package.
+```r
+if(!requireNamespace("devtools")) install.packages("devtools")
+source("https://rnbeads.org/data/install.R")
+if(!requireNamespace("methQTL")){
+  devtools::install_github("MPIIComputationalEpigenetics/methQTL-package")
+}  
+suppressPackageStartupMessages(library(methQTL))
+```
 
 # Input data
 
@@ -904,3 +912,4 @@ qtl.setOption(rscript.path = "/usr/bin/Rscript")
 meth.qtl.res <- do.methQTL(meth.qtl = imp.data,
                           cluster.submit = T)
 ```
+# References
