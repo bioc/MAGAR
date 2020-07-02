@@ -268,20 +268,20 @@ setMethod("getSamples",signature(object="methQTLInput"),
           }
 )
 
-if(!isGeneric("impute.meth")) setGeneric("impute.meth",function(object) standardGeneric("impute.meth"))
+if(!isGeneric("imputeMeth")) setGeneric("imputeMeth",function(object) standardGeneric("imputeMeth"))
 
-#' impute.meth
+#' imputeMeth
 #'
 #' Replaces missing values in the DNA methylation data matrix by imputed values
 #'
 #' @param object An object of class \code{\link{methQTLInput-class}}.
 #' @return The object with imputed values.
 #'
-#' @rdname impute.meth
+#' @rdname imputeMeth
 #' @docType methods
-#' @aliases impute.meth,methQTL-method
+#' @aliases imputeMeth,methQTL-method
 #' @export
-setMethod("impute.meth",signature(object="methQTLInput"),
+setMethod("imputeMeth",signature(object="methQTLInput"),
           function(object){
             rnb.xml2options(qtl.getOption("rnbeads.options"))
             if(!object@disk.dump){
@@ -312,18 +312,18 @@ setMethod("show","methQTLInput",
 
 if(!isGeneric("save.methQTL")) setGeneric("save.methQTL", function(object,...)standardGeneric("save.methQTL"))
 
-#' save.methQTL
+#' saveMethQTL
 #'
 #' This functions stores a methQTLInput object in disk.
 #'
 #' @param object The \code{\link{methQTLInput-class}} object to be stored on disk.
 #' @param path A path to a non-existing directory for files to be stored.
 #'
-#' @rdname save.methQTL
+#' @rdname saveMethQTL
 #' @docType methods
-#' @aliases save.methQTL,methQTL-method
+#' @aliases saveMethQTL,methQTL-method
 #' @author Michael Scherer
-setMethod("save.methQTL","methQTLInput",
+setMethod("saveMethQTL","methQTLInput",
           function(object,path){
             if(file.exists(path)){
               if(dir.exists(path)){
@@ -360,7 +360,7 @@ setMethod("save.methQTL","methQTLInput",
           }
 )
 
-#' load.methQTL
+#' loadMethQTL
 #'
 #' This functions load a \code{\link{methQTLInput-class}} object from disk.
 #'
@@ -368,7 +368,7 @@ setMethod("save.methQTL","methQTLInput",
 #' @return The object of type \code{\link{methQTLInput-class}} that has been stored on disk.
 #' @author Michael Scherer
 #' @export
-load.methQTL <- function(path){
+loadMethQTL <- function(path){
   if(any(!(file.exists(file.path(path,"meth_data.RDS"))||file.exists(file.path(path,"meth_data.h5"))),
          !(file.exists(file.path(path,"geno_data.RDS"))||file.exists(file.path(path,"geno_data.h5"))),
          !file.exists(file.path(path,"anno_meth.RDS")),

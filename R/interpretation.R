@@ -6,7 +6,7 @@
 # functions to interpret methQTL results including LOLA and GO enrichments
 ##########################################################################################
 
-#' qtl.lola.enrichment
+#' qtlLOLAEnrichment
 #'
 #' This functions performn LOLA enrichment analysis for the methQTL sites or the sites that are
 #' shared across all methQTLs in the input list.
@@ -24,9 +24,9 @@
 #'  that have been tested.
 #' @author Michael Scherer
 #' @export
-qtl.lola.enrichment <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19"){
+qtlLOLAEnrichment <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19"){
   if(requireNamespace("LOLA")){
-    stats <- get.overlap.universe(meth.qtl.res,type)
+    stats <- getOverlapUniverse(meth.qtl.res,type)
     all.input <- stats$all.input
     all.qtl <- stats$all.qtl
     if(is.null(lola.db)){
@@ -38,7 +38,7 @@ qtl.lola.enrichment <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="h
   }
 }
 
-#' qtl.annotation.enrichment
+#' qtlAnnotationEnrichment
 #'
 #' This functions performs enrichment analysis using the Fisher's test for the methQTLs detected
 #' with respect to different genomic annotations.
@@ -56,7 +56,7 @@ qtl.lola.enrichment <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="h
 #'    that have been tested.
 #' @author Michael Scherer
 #' @export
-qtl.annotation.enrichment <- function(meth.qtl.res,
+qtlAnnotationEnrichment <- function(meth.qtl.res,
                                       type="SNP",
                                       annotation="cpgislands"){
   ensembl.anno <- c("ctcf","distal","dnase","proximal","tfbs","tss")
@@ -74,7 +74,7 @@ qtl.annotation.enrichment <- function(meth.qtl.res,
   if(!(type%in%c("SNP","CpG","cor.block"))){
     stop("Invalif value for type, needs to be 'SNP','CpG', or 'cor.block'")
   }
-  stats <- get.overlap.universe(meth.qtl.res,type)
+  stats <- getOverlapUniverse(meth.qtl.res,type)
   all.input <- stats$all.input
   all.qtl <- stats$all.qtl
   all.input <- all.input[!(names(all.input)%in%names(all.qtl))]
@@ -89,7 +89,7 @@ qtl.annotation.enrichment <- function(meth.qtl.res,
   return(list(enrichment=gr,depletion=le,OddsRatio=or))
 }
 
-#' qtl.base.substitution.enrichment
+#' qtlBaseSubstitutionEnrichment
 #'
 #' This function tests for enrichment of a specific base substitution in the methQTL interactions.
 #'
@@ -101,11 +101,11 @@ qtl.annotation.enrichment <- function(meth.qtl.res,
 #'   as input as the background.
 #' @author Michael Scherer
 #' @export
-qtl.base.substitution.enrichment <- function(meth.qtl.res,
+qtlBaseSubstitutionEnrichment <- function(meth.qtl.res,
 					merge=F){
-  stats <- get.overlap.universe(meth.qtl.res,type="SNP")
+  stats <- getOverlapUniverse(meth.qtl.res,type="SNP")
   if(is.list(meth.qtl.res)){
-    anno.cpgs <- overlap.inputs(meth.qtl.res,type="SNP")
+    anno.cpgs <- overlapInputs(meth.qtl.res,type="SNP")
   }else{
     anno.cpgs <- getAnno(meth.qtl.res,"geno")
   }
@@ -152,7 +152,7 @@ qtl.base.substitution.enrichment <- function(meth.qtl.res,
   return(enr.all)
 }
 
-#' qtl.tfbs.motif.enrichment
+#' qtlTFBSMotifEnrichment
 #'
 #' This function performs TFBS enrichment analysis for the methQTL SNPs/CpGs detected and returns overrepresented
 #' binding motifs.
@@ -175,7 +175,7 @@ qtl.base.substitution.enrichment <- function(meth.qtl.res,
 #'  that have been tested.
 #' @author Michael Scherer
 #' @export
-qtl.tfbs.motif.enrichment <- function(meth.qtl.res,
+qtlTFBSMotifEnrichment <- function(meth.qtl.res,
 	type="SNP",
 	size=500,
 	assembly="hg19",
@@ -186,7 +186,7 @@ qtl.tfbs.motif.enrichment <- function(meth.qtl.res,
     stop("Motif enrichment only supported for 'hg19' and 'hg38'")
   }
   if(requireNamespace("motifRG")&requireNamespace("TFBSTools")&requireNamespace("JASPAR2018")){
-    stats <- get.overlap.universe(meth.qtl.res,type)
+    stats <- getOverlapUniverse(meth.qtl.res,type)
     all.input <- stats$all.input
     all.input <- resize(all.input,width=size,fix="center")
     all.qtl <- stats$all.qtl

@@ -14,11 +14,11 @@ cmd.args <- ap$parse_args()
 logger.start(paste("Running on:",Sys.info()["nodename"]))
 
 logger.start("Configuring job")
-qtl.json2options(cmd.args$json)
+qtlJSON2options(cmd.args$json)
 logger.completed()
 
 logger.start("Loading methQTL object")
-meth.qtl <- load.methQTL(cmd.args$methQTL)
+meth.qtl <- loadMethQTL(cmd.args$methQTL)
 logger.completed()
 
 if(!is.null(cmd.args$covariates)){
@@ -32,10 +32,10 @@ if(!is.null(cmd.args$covariates)){
 p.val <- as.numeric(cmd.args$p.val)
 ncores <- as.numeric(cmd.args$ncores)
 
-methQTL.res <- do.methQTL.chromosome(meth.qtl,cmd.args$chr,sel.covariates = covs,p.val.cutoff = p.val, out.dir=cmd.args$output,
+methQTL.res <- doMethQTLChromosome(meth.qtl,cmd.args$chr,sel.covariates = covs,p.val.cutoff = p.val, out.dir=cmd.args$output,
                                      ncores=ncores)
 
 logger.start("Saving results")
 path.save <- file.path(cmd.args$output,paste0("methQTLResult_",cmd.args$chr))
-save.methQTLResult(methQTL.res,path.save)
+saveMethQTLResult(methQTL.res,path.save)
 logger.completed()

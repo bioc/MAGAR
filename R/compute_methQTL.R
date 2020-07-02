@@ -6,7 +6,7 @@
 # Methods to call methQTL from DNA methylation and genotyping data.
 ##########################################################################################
 
-#' do.methQTL
+#' doMethQTL
 #'
 #' Function to compute methQTL given DNA methylation and genotyping data.
 #'
@@ -31,9 +31,10 @@
 #'              as input are computed.}
 #'            \item{4}{For each of the CpG correlation blocks, we report the p-value of the representative CpG.}
 #'          }
+#' @seealso doMethQTLChromosome
 #' @author Michael Scherer
 #' @export
-do.methQTL <- function(meth.qtl,
+doMethQTL <- function(meth.qtl,
                        sel.covariates=NULL,
                        p.val.cutoff=1e-5,
                        ncores=1,
@@ -55,7 +56,7 @@ do.methQTL <- function(meth.qtl,
     }
   }
   if(!meth.qtl@imputed){
-    meth.qtl <- impute.meth(meth.qtl)
+    meth.qtl <- imputeMeth(meth.qtl)
   }
   all.chroms <- unique(getAnno(meth.qtl)$Chromosome)
   res.all <- list()
@@ -64,23 +65,23 @@ do.methQTL <- function(meth.qtl,
     if(ncores>1){
       parallel.setup(ncores)
       res.all <- foreach(chrom=all.chroms,.combine="c") %dopar%{
-        do.methQTL.chromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff)
+        doMethQTLChromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff)
       }
     }else{
       for(chrom in all.chroms){
-        res.chrom <- do.methQTL.chromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir)
+        res.chrom <- doMethQTLChromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir)
         res.all[[chrom]] <- res.chrom
       }
     }
-    res.all <- join.methQTLResult(res.all)
+    res.all <- joinMethQTLResult(res.all)
   }else{
-    res.all <- submit.cluster.jobs(meth.qtl,sel.covariates,p.val.cutoff,out.dir,ncores = ncores)
+    res.all <- submitClusterJobs(meth.qtl,sel.covariates,p.val.cutoff,out.dir,ncores = ncores)
   }
   logger.completed()
   return(res.all)
 }
 
-#' do.methQTL.chromosome
+#' doMethQTLChromosome
 #'
 #' This functions computes the methQTL interactions for a single chromosome
 #'
@@ -102,16 +103,17 @@ do.methQTL <- function(meth.qtl,
 #'          \item{Position.SNP}{The genomic position of the SNP}
 #'          \item{Distance}{The distance between the CpG and the SNP}
 #'        }
+#' @seealso doMethQTL
 #' @author Michael Scherer
 #' @export
-do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir=NULL,ncores=1){
+doMethQTLChromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir=NULL,ncores=1){
   logger.start(paste("Computing methQTL for chromosome",chrom))
   anno <- getAnno(meth.qtl,"meth")
   sel.meth <- which(anno$Chromosome %in% chrom)
   sel.anno <- anno[sel.meth,]
   sel.meth <- getMethData(meth.qtl)[sel.meth,]
   if(qtl.getOption('compute.cor.blocks')){
-    cor.blocks <- compute.correlation.blocks(sel.meth,sel.anno,assembly=meth.qtl@assembly,chromosome=chrom,segmentation=meth.qtl@segmentation)
+    cor.blocks <- computeCorrelationBlocks(sel.meth,sel.anno,assembly=meth.qtl@assembly,chromosome=chrom,segmentation=meth.qtl@segmentation)
     cor.blocks <- lapply(cor.blocks,as.numeric)
     if(!is.null(out.dir)){
       to.plot <- data.frame(Size=lengths(cor.blocks))
@@ -148,8 +150,8 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
   }
   if(qtl.getOption("meth.qtl.type")=="fastQTL"){
     logger.start("Running FastQTL")
-    prep.fast.qtl <- generate.fastQTL.input(meth.qtl,chrom,cor.blocks,ph.dat,out.dir=out.dir)
-    res.chr.p.val <- run.fastQTL(prep.fast.qtl,meth.qtl,chrom,out.dir)
+    prep.fast.qtl <- generateFastQTLInput(meth.qtl,chrom,cor.blocks,ph.dat,out.dir=out.dir)
+    res.chr.p.val <- runFastQTL(prep.fast.qtl,meth.qtl,chrom,out.dir)
     logger.completed()
   }else{
     logger.start("Compute methQTL per correlation block")
@@ -205,10 +207,7 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
   return(methQTL.result)
 }
 
-#' call.methQTL.block
-#'
-#' NOTE by TL: Choosing the best CpG might lead to detecting only outliers. It might thus be better to choose a
-#' representative by correlation block.
+#' callMethQTLBlock
 #'
 #' This function computes a methQTL per correlation block.
 #' @param cor.block A single correlation block as determined by \code{\link{compute.correlation.blocks}}
@@ -241,12 +240,12 @@ do.methQTL.chromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out
 #'     p-value and return it.
 #' @author Michael Scherer
 #' @export
-call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno.geno,
+callMethQTLBlock <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno.geno,
                                model.type=qtl.getOption("linear.model.type"),
                                n.permutations=qtl.getOption("n.permutations")){
   # computing CpG-wise medians across the samples
   # then order the CpGs by value and select the one in the middle
-  reps <- compute.representative.CpG(cor.block,meth.data,anno.meth)
+  reps <- computeRepresentativeCpG(cor.block,meth.data,anno.meth)
   sel.anno <- reps$anno
   reps <- as.vector(reps$meth)
   distances <- abs(anno.geno$Start - sel.anno$Start)
@@ -388,7 +387,7 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
   return(min.p.val)
 }
 
-#' compute.representative.CpG
+#' computeRepresentativeCpG
 #'
 #' This function computes respresentative CpGs per correlation blocks given and return the methylation data matrix
 #' and genomic annotation of these representatives.
@@ -402,7 +401,7 @@ call.methQTL.block <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno
 #' }
 #' @author Michael Scherer
 #' @noRd
-compute.representative.CpG <- function(cor.blocks,meth.data,annotation){
+computeRepresentativeCpG <- function(cor.blocks,meth.data,annotation){
   res.meth <- c()
   res.anno <- c()
   repr.type <- qtl.getOption("representative.cpg.computation")
@@ -460,7 +459,7 @@ compute.representative.CpG <- function(cor.blocks,meth.data,annotation){
   }
 }
 
-#' run.fastQTL
+#' runFastQTL
 #'
 #' This functions runs fastQTL on the specified input prepared using \code{generate.fastQTL.input}
 #'
@@ -471,7 +470,7 @@ compute.representative.CpG <- function(cor.blocks,meth.data,annotation){
 #' @return A \code{data.frame} in analogy to \code{\link{call.methQTL.block}}
 #' @author Michael Scherer
 #' @noRd
-run.fastQTL <- function(prepared.input,
+runFastQTL <- function(prepared.input,
                         meth.qtl,
                         chrom,
                         out.dir){

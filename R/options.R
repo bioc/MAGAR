@@ -57,7 +57,7 @@ assign("IMPUTATION.REFERENCE.PANEL","apps@hrc-r1.1",QTL.OPTIONS)
 assign("IMPUTATION.PHASING.METHOD","shapeit",QTL.OPTIONS)
 assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 
-#' qtl.setOption
+#' qtlSetOption
 #'
 #' Change global options for methQTL calculation
 #'
@@ -159,7 +159,7 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #'    https://doi.org/10.1038/ng.3656
 #'   3. Sherry, S. T. et al. (2001). dbSNP: the NCBI database of genetic variation.
 #'    Nucleic Acids Res. 29, 308–311, https://doi.org/10.1093/nar/29.1.308.
-qtl.setOption <- function(rnbeads.options=NULL,
+qtlSetOption <- function(rnbeads.options=NULL,
                        meth.data.type="idat.dir",
                        geno.data.type="plink",
                        rnbeads.report="temp",
@@ -495,7 +495,7 @@ qtl.setOption <- function(rnbeads.options=NULL,
   }
 }
 
-#' qtl.getOption
+#' qtlGetOption
 #' Print the value of the global option
 #'
 #' @param names string or character vector containing the names of the options to be printed. All options are listed in \code{\link{qtl.setOption}}
@@ -503,7 +503,7 @@ qtl.setOption <- function(rnbeads.options=NULL,
 #' @return the option for the specified option
 #' @author Michael Scherer
 #' @export
-qtl.getOption <- function(names){
+qtlGetOption <- function(names){
   if(!all(names %in% QTL.OPTIONS[['ALL']])){
     stop(paste0('No option(s) available named: ',names[!(names%in%QTL.OPTIONS[['ALL']])]))
   }
@@ -648,7 +648,7 @@ qtl.getOption <- function(names){
   return(ret[names])
 }
 
-#' qtl.options2json
+#' qtlOptions2JSON
 #'
 #' This function stores the current options setting as a JSON file at the specified path
 #'
@@ -656,11 +656,11 @@ qtl.getOption <- function(names){
 #' @author Michael Scherer
 #' @export
 #' @examples {
-#'   qtl.setOption('cluster.cor.threshold'=0.5)
-#'   qtl.options2json("my_opts.json")
-#'   qtl.json2options("my_opts.json")
+#'   qtlSetOption('cluster.cor.threshold'=0.5)
+#'   qtlOptions2JSON("my_opts.json")
+#'   qtlJSON2options("my_opts.json")
 #' }
-qtl.options2json <- function(path=file.path(getwd(),"methQTL_options.json")){
+qtlOptions2JSON <- function(path=file.path(getwd(),"methQTL_options.json")){
   all.options <- as.list(QTL.OPTIONS)
   all.options <- all.options[!(names(all.options) %in% "ALL")]
   names(all.options) <- sapply(names(all.options),tolower)
@@ -668,14 +668,14 @@ qtl.options2json <- function(path=file.path(getwd(),"methQTL_options.json")){
   write(all.options,path)
 }
 
-#' qtl.json2options
+#' qtlJSON2options
 #'
 #' This function reads an option setting from a JSON file and applies them to the current session
 #'
 #' @param path Path to a JSON file containing the options to be specified
 #' @author Michael Scherer
 #' @export
-qtl.json2options <- function(path){
+qtlJSON2options <- function(path){
   if(!file.exists(path) || !grepl(".json",path,ignore.case = T)){
     logger.error("Invalid value for path, needs to be a JSON file")
   }
@@ -687,5 +687,5 @@ qtl.json2options <- function(path){
 	   opt
 	}
   })
-  do.call(qtl.setOption,all.options)
+  do.call(qtlSetOption,all.options)
 }

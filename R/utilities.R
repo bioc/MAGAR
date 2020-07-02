@@ -6,7 +6,7 @@
 # utitiliy functions
 ##########################################################################################
 
-#' overlap.QTLs
+#' overlapQTLs
 #'
 #' This function overlaps a list of methQTLs to determine which interactions are common.
 #'
@@ -18,7 +18,7 @@
 #'     interactions according to the option \code{type}.
 #' @author Michael Scherer
 #' @export
-overlap.QTLs <- function(meth.qtl.result.list,type){
+overlapQTLs <- function(meth.qtl.result.list,type){
   if(!type %in% c("CpG","SNP",'cor.block')){
     stop("Invalid value for type, needs to be 'CpG', 'SNP', or 'cor.block'")
   }
@@ -121,7 +121,7 @@ overlap.QTLs <- function(meth.qtl.result.list,type){
   return(res.all)
 }
 
-#' overlap.inputs
+#' overlapInputs
 #'
 #' Overlaps the input annotations
 #'
@@ -130,7 +130,7 @@ overlap.QTLs <- function(meth.qtl.result.list,type){
 #' @return A data frame containing the annotations of the unique input values.
 #' @author Michael Scherer
 #' @export
-overlap.inputs <- function(meth.qtl.list,type){
+overlapInputs <- function(meth.qtl.list,type){
   if(!(inherits(meth.qtl.list[[1]],"methQTLResult")|inherits(meth.qtl.list[[1]],"methQTLInput"))){
     stop("Invalid value for meth.qtl.list, needs to be methQTLResult")
   }
@@ -157,7 +157,7 @@ overlap.inputs <- function(meth.qtl.list,type){
   return(all.input)
 }
 
-#' get.overlap.universe
+#' getOverlapUniverse
 #'
 #' This function overlaps results from a list of methQTLResults and returns the union of all
 #' the input data points used.
@@ -168,7 +168,7 @@ overlap.inputs <- function(meth.qtl.list,type){
 #'    union of input data points as elements \code{'all.qtl'} and \code{'all.input'}
 #' @author Michael Scherer
 #' @export
-get.overlap.universe <- function(meth.qtl.res,type){
+getOverlapUniverse <- function(meth.qtl.res,type){
   if(inherits(meth.qtl.res,"methQTLResult")){
     type.anno <- ifelse(type%in%c("CpG","cor.block"),"meth","geno")
     all.input <- getAnno(meth.qtl.res,type.anno)
@@ -222,7 +222,7 @@ get.overlap.universe <- function(meth.qtl.res,type){
   return(list("all.qtl"=all.qtl,"all.input"=all.input))
 }
 
-#' get.specific.qtl
+#' getSpecificQTL
 #'
 #' This function returns the methQTL interactions specific for a result
 #' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} for which specific QTLs are to be obtained.
@@ -231,7 +231,7 @@ get.overlap.universe <- function(meth.qtl.res,type){
 #' @return A \code{data.frame} of methQTL interactions sorted by the effect size.
 #' @author Michael Scherer
 #' @export
-get.specific.qtl <- function(meth.qtl.res,meth.qtl.background,type="SNP"){
+getSpecificQTL <- function(meth.qtl.res,meth.qtl.background,type="SNP"){
   if(!inherits(meth.qtl.res,"methQTLResult")){
     stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
   }
@@ -252,7 +252,7 @@ get.specific.qtl <- function(meth.qtl.res,meth.qtl.background,type="SNP"){
   #  sel.qtl <- !(res[,type] %in% shared.qtl)
   #}
   #res <- res[sel.qtl,]
-  op.qtl <- overlap.QTLs(c(meth.qtl.res,meth.qtl.background),type=type)
+  op.qtl <- overlapQTLs(c(meth.qtl.res,meth.qtl.background),type=type)
   op.qtl <- lapply(op.qtl,as.character)
   my.qtls <- op.qtl[[1]]
   if(length(op.qtl)>2){
@@ -280,7 +280,7 @@ get.specific.qtl <- function(meth.qtl.res,meth.qtl.background,type="SNP"){
   return(res[order(abs(res$P.value),decreasing=F),])
 }
 
-#' get.overlapping.qtl
+#' getOverlappingQTL
 #'
 #' This function merges the QTLs given and returns the methQTL table in a merged format.
 #'
@@ -290,7 +290,7 @@ get.specific.qtl <- function(meth.qtl.res,meth.qtl.background,type="SNP"){
 #'    displayed has been found. This value is generated from the \code{names()} argument of \code{meth.qtl.list}.
 #' @author Michael Scherer
 #' @export
-get.overlapping.qtl <- function(meth.qtl.list,type="SNP"){
+getOverlappingQTL <- function(meth.qtl.list,type="SNP"){
   op.qtl <- overlap.QTLs(meth.qtl.list,type=type)
   all.ops <- op.qtl[[1]]
   for(i in 1:length(op.qtl)){
@@ -321,7 +321,7 @@ get.overlapping.qtl <- function(meth.qtl.list,type="SNP"){
   return(res.all)
 }
 
-#' generate.fastQTL.input
+#' generateFastQTLInput
 #'
 #' This function generates the required input to FastQTL and stores the files on disk.
 #'
@@ -335,7 +335,7 @@ get.overlapping.qtl <- function(meth.qtl.list,type="SNP"){
 #'           \item{\code{phenotypes:}}{The path to the DNA methylation data file}
 #'           \item{\code{covariates:}}{The path to the covariates file}
 #' }
-generate.fastQTL.input <- function(meth.qtl,chrom,correlation.block,sel.covariates,out.dir){
+generateFastQTLInput <- function(meth.qtl,chrom,correlation.block,sel.covariates,out.dir){
   geno.data <- getGeno(meth.qtl)
   anno.geno <- getAnno(meth.qtl,"geno")
   geno.data <- geno.data[anno.geno$Chromosome%in%chrom,]
@@ -360,7 +360,7 @@ generate.fastQTL.input <- function(meth.qtl,chrom,correlation.block,sel.covariat
   anno.meth <- getAnno(meth.qtl)
   meth.data <- meth.data[anno.meth$Chromosome%in%chrom,]
   anno.meth <- anno.meth[anno.meth$Chromosome%in%chrom,]
-  reps <- compute.representative.CpG(correlation.block,meth.data,anno.meth)
+  reps <- computeRepresentativeCpG(correlation.block,meth.data,anno.meth)
   anno.meth <- reps$anno
   meth.data <- reps$meth
   pheno.frame <- data.frame(Chr=anno.meth$Chromosome,

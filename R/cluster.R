@@ -6,7 +6,7 @@
 # Methods to submit methQTL jobs to a SGE cluster.
 ##########################################################################################
 
-#' submit.cluster.jobs
+#' submitClusterJobs
 #'
 #' This functions distributes chromosome-wise methQTL jobs across a SGE high performance computing cluster
 #'
@@ -21,7 +21,7 @@
 #'  e.g. a SLURM architecture.
 #' @author Michael Scherer
 #' @noRd
-submit.cluster.jobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncores=1){
+submitClusterJobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncores=1){
   logger.start("Prepare cluster submission")
   json.path <- file.path(out.dir,"methQTL_configuration.json")
   qtl.options2json(json.path)
@@ -84,7 +84,7 @@ submit.cluster.jobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,nc
       finished <- T
     }
   }
-  methQTL.result <- load.methQTLResult(file.path(out.dir,"methQTLResult"))
+  methQTL.result <- loadMethQTLResult(file.path(out.dir,"methQTLResult"))
   logger.completed()
   return(methQTL.result)
 }

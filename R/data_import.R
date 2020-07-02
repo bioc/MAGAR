@@ -6,7 +6,7 @@
 # Methods to perform data import for methQTL analysis.
 ##########################################################################################
 
-#' do.import
+#' doImport
 #'
 #' Performs input for the given DNA methylation and genotyping data.
 #'
@@ -44,7 +44,7 @@
 #' @author Michael Scherer
 #' @export
 
-do.import <- function(data.location,
+doImport <- function(data.location,
                       s.anno=NULL,
                       assembly.meth="hg19",
                       assembly.geno="hg19",
@@ -74,11 +74,11 @@ do.import <- function(data.location,
   if(ncol(pheno.data)==1){
     logger.warning("Pheno data does only contain one column. Did you specify the wrong 'sep.tab'?")
   }
-  geno.import <- do.geno.import(data.location,pheno.data,s.id.col,out.folder,...)
+  geno.import <- doGenoImport(data.location,pheno.data,s.id.col,out.folder,...)
   pheno.data <- geno.import$pheno.data
   s.anno <- file.path(out.folder,ifelse(tab.sep==",","sample_annotation.csv","sample_annotation.tsv"))
   write.table(pheno.data,s.anno,sep=tab.sep)
-  meth.import <- do.meth.import(data.location,
+  meth.import <- doMethImport(data.location,
                                 assembly.meth,
                                 s.anno,
                                 s.id.col,
@@ -126,7 +126,7 @@ do.import <- function(data.location,
   return(dataset.import)
 }
 
-#' do.meth.import
+#' doMethImport
 #'
 #' This function performs import of DNA methylation data and basic preprocessing steps implemented in the \code{\link{RnBeads}} package.
 #'
@@ -152,7 +152,7 @@ do.import <- function(data.location,
 #'          specify another XML file with custom RnBeads options.
 #' @author Michael Scherer
 #' @noRd
-do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep=",",snp.location=NULL,out.folder=NULL,...){
+doMethImport <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep=",",snp.location=NULL,out.folder=NULL,...){
   logger.start("Processing DNA methylation data")
   rnb.xml2options(qtl.getOption("rnbeads.options"))
   rnb.options(identifiers.column=s.id.col,
@@ -196,7 +196,7 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
     rnb.imp <- remove.sites(rnb.imp,rem.sites)
     logger.completed()
   }
-  segmentation <- qtl.run.segmentation(rnb.imp,out.folder,...)
+  segmentation <- qtlRunSegmentation(rnb.imp,out.folder,...)
   s.names <- samples(rnb.imp)
   meth.data <- meth(rnb.imp)
   if(qtl.getOption("hdf5dump")){
@@ -207,7 +207,7 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
   return(list(samples=s.names,data=meth.data,annotation=anno.meth,platform=rnb.imp@target,segmentation=segmentation))
 }
 
-#' do.geno.import
+#' doGenoImport
 #'
 #' This routine performs data import and processing of genotyping data using the \code{PLINK} program.
 #'
@@ -225,7 +225,7 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
 #'        }
 #' @author Michael Scherer
 #' @noRd
-do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
+doGenoImport <- function(data.location,s.anno,s.id.col,out.folder,...){
   logger.start("Processing genotyping data")
   snp.loc <- data.location[["geno.dir"]]
   all.files <- list.files(snp.loc,full.names=T)
@@ -240,10 +240,10 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
       if(any(c(length(dos.file)==0,length(id.map)==0))){
         stop("Incompatible input to genotyping processing, needs to be in PLINK format (i.e. .bed, .bim and .fam files)")
       }
-      return(do.geno.import.imputed(dos.file,id.map,s.anno,s.id.col,out.folder,...))
+      return(doGenoImportImputed(dos.file,id.map,s.anno,s.id.col,out.folder,...))
     }
   }else if(data.type=="idat"){
-    res <- do.geno.import.idat(snp.loc,s.anno,s.id.col,out.folder,...)
+    res <- doGenoImportIDAT(snp.loc,s.anno,s.id.col,out.folder,...)
     bed.file <- res["bed.file"]
     bim.file <- res["bim.file"]
     fam.file <- res["fam.file"]
@@ -252,7 +252,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
     if(any(grepl("_",s.anno[,s.id.col]))){
 	stop("Underscores are not allowed in the sampleID if imputation is to be performed")
     }
-    res <- do.imputation(bed.file,
+    res <- doImputation(bed.file,
                          bim.file,
                          fam.file,
                          out.folder)
@@ -352,7 +352,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   return(list(data=snp.mat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col],imputed=FALSE))
 }
 
-#' do.geno.import.imputed
+#' doGenoImportImputed
 #'
 #' This function executes import of imputed genotyping data
 #'
@@ -375,7 +375,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
 #'  columns, where each entry is a continous numeric value containing the dosage.
 #' @author Michael Scherer
 #' @export
-do.geno.import.imputed <- function(dos.file,
+doGenoImportImputed <- function(dos.file,
                             id.map,
                             s.anno,
                             s.id.col,
@@ -461,7 +461,7 @@ match.assemblies <- function(meth.qtl){
   return(meth.qtl)
 }
 
-#' do.geno.import.idat
+#' doGenoImportIDAT
 #'
 #' This function imports genotyping data from IDAT files using the \code{'crlmm'} R-package
 #'
@@ -483,7 +483,7 @@ match.assemblies <- function(meth.qtl){
 #' }
 #' @author Michael Scherer
 #' @export
-do.geno.import.idat <- function(idat.files,
+doGenoImportIDAT <- function(idat.files,
                                    s.anno,
                                    s.id.col,
                                    out.dir,
@@ -644,7 +644,7 @@ do.geno.import.idat <- function(idat.files,
   ))
 }
 
-#' qtl.run.segmentation
+#' qtlRunSegmentation
 #'
 #' This function performs DNA methylation based segmentation using the 'epicPMDdetect' package
 #'
@@ -655,7 +655,7 @@ do.geno.import.idat <- function(idat.files,
 #' @details The 'epicPMDdetect' package has been created by Malte Gross
 #' @author Michael Scherer
 #' @export
-qtl.run.segmentation <- function(rnb.set,
+qtlRunSegmentation <- function(rnb.set,
 				out.folder,
 				train.chr="chr2"){
   if(qtl.getOption("use.segmentation")){

@@ -6,7 +6,7 @@
 # Methods for imputing genotype data using the Michigan imputation server.
 ##########################################################################################
 
-#' do.imputation
+#' doImputation
 #'
 #' Function to perform imputation from PLINK data
 #'
@@ -23,7 +23,7 @@
 #'    in the sample IDs in case imputation is performed.
 #' @author Michael Scherer
 #' @export
-do.imputation <- function(bed.file,
+doImputation <- function(bed.file,
                           bim.file,
                           fam.file,
                           out.dir){

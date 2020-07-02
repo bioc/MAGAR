@@ -6,7 +6,7 @@
 # Methods for calling correlation blocks from DNA methylation data.
 ##########################################################################################
 
-#' compute.correlation.blocks
+#' computeCorrelationBlocks
 #'
 #' This function computes CpG correlation blocks from correlations of CpGs across samples by Louvian
 #' clustering.
@@ -37,7 +37,7 @@
 #'
 #' @author Michael Scherer
 #' @export
-compute.correlation.blocks <- function(meth.data,
+computeCorrelationBlocks <- function(meth.data,
                                        annotation,
                                        cor.threshold=qtl.getOption("cluster.cor.threshold"),
                                        sd.gauss=qtl.getOption("standard.deviation.gauss"),
@@ -50,7 +50,7 @@ compute.correlation.blocks <- function(meth.data,
   if(nrow(annotation)>max.cpgs){
     logger.info(paste("Split workload, since facing",nrow(annotation),"CpGs (Maximum is",max.cpgs,")"))
     bin.split <- round(nrow(annotation)/2)
-    return(c(compute.correlation.blocks(meth.data=meth.data[1:bin.split,],
+    return(c(computeCorrelationBlocks(meth.data=meth.data[1:bin.split,],
                                         annotation=annotation[1:bin.split,],
                                         cor.threshold = cor.threshold,
                                         sd.gauss = sd.gauss,
@@ -59,7 +59,7 @@ compute.correlation.blocks <- function(meth.data,
 					assembly=assembly,
                                         chromosome=chromosome,
 					segmentation=segmentation),
-             lapply(compute.correlation.blocks(meth.data=meth.data[(bin.split+1):nrow(annotation),],
+             lapply(computeCorrelationBlocks(meth.data=meth.data[(bin.split+1):nrow(annotation),],
                                         annotation=annotation[(bin.split+1):nrow(annotation),],
                                         cor.threshold = cor.threshold,
                                         sd.gauss = sd.gauss,
@@ -120,8 +120,8 @@ compute.correlation.blocks <- function(meth.data,
     weighted.distances <- cor.all*dnorm(as.matrix(pairwise.distance),0,sd.gauss)
   }
   logger.completed()
-  weighted.distances <- weight.segmentation(weighted.distances,annotation,segmentation)
-  weighted.distances <- weight.functional.annotation(weighted.distances,annotation,chromosome=chromosome)
+  weighted.distances <- weightSegmentation(weighted.distances,annotation,segmentation)
+  weighted.distances <- weightFunctionalAnnotation(weighted.distances,annotation,chromosome=chromosome)
   colnames(weighted.distances) <- as.character(1:ncol(weighted.distances))
   rownames(weighted.distances) <- as.character(1:nrow(weighted.distances))
   rm(rep.vals)
@@ -137,7 +137,7 @@ compute.correlation.blocks <- function(meth.data,
   return(lapply(groups(clust),function(x)as.numeric(x)))
 }
 
-#' weight.functional.annotation
+#' weightFunctionalAnnotation
 #'
 #' This functions weights the distance matrix according to predefined functional annotations accoding to the ENSEMBL
 #' regulatory build regions.
@@ -149,7 +149,7 @@ compute.correlation.blocks <- function(meth.data,
 #' @return The modified distance matrix with CpGs in the same functional annotation category prioritized
 #' @author Michael Scherer
 #' @noRd
-weight.functional.annotation <- function(input.matrix,
+weightFunctionalAnnotation <- function(input.matrix,
                                          genomic.annotation,
                                          assembly="hg19",
                                          chromosome=chromosome){
@@ -171,7 +171,7 @@ weight.functional.annotation <- function(input.matrix,
   return(input.matrix)
 }
 
-#' weight.segmentation
+#' weightSegmentation
 #'
 #' This functions weights the distance matrix according to DNA methylation based segmentation into
 #' PMDs/nonPMDs using the 'epicPMDdetect' package
@@ -182,9 +182,9 @@ weight.functional.annotation <- function(input.matrix,
 #' @return The modified distance matrix with CpGs in the same category PMD/nonPMD priortized
 #' @author Michael Scherer
 #' @noRd
-weight.segmentation <- function(input.matrix,
-					 genomic.annotation,
-                                         segmentation){
+weightSegmentation <- function(input.matrix,
+				genomic.annotation,
+                                segmentation){
   if(qtl.getOption("use.segmentation")){
       logger.start("Weighting segmentation")
       if(is.null(segmentation)){

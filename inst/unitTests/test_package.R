@@ -106,7 +106,7 @@ test.meth.qtl.functions <- function(){
                   samples=paste0("Sample",1:100),
                   platform="probesEPIC")
   passed <- inherits(meth.qtl,"methQTLInput")
-  meth.qtl.res <- do.methQTL.chromosome(meth.qtl,chrom = sel.chr,sel.covariates = NULL,p.val.cutoff = 1e-2)
+  meth.qtl.res <- doMethQTLChromosome(meth.qtl,chrom = sel.chr,sel.covariates = NULL,p.val.cutoff = 1e-2)
   true.meth.qtl.cpgs <- row.names(meth.matrix)[is.methQTL.CpG]
   true.meth.qtl.snps <- row.names(snp.matrix)[is.methQTL.SNP]
   cor.blocks <- getCorrelationBlocks(meth.qtl.res)

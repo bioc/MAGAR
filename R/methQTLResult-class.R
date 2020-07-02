@@ -132,20 +132,20 @@ setMethod("getResult",signature(object="methQTLResult"),
           }
 )
 
-if(!isGeneric("getResult.GWASMap")) setGeneric("getResult.GWASMap",function(object,...) standardGeneric("getResult.GWASMap"))
+if(!isGeneric("getResultGWASMap")) setGeneric("getResultGWASMap",function(object,...) standardGeneric("getResultGWASMap"))
 
-#' getResult.GWASMap
+#' getResultGWASMap
 #'
 #' Returns the methQTL results in the format used as input to GWAS-map and stores in the object.
 #'
 #' @param object An of type \code{\link{methQTLResult-class}}.
 #' @param meth.qtl An object of type \code{\link{methQTLInput-class}} containing further information about the QTLs
 #' @return The methQTL results as a \code{data.frame} with each row being a methQTL.
-#' @rdname getResult.GWASMap
+#' @rdname getResultGWASMap
 #' @docType methods
-#' @aliases getResult.GWASMap,methQTLResult-method
+#' @aliases getResultGWASMap,methQTLResult-method
 #' @export
-setMethod("getResult.GWASMap",signature(object="methQTLResult"),
+setMethod("getResultGWASMap",signature(object="methQTLResult"),
           function(object,meth.qtl){
             ret <- object@result.frame
 #            keep.lines <- apply(ret,1,function(line){
@@ -246,9 +246,9 @@ setMethod("show","methQTLResult",
           }
 )
 
-if(!isGeneric("filter.pval")) setGeneric("filter.pval", function(object,...)standardGeneric("filter.pval"))
+if(!isGeneric("filterPval")) setGeneric("filterPval", function(object,...)standardGeneric("filterPval"))
 
-#' filter.pval
+#' filterPval
 #'
 #' This functions filters the methQTL results according to a given p-value cutoff
 #'
@@ -257,9 +257,9 @@ if(!isGeneric("filter.pval")) setGeneric("filter.pval", function(object,...)stan
 #' @return The filtered \code{\link{methQTLResult-class}} object
 #' @rdname filter.pval
 #' @docType methods
-#' @aliases filter.pval,methQTLResult-method
+#' @aliases filterPval,methQTLResult-method
 #' @author Michael Scherer
-setMethod("filter.pval","methQTLResult",
+setMethod("filterPval","methQTLResult",
           function(object,p.val.cutoff=0.01){
             res <- object@result.frame
             res <- res[res$p.val.adj.fdr <= p.val.cutoff,]
@@ -268,20 +268,20 @@ setMethod("filter.pval","methQTLResult",
           }
 )
 
-if(!isGeneric("save.methQTLResult")) setGeneric("save.methQTLResult", function(object,...)standardGeneric("save.methQTLResult"))
+if(!isGeneric("saveMethQTLResult")) setGeneric("saveMethQTLResult", function(object,...)standardGeneric("saveMethQTLResult"))
 
-#' save.methQTLResult
+#' saveMethQTLResult
 #'
 #' This functions stores a methQTLInputResult object in disk.
 #'
 #' @param object The \code{\link{methQTLResult-class}} object to be stored on disk.
 #' @param path A path to a non-existing directory for files to be stored.
 #'
-#' @rdname save.methQTLResult
+#' @rdname saveMethQTLResult
 #' @docType methods
-#' @aliases save.methQTLResult,methQTL-method
+#' @aliases saveMethQTLResult,methQTL-method
 #' @author Michael Scherer
-setMethod("save.methQTLResult","methQTLResult",
+setMethod("saveMethQTLResult","methQTLResult",
           function(object,path){
             if(file.exists(path)){
               if(dir.exists(path)){
@@ -308,7 +308,7 @@ setMethod("save.methQTLResult","methQTLResult",
           }
 )
 
-#' load.methQTLResult
+#' loadMethQTLResult
 #'
 #' This functions load a \code{\link{methQTLResult-class}} object from disk.
 #'
@@ -316,7 +316,7 @@ setMethod("save.methQTLResult","methQTLResult",
 #' @return The object of type \code{\link{methQTLResult-class}} that has been stored on disk.
 #' @author Michael Scherer
 #' @export
-load.methQTLResult <- function(path){
+loadMethQTLResult <- function(path){
   if(any(!(file.exists(file.path(path,"result_frame.RDS"))),
          !file.exists(file.path(path,"anno_meth.RDS")),
          !file.exists(file.path(path,"anno_geno.RDS")),
@@ -337,7 +337,7 @@ load.methQTLResult <- function(path){
   return(object)
 }
 
-#' join.methQTLResult
+#' joinMethQTLResult
 #'
 #' This function combines a list of \code{\link{methQTLResult-class}} objects.
 #'
@@ -345,7 +345,7 @@ load.methQTLResult <- function(path){
 #' @return An object of type \code{\link{methQTLResult-class}} containing the combined information
 #' @author Michael Scherer
 #' @export
-join.methQTLResult <- function(obj.list){
+joinMethQTLResult <- function(obj.list){
   if(any(!unlist(lapply(obj.list,function(x)inherits(x,"methQTLResult"))))){
     logger.error("Objects needs to be of type methQTLResult")
   }

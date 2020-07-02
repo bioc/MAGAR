@@ -11,7 +11,7 @@ my_theme <- theme_bw()+theme(panel.grid=element_blank(),text=element_text(size=1
                   axis.text = element_text(size=15,color="black"))
 
 
-#' qtl.plot.SNP.CpG.interaction
+#' qtlPlotSNPCpGInteraction
 #'
 #' Compares the methylation states of a given CpG for the genotype states availabe at the given SNP
 #'
@@ -27,7 +27,7 @@ my_theme <- theme_bw()+theme(panel.grid=element_blank(),text=element_text(size=1
 #' @return An object of type \code{ggplot} comparing the CpG methylation states as boxplots across the different genotype states
 #' @author Michael Scherer
 #' @export
-qtl.plot.SNP.CpG.interaction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL,meth.qtl.res=NULL,out.name=NULL){
+qtlPlotSNPCpGInteraction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL,meth.qtl.res=NULL,out.name=NULL){
   if(!is.null(meth.qtl.res)){
     if(meth.qtl.res@rep.type == "mean.center"){
       logger.error("Interaction plot not available for representative CpG computation 'mean.center'. Pseudo CpG was created.")
@@ -82,7 +82,7 @@ qtl.plot.SNP.CpG.interaction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL
   }
 }
 
-#' qtl.plot.SNP.correlation.block
+#' qtlPlotSNPCorrelationBlock
 #'
 #' This functions creates a multi-facet plot with a panel for each CpG in the correlation block that has
 #' a methQTL interaction with the SNP of interest.
@@ -96,7 +96,7 @@ qtl.plot.SNP.CpG.interaction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL
 #'    methylation state and the SNP dosage. Discrete genotypes are currently not supported.
 #' @export
 #' @author Michael Scherer
-qtl.plot.SNP.correlation.block <- function(meth.qtl.res,meth.qtl,snp=NULL){
+qtlPlotSNPCorrelationBlock <- function(meth.qtl.res,meth.qtl,snp=NULL){
   if(!inherits(meth.qtl.res,"methQTLResult")){
     stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
   }
@@ -133,7 +133,7 @@ qtl.plot.SNP.correlation.block <- function(meth.qtl.res,meth.qtl,snp=NULL){
   return(plot)
 }
 
-#' qtl.distance.scatterplot
+#' qtlDistanceScatterplot
 #'
 #' Computes a scatterplot between CpG-SNP distance with both effect size and p-value
 #'
@@ -144,7 +144,7 @@ qtl.plot.SNP.correlation.block <- function(meth.qtl.res,meth.qtl,snp=NULL){
 #'          SNP is downstream of the CpG.
 #' @author Michael Scherer
 #' @export
-qtl.distance.scatterplot <- function(meth.qtl.result,out.dir=NULL,out.name=NULL){
+qtlDistanceScatterplot <- function(meth.qtl.result,out.dir=NULL,out.name=NULL){
   if(!requireNamespace("gridExtra")){
     stop("Please install the 'gridExtra' package")
   }
@@ -180,7 +180,7 @@ qtl.distance.scatterplot <- function(meth.qtl.result,out.dir=NULL,out.name=NULL)
   }
 }
 
-#' qtl.manhattan.plot
+#' qtlManhattanPlot
 #'
 #' This function creates a manhattan plot for the given methQTL result
 #'
@@ -191,7 +191,7 @@ qtl.distance.scatterplot <- function(meth.qtl.result,out.dir=NULL,out.name=NULL)
 #' @details A plot is shown that contains chromosome-wise interactions.
 #' @author Michael Scherer
 #' @export
-qtl.manhattan.plot <- function(meth.qtl.result,type="CpG",stat="p.val.adj.fdr"){
+qtlManhattanPlot <- function(meth.qtl.result,type="CpG",stat="p.val.adj.fdr"){
   if(!type %in% c("CpG","SNP")){
     stop("Invalid value for type, needs to be 'CpG' or 'SNP'")
   }
@@ -212,7 +212,7 @@ qtl.manhattan.plot <- function(meth.qtl.result,type="CpG",stat="p.val.adj.fdr"){
             logp=stat!="Beta")
 }
 
-#' qtl.venn.plot
+#' qtlVennPlot
 #'
 #' This function creates a venn plot from a list of methQTL results, showing the overlap between the interactions
 #'
@@ -226,14 +226,14 @@ qtl.manhattan.plot <- function(meth.qtl.result,type="CpG",stat="p.val.adj.fdr"){
 #' @details The plot can be stored on disk using \code{out.folder} and \code{out.name}
 #' @export
 #' @author Michael Scherer
-qtl.venn.plot <- function(meth.qtl.result.list,out.folder,type="SNP",out.name=NULL,...){
+qtlVennPlot <- function(meth.qtl.result.list,out.folder,type="SNP",out.name=NULL,...){
   if(length(meth.qtl.result.list)>4){
     stop("Venn plot only supports up to 4 results, consider using qtl.upset.plot")
   }
   if(!requireNamespace("VennDiagram")){
     stop("Please install the 'VennDiagram' package")
   }
-  res.all <- overlap.QTLs(meth.qtl.result.list,type=type)
+  res.all <- overlapQTLs(meth.qtl.result.list,type=type)
   venn.colors <- rnb.getOption("colors.category")
   if(is.null(out.name)){
     out.file <- file.path(out.folder,"vennplot.tiff")
@@ -249,7 +249,7 @@ qtl.venn.plot <- function(meth.qtl.result.list,out.folder,type="SNP",out.name=NU
                       ...)
 }
 
-#' qtl.upset.plot
+#' qtlUpsetPlot
 #'
 #' This function creates an UpSet plot from the given methQTL results
 #'
@@ -261,11 +261,11 @@ qtl.venn.plot <- function(meth.qtl.result.list,out.folder,type="SNP",out.name=NU
 #' @details The plot is directly drawn and can be stored on disk using the known R graphic devices
 #' @export
 #' @author Michael Scherer
-qtl.upset.plot <- function(meth.qtl.result.list,type="SNP",...){
+qtlUpsetPlot <- function(meth.qtl.result.list,type="SNP",...){
   if(!requireNamespace("UpSetR")){
     stop("Please install the 'UpSetR' package")
   }
-  res.all <- overlap.QTLs(meth.qtl.result.list,type=type)
+  res.all <- overlapQTLs(meth.qtl.result.list,type=type)
   UpSetR::upset(UpSetR::fromList(res.all),
                nsets = length(res.all),
                order.by = "freq",
@@ -276,7 +276,7 @@ qtl.upset.plot <- function(meth.qtl.result.list,type="SNP",...){
 	       ...)
 }
 
-#' qtl.correlate.cor.block.stat
+#' qtlCorrelateCorBlockStat
 #'
 #' This function correlates the size of the correlation block, a particular CpG is part of, to the statistic
 #' that has been found for a methQTL this CpG is involved in.
@@ -289,7 +289,7 @@ qtl.upset.plot <- function(meth.qtl.result.list,type="SNP",...){
 #' @return A scatterplot and associated correlations as an objec to type \code{ggplot}
 #' @author Michael Scherer
 #' @export
-qtl.correlate.cor.block.stat <- function(meth.qtl.res,stat="p.val.adj.fdr",size.type='num.CpGs'){
+qtlCorrelateCorBlockStat <- function(meth.qtl.res,stat="p.val.adj.fdr",size.type='num.CpGs'){
   if(!inherits(meth.qtl.res,"methQTLResult")){
     stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
   }
@@ -336,7 +336,7 @@ qtl.correlate.cor.block.stat <- function(meth.qtl.res,stat="p.val.adj.fdr",size.
   return(plot)
 }
 
-#' qtl.lola.plot
+#' qtlLOLAPlot
 #'
 #' This function plots the LOLA enrichment results using the \code{\link{lolaBarPlot}} routine.
 #'
@@ -349,13 +349,13 @@ qtl.correlate.cor.block.stat <- function(meth.qtl.res,stat="p.val.adj.fdr",size.
 #' @return The LOLA enrichment bar plot as a \code{ggplot} object
 #' @author Michael Scherer
 #' @export
-qtl.lola.plot <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19",pvalCut=0.01){
-  res <- qtl.lola.enrichment(meth.qtl.res,type=type,assembly=assembly,lola.db=lola.db)
+qtlLOLAPlot <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19",pvalCut=0.01){
+  res <- qtlLOLAEnrichment(meth.qtl.res,type=type,assembly=assembly,lola.db=lola.db)
   plot <- lolaBarPlot(lolaDb=res$lola.db,lolaRes=res$lola.res,pvalCut=pvalCut)+my_theme
   return(plot)
 }
 
-#' qtl.plot.cluster.size
+#' qtlPlotClusterSize
 #' 
 #' This functions returns a histogram comprising the (genomic) sizes of the correlation blocks
 #' in the given objet.
@@ -366,7 +366,7 @@ qtl.lola.plot <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19",p
 #' @return An objec of type ggplot containing the histogram as a plot
 #' @author Michael Scherer
 #' @export
-qtl.plot.cluster.size <- function(meth.qtl.res,type="count"){
+qtlPlotClusterSize <- function(meth.qtl.res,type="count"){
 	if(!inherits(meth.qtl.res,"methQTLResult")){
 		stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
 	}
@@ -390,7 +390,7 @@ qtl.plot.cluster.size <- function(meth.qtl.res,type="count"){
 	return(plot)
 }
 
-#' qtl.plot.annotation.enrichment
+#' qtlPlotAnnotationEnrichment
 #'
 #' This functions returns and enrichment plot for different genomic annotation enrichments
 #' 
@@ -399,7 +399,7 @@ qtl.plot.cluster.size <- function(meth.qtl.res,type="count"){
 #' @seealso qtl.annotation.enrichment 
 #' @export
 #' @author Michael Scherer
-qtl.plot.annotation.enrichment <- function(meth.qtl.res,...){
+qtlPlotAnnotationEnrichment <- function(meth.qtl.res,...){
 	all.types <- c("SNP","CpG","cor.block")
 	all.annos <- c("cpgislands","promoters","genes","ctcf","distal","proximal","tfbs","dnase","tss")
 	enr.res <- lapply(all.types,function(type){
@@ -420,7 +420,7 @@ qtl.plot.annotation.enrichment <- function(meth.qtl.res,...){
 		scale_fill_gradient2(low="dodgerblue3",mid="white",high="firebrick3")
 }
 
-#' qtl.plot.base.substitution
+#' qtlPlotBaseSubstitution
 #' 
 #' This function returns an enrichment plot for the different base substitutions.
 #' 
@@ -429,8 +429,8 @@ qtl.plot.annotation.enrichment <- function(meth.qtl.res,...){
 #' @seealso qtl.base.substitution.enrichment
 #' @export
 #' @author Michael Scherer
-qtl.plot.base.substitution <- function(meth.qtl.res,...){
-	to.plot <- qtl.base.substitution.enrichment(meth.qtl.res,...)
+qtlPlotBaseSubstitution <- function(meth.qtl.res,...){
+	to.plot <- qtlBaseSubstitutionEnrichment(meth.qtl.res,...)
 	to.plot <- data.frame(Substitution=colnames(to.plot),
 			OddsRatio=to.plot["OddsRatio",],
 			p.value=to.plot["p.value",])
