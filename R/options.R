@@ -284,16 +284,8 @@ qtl.setOption <- function(rnbeads.options=NULL,
     QTL.OPTIONS[['N.PRIN.COMP']] <- n.prin.comp
   }
   if(!missing(plink.path)){
-    if(is.null(plink.path)){
-      logger.info("Loading system default for option 'plink.path'")
-      plink.path=system.file("bin/plink",package="methQTL")
-      er <- tryCatch(system(plink.path),error=function(x)x)
-      if(inherits(er,"error")){
-        logger.warning("Non-functional default version of PLINK, please install it manually and specify it with 'plink.path'")
-      }
-      plink.path <- NULL
-    }else{
-      er <- tryCatch(system(plink.path),error=function(x)x)
+    if(!is.null(plink.path)){
+      er <- tryCatch(system(plink.path,intern=T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Invalid value for plink.path, needs to be path to an executable")
       }
@@ -301,16 +293,8 @@ qtl.setOption <- function(rnbeads.options=NULL,
     QTL.OPTIONS[['PLINK.PATH']] <- plink.path
   }
   if(!missing(fast.qtl.path)){
-    if(is.null(fast.qtl.path)){
-      logger.info("Loading system default for option 'plink.path'")
-      fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL")
-      er <- tryCatch(system(fast.qtl.path),error=function(x)x)
-      if(inherits(er,"error")){
-        logger.warning("Non-functional default version of fastQTL, please install it manually and specify it with 'fast.qtl.path'")
-      }
-      fast.qtl.path <- NULL
-    }else{
-      er <- tryCatch(system(fast.qtl.path),error=function(x)x)
+    if(!is.null(fast.qtl.path)){
+      er <- tryCatch(system(fast.qtl.path,intern=T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Invalid value for fast.qtl.path, needs to be path to an executable")
       }
@@ -318,15 +302,7 @@ qtl.setOption <- function(rnbeads.options=NULL,
     QTL.OPTIONS[['FAST.QTL.PATH']] <- fast.qtl.path
   }
   if(!missing(bgzip.path)){
-    if(is.null(bgzip.path)){
-      logger.info("Loading system default for option 'bgzip.path'")
-      bgzip.path=system.file("bin/bgzip",package="methQTL")
-      er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
-      if(inherits(er,"error")){
-        logger.warning("Non-functional default version of bgzip, please install it manually and specify it with 'bgzip.path'")
-      }
-      bgzip.path <- NULL
-    }else{
+    if(!is.null(bgzip.path)){
       er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Invalid value for bgzip.path, needs to be path to an executable")
@@ -335,15 +311,7 @@ qtl.setOption <- function(rnbeads.options=NULL,
     QTL.OPTIONS[['BGZIP.PATH']] <- bgzip.path
   }
   if(!missing(tabix.path)){
-    if(is.null(tabix.path)){
-      logger.info("Loading system default for option 'tabix.path'")
-      tabix.path=system.file("bin/tabix",package="methQTL")
-      er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
-      if(inherits(er,"error")){
-        logger.warning("Non-functional default version of tabix, please install it manually and specify it with 'tabix.path'")
-	tabix.path <- NULL
-      }
-    }else{
+    if(!is.null(tabix.path)){
       er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Invalid value for tabix.path, needs to be path to an executable")
@@ -551,9 +519,13 @@ qtl.getOption <- function(names){
   if('fast.qtl.path'%in%names){
     if(is.null(QTL.OPTIONS[['FAST.QTL.PATH']])){
       logger.info("Loading system default for option 'fast.qtl.path'")
-      qtl.setOption('fast.qtl.path'=system.file("bin/fastQTL.static",package="methQTL"))
+      fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL")
+      er <- tryCatch(system(fast.qtl.path,timeout = 1, intern = T),error=function(x)x)
+      if(inherits(er,"error")){
+        stop("Non-functional default version of fastQTL, please install it manually and specify it with 'fast.qtl.path'")
+      }
     }
-    ret <- c(ret,fast.qtl.path=QTL.OPTIONS[['FAST.QTL.PATH']])
+    ret <- c(ret,fast.qtl.path=QTL.OPTIONS[['TABIX.PATH']])
   }
   if('n.prin.comp'%in%names){
     ret <- c(ret,n.prin.comp=QTL.OPTIONS[['N.PRIN.COMP']])
@@ -561,21 +533,33 @@ qtl.getOption <- function(names){
   if('plink.path'%in%names){
     if(is.null(QTL.OPTIONS[['PLINK.PATH']])){
       logger.info("Loading system default for option 'plink.path'")
-      qtl.setOption('plink.path'=system.file("bin/plink",package="methQTL"))
+      tabix.path=system.file("bin/plink",package="methQTL")
+      er <- tryCatch(system(plink.path,timeout = 1, intern = T),error=function(x)x)
+      if(inherits(er,"error")){
+        stop("Non-functional default version of plink, please install it manually and specify it with 'plink.path'")
+      }
     }
     ret <- c(ret,plink.path=QTL.OPTIONS[['PLINK.PATH']])
   }
   if('bgzip.path'%in%names){
     if(is.null(QTL.OPTIONS[['BGZIP.PATH']])){
       logger.info("Loading system default for option 'bgzip.path'")
-      qtl.setOption('bgzip.path'=system.file("bin/bgzip",package="methQTL"))
+      tabix.path=system.file("bin/bgzip",package="methQTL")
+      er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
+      if(inherits(er,"error")){
+        stop("Non-functional default version of bgzip, please install it manually and specify it with 'bgzip.path'")
+      }
     }
     ret <- c(ret,bgzip.path=QTL.OPTIONS[['BGZIP.PATH']])
   }
   if('tabix.path'%in%names){
     if(is.null(QTL.OPTIONS[['TABIX.PATH']])){
       logger.info("Loading system default for option 'tabix.path'")
-      qtl.setOption('tabix.path'=system.file("bin/tabix",package="methQTL"))
+      tabix.path=system.file("bin/tabix",package="methQTL")
+      er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
+      if(inherits(er,"error")){
+        stop("Non-functional default version of tabix, please install it manually and specify it with 'tabix.path'")
+      }
     }
     ret <- c(ret,tabix.path=QTL.OPTIONS[['TABIX.PATH']])
   }
