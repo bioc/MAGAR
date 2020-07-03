@@ -4,6 +4,7 @@
 \name{getSamples,methQTLInput-method}
 \alias{getSamples,methQTLInput-method}
 \alias{getSamples,methQTL-method}
+\alias{getSamples}
 \title{getSamples}
 \usage{
 \S4method{getSamples}{methQTLInput}(object)

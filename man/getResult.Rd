@@ -3,6 +3,7 @@
 \docType{methods}
 \name{getResult,methQTLResult-method}
 \alias{getResult,methQTLResult-method}
+\alias{getResult}
 \title{getResult}
 \usage{
 \S4method{getResult}{methQTLResult}(object, cor.blocks = NULL)

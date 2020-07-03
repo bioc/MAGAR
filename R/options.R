@@ -89,7 +89,7 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #' @param bgzip.path Path to an installation of BGZIP (comes with the package for Linux)
 #' @param tabix.path Path to an installation of TABIX (comes with the package for Linux)
 #' @param correlation.type The type of correlation to be used. Please note that for \code{type='pearson'} (default) the more efficient
-#'          implementation of correlation in the \code{\link{bigstatr}} is used. Further available options are \code{'spearman'} and
+#'          implementation of correlation in the \code{bigstatsr} is used. Further available options are \code{'spearman'} and
 #'          \code{'kendall'}.
 #' @param cluster.cor.threshold Threshold for CpG methylatin state correlation to be considered as connected in
 #'            the distance graph used to compute the correlation clustering.
@@ -97,7 +97,7 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #'            according to its distance.
 #' @param absolute.distance.cutoff Distance cutoff after which a CpG correlation is not considered anymore.
 #' @param linear.model.type Linear model type to be used. Can be either \code{"categorical.anova"} or \code{"classical.linear"}. If \code{'meth.qtl.type'='fastQTL'}, this option is automatically set to \code{'fastQTL'}
-#'            see \code{\link{call.methQTL.block}} for more informations.
+#'            see \code{\link{callMethQTLBlock}} for more informations.
 #' @param representative.cpg.computation Option specifying how reference CpGs per correlation block are to be computed. Available
 #'            options are \code{"row.medians"} for the site that is the row median across the samples within the
 #'            correlation block (for ties a random selection is performed), \code{"mean.center"} for an artifical site in the geometric center of the block with
@@ -146,9 +146,9 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #' @author Michael Scherer
 #' @examples
 #' \donttest{
-#' qtl.getOption("rnbeads.report")
-#' qtl.setOption(rnbeads.report=getwd())
-#' qtl.getOption("rnbeads.report")
+#' qtlGetOption("rnbeads.report")
+#' qtlSetOption(rnbeads.report=getwd())
+#' qtlGetOption("rnbeads.report")
 #' }
 #' @references
 #'   1. Ongen, H., Buil, A., Brown, A. A., Dermitzakis, E. T., & Delaneau, O. (2016).
@@ -284,16 +284,8 @@ qtlSetOption <- function(rnbeads.options=NULL,
     QTL.OPTIONS[['N.PRIN.COMP']] <- n.prin.comp
   }
   if(!missing(plink.path)){
-    if(is.null(plink.path)){
-      logger.info("Loading system default for option 'plink.path'")
-      plink.path=system.file("bin/plink",package="methQTL")
-      er <- tryCatch(system(plink.path),error=function(x)x)
-      if(inherits(er,"error")){
-        logger.warning("Non-functional default version of PLINK, please install it manually and specify it with 'plink.path'")
-      }
-      plink.path <- NULL
-    }else{
-      er <- tryCatch(system(plink.path),error=function(x)x)
+    if(!is.null(plink.path)){
+      er <- tryCatch(system(plink.path,intern=T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Invalid value for plink.path, needs to be path to an executable")
       }
@@ -301,16 +293,8 @@ qtlSetOption <- function(rnbeads.options=NULL,
     QTL.OPTIONS[['PLINK.PATH']] <- plink.path
   }
   if(!missing(fast.qtl.path)){
-    if(is.null(fast.qtl.path)){
-      logger.info("Loading system default for option 'plink.path'")
-      fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL")
-      er <- tryCatch(system(fast.qtl.path),error=function(x)x)
-      if(inherits(er,"error")){
-        logger.warning("Non-functional default version of fastQTL, please install it manually and specify it with 'fast.qtl.path'")
-      }
-      fast.qtl.path <- NULL
-    }else{
-      er <- tryCatch(system(fast.qtl.path),error=function(x)x)
+    if(!is.null(fast.qtl.path)){
+      er <- tryCatch(system(fast.qtl.path,intern=T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Invalid value for fast.qtl.path, needs to be path to an executable")
       }
@@ -318,15 +302,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
     QTL.OPTIONS[['FAST.QTL.PATH']] <- fast.qtl.path
   }
   if(!missing(bgzip.path)){
-    if(is.null(bgzip.path)){
-      logger.info("Loading system default for option 'bgzip.path'")
-      bgzip.path=system.file("bin/bgzip",package="methQTL")
-      er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
-      if(inherits(er,"error")){
-        logger.warning("Non-functional default version of bgzip, please install it manually and specify it with 'bgzip.path'")
-      }
-      bgzip.path <- NULL
-    }else{
+    if(!is.null(bgzip.path)){
       er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Invalid value for bgzip.path, needs to be path to an executable")
@@ -335,15 +311,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
     QTL.OPTIONS[['BGZIP.PATH']] <- bgzip.path
   }
   if(!missing(tabix.path)){
-    if(is.null(tabix.path)){
-      logger.info("Loading system default for option 'tabix.path'")
-      tabix.path=system.file("bin/tabix",package="methQTL")
-      er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
-      if(inherits(er,"error")){
-        logger.warning("Non-functional default version of tabix, please install it manually and specify it with 'tabix.path'")
-	tabix.path <- NULL
-      }
-    }else{
+    if(!is.null(tabix.path)){
       er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Invalid value for tabix.path, needs to be path to an executable")
@@ -498,7 +466,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
 #' qtlGetOption
 #' Print the value of the global option
 #'
-#' @param names string or character vector containing the names of the options to be printed. All options are listed in \code{\link{qtl.setOption}}
+#' @param names string or character vector containing the names of the options to be printed. All options are listed in \code{\link{qtlSetOption}}
 #'
 #' @return the option for the specified option
 #' @author Michael Scherer
@@ -511,7 +479,7 @@ qtlGetOption <- function(names){
   if('rnbeads.options'%in%names){
     if(is.null(QTL.OPTIONS[['RNBEADS.OPTIONS']])){
       logger.info("Loading system default for option 'rnbeads.options'")
-      qtl.setOption('rnbeads.options'=system.file("extdata/rnbeads_options.xml",package="methQTL"))
+      qtlSetOption('rnbeads.options'=system.file("extdata/rnbeads_options.xml",package="methQTL"))
     }
     ret <- c(ret,rnbeads.options=QTL.OPTIONS[['RNBEADS.OPTIONS']])
   }
@@ -551,9 +519,13 @@ qtlGetOption <- function(names){
   if('fast.qtl.path'%in%names){
     if(is.null(QTL.OPTIONS[['FAST.QTL.PATH']])){
       logger.info("Loading system default for option 'fast.qtl.path'")
-      qtl.setOption('fast.qtl.path'=system.file("bin/fastQTL.static",package="methQTL"))
+      tabix.path=system.file("bin/fastQTL.static",package="methQTL")
+      er <- tryCatch(system(fast.qtl.path,timeout = 1, intern = T),error=function(x)x)
+      if(inherits(er,"error")){
+        stop("Non-functional default version of fastQTL, please install it manually and specify it with 'fast.qtl.path'")
+      }
     }
-    ret <- c(ret,fast.qtl.path=QTL.OPTIONS[['FAST.QTL.PATH']])
+    ret <- c(ret,tabix.path=QTL.OPTIONS[['TABIX.PATH']])
   }
   if('n.prin.comp'%in%names){
     ret <- c(ret,n.prin.comp=QTL.OPTIONS[['N.PRIN.COMP']])
@@ -561,21 +533,33 @@ qtlGetOption <- function(names){
   if('plink.path'%in%names){
     if(is.null(QTL.OPTIONS[['PLINK.PATH']])){
       logger.info("Loading system default for option 'plink.path'")
-      qtl.setOption('plink.path'=system.file("bin/plink",package="methQTL"))
+      tabix.path=system.file("bin/plink",package="methQTL")
+      er <- tryCatch(system(plink.path,timeout = 1, intern = T),error=function(x)x)
+      if(inherits(er,"error")){
+        stop("Non-functional default version of plink, please install it manually and specify it with 'plink.path'")
+      }
     }
     ret <- c(ret,plink.path=QTL.OPTIONS[['PLINK.PATH']])
   }
   if('bgzip.path'%in%names){
     if(is.null(QTL.OPTIONS[['BGZIP.PATH']])){
       logger.info("Loading system default for option 'bgzip.path'")
-      qtl.setOption('bgzip.path'=system.file("bin/bgzip",package="methQTL"))
+      tabix.path=system.file("bin/bgzip",package="methQTL")
+      er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
+      if(inherits(er,"error")){
+        stop("Non-functional default version of bgzip, please install it manually and specify it with 'bgzip.path'")
+      }
     }
     ret <- c(ret,bgzip.path=QTL.OPTIONS[['BGZIP.PATH']])
   }
   if('tabix.path'%in%names){
     if(is.null(QTL.OPTIONS[['TABIX.PATH']])){
       logger.info("Loading system default for option 'tabix.path'")
-      qtl.setOption('tabix.path'=system.file("bin/tabix",package="methQTL"))
+      tabix.path=system.file("bin/tabix",package="methQTL")
+      er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
+      if(inherits(er,"error")){
+        stop("Non-functional default version of tabix, please install it manually and specify it with 'tabix.path'")
+      }
     }
     ret <- c(ret,tabix.path=QTL.OPTIONS[['TABIX.PATH']])
   }
@@ -660,6 +644,7 @@ qtlGetOption <- function(names){
 #'   qtlOptions2JSON("my_opts.json")
 #'   qtlJSON2options("my_opts.json")
 #' }
+#' @import jsonlite
 qtlOptions2JSON <- function(path=file.path(getwd(),"methQTL_options.json")){
   all.options <- as.list(QTL.OPTIONS)
   all.options <- all.options[!(names(all.options) %in% "ALL")]
@@ -675,17 +660,18 @@ qtlOptions2JSON <- function(path=file.path(getwd(),"methQTL_options.json")){
 #' @param path Path to a JSON file containing the options to be specified
 #' @author Michael Scherer
 #' @export
+#' @import jsonlite
 qtlJSON2options <- function(path){
   if(!file.exists(path) || !grepl(".json",path,ignore.case = T)){
     logger.error("Invalid value for path, needs to be a JSON file")
   }
   all.options <- fromJSON(path)
   all.options <- lapply(all.options,function(opt){
-	if(class(opt)=="data.frame"){
-           unlist(opt)
-	}else{
-	   opt
-	}
+  	if(class(opt)=="data.frame"){
+             unlist(opt)
+  	}else{
+  	   opt
+  	}
   })
   do.call(qtlSetOption,all.options)
 }

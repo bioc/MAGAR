@@ -4,6 +4,7 @@
 \name{getGeno,methQTLInput-method}
 \alias{getGeno,methQTLInput-method}
 \alias{getGeno,methQTL-method}
+\alias{getGeno}
 \title{getGeno}
 \usage{
 \S4method{getGeno}{methQTLInput}(object, site = NULL, sample = NULL)

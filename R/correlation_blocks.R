@@ -37,12 +37,14 @@
 #'
 #' @author Michael Scherer
 #' @export
+#' @import igraph
+#' @import bigstatsr
 computeCorrelationBlocks <- function(meth.data,
                                        annotation,
-                                       cor.threshold=qtl.getOption("cluster.cor.threshold"),
-                                       sd.gauss=qtl.getOption("standard.deviation.gauss"),
-                                       absolute.cutoff=qtl.getOption("absolute.distance.cutoff"),
-                                       max.cpgs=qtl.getOption("max.cpgs"),
+                                       cor.threshold=qtlGetOption("cluster.cor.threshold"),
+                                       sd.gauss=qtlGetOption("standard.deviation.gauss"),
+                                       absolute.cutoff=qtlGetOption("absolute.distance.cutoff"),
+                                       max.cpgs=qtlGetOption("max.cpgs"),
                                        assembly="hg19",
                                        chromosome="chr1",
 				       segmentation=NULL){
@@ -73,19 +75,19 @@ computeCorrelationBlocks <- function(meth.data,
              ))
   }
   logger.start("Compute correlation matrix")
-  if(qtl.getOption("correlation.type")=="pearson"){
+  if(qtlGetOption("correlation.type")=="pearson"){
     cor.all <- big_cor(as_FBM(t(as.matrix(meth.data)),type="double"))
   }else{
-    cor.all <- cor(t(as.matrix(meth.data)),qtl.getOption("correlation.type"))
+    cor.all <- cor(t(as.matrix(meth.data)),qtlGetOption("correlation.type"))
   }
   rm(meth.data)
   logger.completed()
   cor.all <- cor.all[,,drop=F]
-  if(qtl.getOption("hdf5dump")){
+  if(qtlGetOption("hdf5dump")){
     cor.all <- writeHDF5Array(cor.all)
   }
   rep.vals <- cor.all<cor.threshold
-  if(qtl.getOption("hdf5dump")){
+  if(qtlGetOption("hdf5dump")){
     rep.vals <- writeHDF5Array(rep.vals)
   }
   cor.all[rep.vals] <- 0
@@ -95,13 +97,13 @@ computeCorrelationBlocks <- function(meth.data,
   pairwise.distance <- abs(as.data.frame(lapply(genomic.positions,function(x)x-genomic.positions)))
   logger.completed()
   rep.vals <- pairwise.distance>absolute.cutoff
-  if(qtl.getOption("hdf5dump")){
+  if(qtlGetOption("hdf5dump")){
     rep.vals <- writeHDF5Array(rep.vals)
   }
   cor.all[rep.vals] <- 0
   gc()
   logger.start("Weight distances")
-  if(qtl.getOption("hdf5dump")){
+  if(qtlGetOption("hdf5dump")){
     weighted.distances <- matrix(nrow=nrow(cor.all),ncol=ncol(cor.all))
     weighted.distances <- writeHDF5Array(weighted.distances)
     chunk.size <- 10000
@@ -153,7 +155,7 @@ weightFunctionalAnnotation <- function(input.matrix,
                                          genomic.annotation,
                                          assembly="hg19",
                                          chromosome=chromosome){
-  if(qtl.getOption("use.functional.annotation")){
+  if(qtlGetOption("use.functional.annotation")){
     logger.start("Weighting functional annotation")
     genomic.annotation <- makeGRangesFromDataFrame(genomic.annotation)
     ensembl.types <- c("ctcf","distal","dnase","proximal","tfbs","tss")
@@ -164,7 +166,7 @@ weightFunctionalAnnotation <- function(input.matrix,
       }
       anno.ensembl <- rnb.get.annotation(ensembl.type,assembly = assembly)
       op <- findOverlaps(genomic.annotation,anno.ensembl)
-      input.matrix[queryHits(op),queryHits(op)] <- input.matrix[queryHits(op),queryHits(op)]*qtl.getOption("functional.annotation.weight")
+      input.matrix[queryHits(op),queryHits(op)] <- input.matrix[queryHits(op),queryHits(op)]*qtlGetOption("functional.annotation.weight")
     }
     logger.completed()
   }
@@ -185,14 +187,14 @@ weightFunctionalAnnotation <- function(input.matrix,
 weightSegmentation <- function(input.matrix,
 				genomic.annotation,
                                 segmentation){
-  if(qtl.getOption("use.segmentation")){
+  if(qtlGetOption("use.segmentation")){
       logger.start("Weighting segmentation")
       if(is.null(segmentation)){
         return(input.matrix)
       }
       genomic.annotation <- makeGRangesFromDataFrame(genomic.annotation)
       op <- findOverlaps(genomic.annotation,segmentation)
-      input.matrix[queryHits(op),queryHits(op)] <- input.matrix[queryHits(op),queryHits(op)]*qtl.getOption("functional.annotation.weight")
+      input.matrix[queryHits(op),queryHits(op)] <- input.matrix[queryHits(op),queryHits(op)]*qtlGetOption("functional.annotation.weight")
       logger.completed()
   }
   return(input.matrix)

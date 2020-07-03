@@ -133,7 +133,7 @@ qtlBaseSubstitutionEnrichment <- function(meth.qtl.res,
     subs.qtl <- subs.map[subs.qtl]
     sub.qtl <- unname(subs.qtl)
     subs.input <- subs.map[subs.input]
-    subs.input <- unname(subs.input)  
+    subs.input <- unname(subs.input)
     all.interactions <- subs.map[all.interactions]
     all.interactions <- unique(all.interactions)
     all.interactions <- unname(all.interactions)
@@ -167,7 +167,7 @@ qtlBaseSubstitutionEnrichment <- function(meth.qtl.res,
 #' @param out.dir The output directory in which resulting plots will be stored.
 #' @param ... Further parameters passed to \code{\link[motifRG]{findMotifFgBg}}
 #' @return A plot describing the TFB motif enrichment
-#' @details This function is in part based on the tutorial for Motif discovery in https://compgenomr.github.io/book/motif-discovery.html. 
+#' @details This function is in part based on the tutorial for Motif discovery in https://compgenomr.github.io/book/motif-discovery.html.
 #' We use all data points that have been used to calculate methQTLs as the background
 #'  and compare the overlaps with the annotation of interest in comparison to the methQTLs that
 #'  have been computed in case a \code{\link{methQTLResult-class}} is provided. If a list of \code{\link{methQTLResult-class}} objects
@@ -227,7 +227,7 @@ qtlTFBSMotifEnrichment <- function(meth.qtl.res,
       seqLogo::seqLogo(mot$model$prob)
       text(x=0.5,y=1,label=paste("Most similar to",info.mat$X2[1],"Similarity:",round(info.mat$similarity[1],3)))
       dev.off()
-    }    
+    }
     return(NULL)
   }
 }

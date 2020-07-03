@@ -96,7 +96,7 @@ test.meth.qtl.functions <- function(){
   row.names(snp.matrix) <- paste0("rs",1:nrow(snp.matrix))
   row.names(anno.cpg) <- paste0("cg",1:nrow(meth.matrix))
   row.names(anno.snps) <- paste0("rs",1:nrow(snp.matrix))
-  qtl.setOption(meth.qtl.type="allVSall")
+  qtlSetOption(meth.qtl.type="allVSall")
   meth.qtl <- new("methQTLInput",
                   meth.data=meth.matrix,
                   geno.data=snp.matrix,

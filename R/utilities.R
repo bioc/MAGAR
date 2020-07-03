@@ -355,7 +355,7 @@ generateFastQTLInput <- function(meth.qtl,chrom,correlation.block,sel.covariates
   system(paste("sed -i '1i#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT",
                paste(colnames(geno.data),collapse="\t"),"'",f.name))
   system(paste("sed -i '1i##fileformat=VCFv4.1'",f.name))
-  system(paste(qtl.getOption("bgzip.path"),f.name,"&&",qtl.getOption("tabix.path"),"-p vcf",paste0(f.name,".gz")))
+  system(paste(qtlGetOption("bgzip.path"),f.name,"&&",qtlGetOption("tabix.path"),"-p vcf",paste0(f.name,".gz")))
   meth.data <- getMethData(meth.qtl)
   anno.meth <- getAnno(meth.qtl)
   meth.data <- meth.data[anno.meth$Chromosome%in%chrom,]
@@ -373,7 +373,7 @@ generateFastQTLInput <- function(meth.qtl,chrom,correlation.block,sel.covariates
   write.table(pheno.frame,f.name,sep="\t",row.names = F,col.names = F,quote=F)
   system(paste("sed -i '1i#Chr\tstart\tend\tID",
                paste(colnames(meth.data),collapse="\t"),"'",f.name))
-  system(paste(qtl.getOption("bgzip.path"),f.name,"&&",qtl.getOption("tabix.path"),"-p bed",paste0(f.name,".gz")))
+  system(paste(qtlGetOption("bgzip.path"),f.name,"&&",qtlGetOption("tabix.path"),"-p bed",paste0(f.name,".gz")))
   f.name <- file.path(out.dir,"covariates.txt")
   if(is.null(sel.covariates)){
 	cov.file <- NULL

@@ -38,7 +38,7 @@ submitClusterJobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncor
   set.seed(Sys.time())
   id <- sample(1:10000,1)
   dep.tok <- ""
-  req.res <- qtl.getOption("cluster.config")$cluster.config
+  req.res <- qtlGetOption("cluster.config")$cluster.config
   for(i in 1:length(names(req.res))){
     dep.tok <- paste(dep.tok,"-l",paste0(names(req.res)[i],"=",req.res[i]))
   }
@@ -49,7 +49,7 @@ submitClusterJobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncor
                      dep.tok,
                      "-j y",
                      "-b y",
-                     paste0("'",qtl.getOption("rscript.path")," ",system.file("extdata/Rscript/rscript_chromosome_job.R",package="methQTL")),
+                     paste0("'",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_chromosome_job.R",package="methQTL")),
                      "-m",methQTL.file,
                      "-j",json.path,
                      "-c",chr,
@@ -70,7 +70,7 @@ submitClusterJobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncor
                    "-j y",
                    "-hold_jid",paste0(job.names,collapse = ","),
                    "-b y",
-                   paste0("'",qtl.getOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="methQTL")),
+                   paste0("'",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="methQTL")),
                    paste0("-o ",out.dir,"'")
                   )
   system(cmd.tok)

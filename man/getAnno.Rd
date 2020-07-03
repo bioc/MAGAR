@@ -4,6 +4,7 @@
 \name{getAnno,methQTLInput-method}
 \alias{getAnno,methQTLInput-method}
 \alias{getAnno,methQTL-method}
+\alias{getAnno}
 \alias{getAnno,methQTLResult-method}
 \title{getAnno}
 \usage{

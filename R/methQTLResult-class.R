@@ -95,6 +95,7 @@ if(!isGeneric("getResult")) setGeneric("getResult",function(object,...) standard
 #' @rdname getResult
 #' @docType methods
 #' @aliases getResult,methQTLResult-method
+#' @aliases getResult
 #' @export
 setMethod("getResult",signature(object="methQTLResult"),
           function(object,cor.blocks=NULL){
@@ -144,6 +145,7 @@ if(!isGeneric("getResultGWASMap")) setGeneric("getResultGWASMap",function(object
 #' @rdname getResultGWASMap
 #' @docType methods
 #' @aliases getResultGWASMap,methQTLResult-method
+#' @aliases getResultGWASMap
 #' @export
 setMethod("getResultGWASMap",signature(object="methQTLResult"),
           function(object,meth.qtl){
@@ -166,6 +168,7 @@ if(!isGeneric("getAnno")) setGeneric("getAnno",function(object,...) standardGene
 #' @rdname getAnno
 #' @docType methods
 #' @aliases getAnno,methQTL-method
+#' @aliases getAnno
 #' @export
 setMethod("getAnno",signature(object="methQTLResult"),
           function(object,type="meth"){

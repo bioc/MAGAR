@@ -4,6 +4,7 @@
 \name{getPheno,methQTLInput-method}
 \alias{getPheno,methQTLInput-method}
 \alias{getPheno,methQTL-method}
+\alias{getPheno}
 \title{getPheno}
 \usage{
 \S4method{getPheno}{methQTLInput}(object)

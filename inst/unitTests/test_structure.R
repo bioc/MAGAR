@@ -28,10 +28,10 @@ test.constructors <- function(){
 
 test.options <- function(){
   rnb.op <- "options.xml"
-  qtl.setOption(rnbeads.options=rnb.op)
-  res <- rnb.op == qtl.getOption("rnbeads.options")
-  qtl.setOption(rnbeads.report=getwd())
-  res <- res & qtl.getOption("rnbeads.report") == getwd()
+  qtlSetOption(rnbeads.options=rnb.op)
+  res <- rnb.op == qtlGetOption("rnbeads.options")
+  qtlSetOption(rnbeads.report=getwd())
+  res <- res & qtlGetOption("rnbeads.report") == getwd()
   checkTrue(res)
 }
 

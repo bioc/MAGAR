@@ -356,7 +356,7 @@ qtlLOLAPlot <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19",pva
 }
 
 #' qtlPlotClusterSize
-#' 
+#'
 #' This functions returns a histogram comprising the (genomic) sizes of the correlation blocks
 #' in the given objet.
 #'
@@ -393,10 +393,10 @@ qtlPlotClusterSize <- function(meth.qtl.res,type="count"){
 #' qtlPlotAnnotationEnrichment
 #'
 #' This functions returns and enrichment plot for different genomic annotation enrichments
-#' 
+#'
 #' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
-#' @param ... Further parameters passed to \code{\link{qtl.annotation.enrichment }}
-#' @seealso qtl.annotation.enrichment 
+#' @param ... Further parameters passed to \code{\link{qtlAnnotationEnrichment}}
+#' @seealso qtl.annotation.enrichment
 #' @export
 #' @author Michael Scherer
 qtlPlotAnnotationEnrichment <- function(meth.qtl.res,...){
@@ -421,11 +421,11 @@ qtlPlotAnnotationEnrichment <- function(meth.qtl.res,...){
 }
 
 #' qtlPlotBaseSubstitution
-#' 
+#'
 #' This function returns an enrichment plot for the different base substitutions.
-#' 
+#'
 #' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
-#' @param ... Further parameters passed to \code{\link{qtl.base.substitution.enrichment}}
+#' @param ... Further parameters passed to \code{\link{qtlBaseSubstitutionEnrichment}}
 #' @seealso qtl.base.substitution.enrichment
 #' @export
 #' @author Michael Scherer
