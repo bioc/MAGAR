@@ -519,13 +519,13 @@ qtlGetOption <- function(names){
   if('fast.qtl.path'%in%names){
     if(is.null(QTL.OPTIONS[['FAST.QTL.PATH']])){
       logger.info("Loading system default for option 'fast.qtl.path'")
-      tabix.path=system.file("bin/fastQTL.static",package="methQTL")
+      fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL")
       er <- tryCatch(system(fast.qtl.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of fastQTL, please install it manually and specify it with 'fast.qtl.path'")
       }
     }
-    ret <- c(ret,tabix.path=QTL.OPTIONS[['TABIX.PATH']])
+    ret <- c(ret,fast.qtl.path=QTL.OPTIONS[['TABIX.PATH']])
   }
   if('n.prin.comp'%in%names){
     ret <- c(ret,n.prin.comp=QTL.OPTIONS[['N.PRIN.COMP']])
