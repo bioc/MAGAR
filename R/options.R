@@ -531,18 +531,20 @@ qtlGetOption <- function(names){
     ret <- c(ret,n.prin.comp=QTL.OPTIONS[['N.PRIN.COMP']])
   }
   if('plink.path'%in%names){
-    if(is.null(QTL.OPTIONS[['PLINK.PATH']])){
+    plink.path <- QTL.OPTIONS[['PLINK.PATH']]
+    if(is.null(plink.path)){
       logger.info("Loading system default for option 'plink.path'")
-      tabix.path=system.file("bin/plink",package="methQTL")
+      plink.path=system.file("bin/plink",package="methQTL")
       er <- tryCatch(system(plink.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of plink, please install it manually and specify it with 'plink.path'")
-      }
+      }    
     }
-    ret <- c(ret,plink.path=QTL.OPTIONS[['PLINK.PATH']])
+    ret <- c(ret,plink.path=plink.path)
   }
   if('bgzip.path'%in%names){
-    if(is.null(QTL.OPTIONS[['BGZIP.PATH']])){
+    bgzip.path <- QTL.OPTIONS[['BGZIP.PATH']]
+    if(is.null(bgzip.path)){
       logger.info("Loading system default for option 'bgzip.path'")
       tabix.path=system.file("bin/bgzip",package="methQTL")
       er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
@@ -550,10 +552,11 @@ qtlGetOption <- function(names){
         stop("Non-functional default version of bgzip, please install it manually and specify it with 'bgzip.path'")
       }
     }
-    ret <- c(ret,bgzip.path=QTL.OPTIONS[['BGZIP.PATH']])
+    ret <- c(ret,bgzip.path=bgzip.path)
   }
   if('tabix.path'%in%names){
-    if(is.null(QTL.OPTIONS[['TABIX.PATH']])){
+    tabix.path <- QTL.OPTIONS[['TABIX.PATH']]
+    if(is.null(tabix.path)){
       logger.info("Loading system default for option 'tabix.path'")
       tabix.path=system.file("bin/tabix",package="methQTL")
       er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
@@ -561,9 +564,9 @@ qtlGetOption <- function(names){
         stop("Non-functional default version of tabix, please install it manually and specify it with 'tabix.path'")
       }
     }
-    ret <- c(ret,tabix.path=QTL.OPTIONS[['TABIX.PATH']])
+    ret <- c(ret,tabix.path=tabix.path)
   }
-  if('correlation.type'%in%names){
+   if('correlation.type'%in%names){
     ret <- c(ret,correlation.type=QTL.OPTIONS[['CORRELATION.TYPE']])
   }
   if('cluster.cor.threshold'%in%names){
