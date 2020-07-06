@@ -52,7 +52,7 @@ doMethQTL <- function(meth.qtl,
       if(meth.qtl@platform %in% "probes27"){
         stop("This package does not support Illumina Infinium 27k arrays.")
       }
-      qtl.json2options(file.path(system.file("extdata/",package="methQTL"),paste0("qtl_options_",meth.qtl@platform,".json")))
+      qtlJSON2options(file.path(system.file("extdata/",package="methQTL"),paste0("qtl_options_",meth.qtl@platform,".json")))
     }
   }
   if(!meth.qtl@imputed){
@@ -157,7 +157,7 @@ doMethQTLChromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.d
   }else{
     logger.start("Compute methQTL per correlation block")
       parallel.setup(ncores)
-      res.chr.p.val <- mclapply(cor.blocks,call.methQTL.block,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno,mc.cores = ncores)
+      res.chr.p.val <- mclapply(cor.blocks,callMethQTLBlock,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno,mc.cores = ncores)
       res.all <- c()
       for(i in 1:length(res.chr.p.val)){
         res.all <- rbind(res.all,res.chr.p.val[[i]])
@@ -468,7 +468,7 @@ computeRepresentativeCpG <- function(cor.blocks,meth.data,annotation){
 #' @param meth.qtl The input object of type \code{\link{methQTLInput}}
 #' @param chrom The chromosome to be analyzed
 #' @param out.dir The output directory
-#' @return A \code{data.frame} in analogy to \code{\link{call.methQTL.block}}
+#' @return A \code{data.frame} in analogy to \code{\link{callMethQTLBlock}}
 #' @author Michael Scherer
 #' @noRd
 runFastQTL <- function(prepared.input,

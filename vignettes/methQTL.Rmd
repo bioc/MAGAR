@@ -41,6 +41,25 @@ if(!requireNamespace("methQTL")){
 suppressPackageStartupMessages(library(methQTL))
 ```
 
+## Required external software tools
+
+The *methQTL* package requires a funtional installation of *PLINK* for handling genotyping data. Follow the installation instructions available [here](https://www.cog-genomics.org/plink2/) and specify the path to the installation for the package:
+
+```{r plink_setup}
+qtlSetOption(plink.path="/TL/deep-share/archive00/software/packages/plink/plink")
+```
+
+Additionally, depending on the type of the analysis, more external software tools are required. More specifically, if you want to perform imputation *bgzip* and *tabix* from the [*htslib*](http://www.htslib.org/download/) package are needed, as well as [*vcftools*](http://vcftools.sourceforge.net/downloads.html) for sorting VCF files. Lastly, if methQTL calling is to be performed through [*fastQTL*](http://fastqtl.sourceforge.net/), the software tools needs to be installed and specified.
+
+```{r tools, eval=F}
+qtlSetOption(
+	bgzip.path="path_to_bgzip",
+	tabix.path="path_to_tabix",
+	vctools.path="path_to_vcftools_folder",
+	fast.qtl.path="path_to_fastQTL",
+)
+```
+
 # Input data
 
 The *methQTL* package requires two types of data as input: DNA methylation data obtained using the Illumina Infinium BeadArrays and genotyping data obtained using genotyping microarrays or whole genome sequencing.
