@@ -162,6 +162,8 @@ doMethImport <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep="
               import.table.separator=tab.sep)
   if(qtlGetOption("meth.data.type")%in%c("GEO","rnb.set")){
     data.s <- data.location[["idat.dir"]]
+  }else if(qtlGetOption("meth.data.type")=="data.files"){
+    data.s <- c(s.anno,data.location[["idat.dir"]])
   }else{
     data.s <- c(data.location[["idat.dir"]],s.anno)
   }
@@ -525,7 +527,10 @@ doGenoImportIDAT <- function(idat.files,
     sex <- rep(NA,nrow(s.anno))
   }
   if(idat.platform=="OmniExpress"){
-	my.anno <- readRDS(system.file("extdata/omni_express_annotation.rds",package="methQTL"))
+	if(!requireNamespace("methQTL.data")){
+		stop("Missing required package methQTL.data for idat.platform OmniExpress")
+	}
+	my.anno <- readRDS(system.file("extdata/omni_express_annotation.rds",package="methQTL.data"))
 	genome <- "hg19"
         crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
                          arrayNames=array.names,
@@ -540,7 +545,10 @@ doGenoImportIDAT <- function(idat.files,
                          gender=sex)
 	annot <- my.anno@data
   }else if(idat.platform=="OmniExome"){
-	my.anno <- readRDS(system.file("extdata/omni_exome_annotation.rds",package="methQTL"))
+	if(!requireNamespace("methQTL.data")){
+		stop("Missing required package methQTL.data for idat.platform OmniExome")
+	}
+	my.anno <- readRDS(system.file("extdata/omni_exome_annotation.rds",package="methQTL.data"))
 	genome <- "hg19"
         crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
                          arrayNames=array.names,

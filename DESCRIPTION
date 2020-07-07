@@ -21,14 +21,14 @@ Imports: doParallel,
          knitr,
          plyr,
 	 BiocGenerics,
-	 crlmm,
 	 ff,
 	 data.table,
 	 methods,
 	 reshape2
 Depends: HDF5Array,
 	 RnBeads,
-	 snpStats
+	 snpStats,
+	 crlmm
 Suggests: gridExtra,
          VennDiagram,
          UpSetR,

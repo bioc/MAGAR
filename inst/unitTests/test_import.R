@@ -75,19 +75,19 @@ library(methQTL)
 #  out.dir <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/test_package/"
 #  idat.platform="humanomni258v1p1b"
 #  gender.col=NULL
-#  qtl.setOption(meth.data.type="GEO")
-#  qtl.setOption(missing.values.samples = 1)
-#  qtl.setOption(db.snp.ref="/DEEP_fhgfs/projects/mscherer/data/misc/common_all_20180423_hg19.vcf.gz")
+#  qtlSetOption(meth.data.type="GEO")
+#  qtlSetOption(missing.values.samples = 1)
+#  qtlSetOption(db.snp.ref="/DEEP_fhgfs/projects/mscherer/data/misc/common_all_20180423_hg19.vcf.gz",
+#	           geno.data.type="idat",)
 #  data.loc <- c(idat.dir="GSE79144",geno.dir=idat.files)
 #  rnbeads.report = out.dir
-#  res <- do.import(data.loc,
-#                   data.type.geno="idat",
+#  res <- doImport(data.loc,
 #                   s.anno=s.anno,
 #                   tab.sep="\t",
 #                   s.id.col=s.id.col,
 #                   out.folder=out.dir,
 #                   idat.platform=idat.platform)
-#  res <- do.methQTL(res,
+#  res <- doMethQTL(res,
 #                    sel.covariates = NULL,
 #                    out.dir=out.dir,
 #                    ncores=10)
