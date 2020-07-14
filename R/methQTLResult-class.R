@@ -194,6 +194,7 @@ if(!isGeneric("getCorrelationBlocks")) setGeneric("getCorrelationBlocks",functio
 #' @docType methods
 #' @aliases getCorrelationBlocks,methQTLResult-method
 #' @return
+#' @export
 setMethod("getCorrelationBlocks",signature(object="methQTLResult"),
           function(object){
             cor.blocks <- object@correlation.blocks
@@ -262,6 +263,7 @@ if(!isGeneric("filterPval")) setGeneric("filterPval", function(object,...)standa
 #' @docType methods
 #' @aliases filterPval,methQTLResult-method
 #' @author Michael Scherer
+#' @export
 setMethod("filterPval","methQTLResult",
           function(object,p.val.cutoff=0.01){
             res <- object@result.frame
@@ -284,6 +286,7 @@ if(!isGeneric("saveMethQTLResult")) setGeneric("saveMethQTLResult", function(obj
 #' @docType methods
 #' @aliases saveMethQTLResult,methQTL-method
 #' @author Michael Scherer
+#' @export
 setMethod("saveMethQTLResult","methQTLResult",
           function(object,path){
             if(file.exists(path)){
@@ -315,7 +318,7 @@ setMethod("saveMethQTLResult","methQTLResult",
 #'
 #' This functions load a \code{\link{methQTLResult-class}} object from disk.
 #'
-#' @param path Path to the directory that has been created by \code{save.methQTLResult,methQTLInput-method}.
+#' @param path Path to the directory that has been created by \code{saveMethQTLResult,methQTLInput-method}.
 #' @return The object of type \code{\link{methQTLResult-class}} that has been stored on disk.
 #' @author Michael Scherer
 #' @export
@@ -324,7 +327,7 @@ loadMethQTLResult <- function(path){
          !file.exists(file.path(path,"anno_meth.RDS")),
          !file.exists(file.path(path,"anno_geno.RDS")),
          !file.exists(file.path(path,"correlation_blocks.RDS")))){
-    stop("Invalid value for path. Potentially not a directory saved with save.methQTLResult")
+    stop("Invalid value for path. Potentially not a directory saved with saveMethQTLResult")
   }
   load_env<-new.env(parent=emptyenv())
   load(file.path(path, "methQTLResult.RData"),envir=load_env)
@@ -376,9 +379,11 @@ joinMethQTLResult <- function(obj.list){
       logger.error("Incompatible representative CpG computation methods")
     }
   }
-  result.frame <- data.frame(result.frame[order(result.frame[,1]),])
-  anno.meth <- data.frame(anno.meth[order(anno.meth[,1]),])
-  anno.geno <- data.frame(anno.geno[order(anno.geno[,1]),])
+  if(!is.null(result.frame)&&nrow(result.frame)>0){
+    result.frame <- data.frame(result.frame[order(result.frame[,1]),])
+    anno.meth <- data.frame(anno.meth[order(anno.meth[,1]),])
+    anno.geno <- data.frame(anno.geno[order(anno.geno[,1]),])
+  }
   ret.obj <- new("methQTLResult",
                  result.frame=result.frame,
                  anno.meth=anno.meth,

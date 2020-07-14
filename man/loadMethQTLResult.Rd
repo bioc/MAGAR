@@ -7,7 +7,7 @@
 loadMethQTLResult(path)
 }
 \arguments{
-\item{path}{Path to the directory that has been created by \code{save.methQTLResult,methQTLInput-method}.}
+\item{path}{Path to the directory that has been created by \code{saveMethQTLResult,methQTLInput-method}.}
 }
 \value{
 The object of type \code{\link{methQTLResult-class}} that has been stored on disk.

@@ -35,7 +35,7 @@ for larger ones.}
 
 \item{chromosome}{The chromosome for which correlation block calling is to be performed}
 
-\item{segmentation}{If performed, DNA methylation bases segmentation into PMDs/nonPMDs as a \code{GRanges}
+\item{segmentation}{If performed, DNA methylation based segmentation into PMDs/nonPMDs as a \code{GRanges}
 object using the 'epicPMDdetect' package}
 }
 \value{

@@ -329,6 +329,7 @@ if(!isGeneric("saveMethQTL")) setGeneric("saveMethQTL", function(object,...)stan
 #' @docType methods
 #' @aliases saveMethQTL,methQTL-method
 #' @author Michael Scherer
+#' @export
 setMethod("saveMethQTL","methQTLInput",
           function(object,path){
             if(file.exists(path)){
@@ -380,7 +381,7 @@ loadMethQTL <- function(path){
          !file.exists(file.path(path,"anno_meth.RDS")),
          !file.exists(file.path(path,"anno_geno.RDS")),
          !file.exists(file.path(path,"pheno_data.RDS")))){
-    stop("Invalid value for path. Potentially not a directory saved with save.methQTL")
+    stop("Invalid value for path. Potentially not a directory saved with saveMethQTL")
   }
   load_env<-new.env(parent=emptyenv())
   load(file.path(path, "methQTLInput.RData"),envir=load_env)

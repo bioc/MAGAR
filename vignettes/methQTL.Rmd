@@ -46,7 +46,8 @@ suppressPackageStartupMessages(library(methQTL))
 The *methQTL* package requires a funtional installation of *PLINK* for handling genotyping data. Follow the installation instructions available [here](https://www.cog-genomics.org/plink2/) and specify the path to the installation for the package:
 
 ```{r plink_setup}
-qtlSetOption(plink.path="/TL/deep-share/archive00/software/packages/plink/plink")
+#qtlSetOption(plink.path="/TL/deep-share/archive00/software/packages/plink/plink")
+qtlSetOption(plink.path="~/home_nfs/work/mscherer/projects/methQTL/package/software/plink")
 ```
 
 Additionally, depending on the type of the analysis, more external software tools are required. More specifically, if you want to perform imputation *bgzip* and *tabix* from the [*htslib*](http://www.htslib.org/download/) package are needed, as well as [*vcftools*](http://vcftools.sourceforge.net/downloads.html) for sorting VCF files. Lastly, if methQTL calling is to be performed through [*fastQTL*](http://fastqtl.sourceforge.net/), the software tools needs to be installed and specified.
@@ -77,7 +78,7 @@ Sample_3,45,m,209054857842_R03C01
 
 For further details on the import process, we refer to the [RnBeads vignette](http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf). Most importantly, analysis options need to be specified for the import and preprocessing modules of *RnBeads*. *methQTL* provides a default setting, which is available in *extdata/rnbeads_options.xml*. You can use this file as a template for your own setting and then specify it to the methQTL package:
 
-```{r options}
+```{r options, eval=TRUE}
 opts <- rnb.xml2options(system.file("extdata/rnbeads_options.xml",package="methQTL"))
 rnb.options(identifiers.column="geo_accession",
 	import.idat.platform="probes450")
@@ -163,7 +164,9 @@ Please note that the ```recode.allele.frequencies``` option specifies, if, accor
 Although *methQTL* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter, or as global parameters using ```?qtlSetOption```.
 
 ```{r call_methQTL, eval=TRUE}
-meth.qtl.res <- doMethQTL(imp.data)
+qtlSetOption(standard.deviation.gauss=100,
+	cluster.cor.threshold=0.75)
+meth.qtl.res <- doMethQTL(imp.data,default.options=F,p.val.cutoff=1e-3)
 ```
 
 We will now present the two steps of the methQTL calling procedure in more detail.
@@ -239,7 +242,7 @@ qtlDistanceScatterplot(meth.qtl.res)
 The package provides a bunch of interpretation functions to characterize the detected methQTLs. This includes LOLA enrichment analysis[@LOLA] (```qtlLOLAEnrichment```), genomic annotation enrichment based on putative regulatory elements defined by the Ensembl Regulatory Build[@Zerbino2015] (```qtlAnnotationEnrichment```), enrichment analysis of different base substitutions in SNPs (```qtlBaseSubstitutionEnrichment```), or TFBS motif enrichment using [TFBSTools](http://bioconductor.org/packages/release/bioc/html/TFBSTools.html). Enrichment is compared for the methQTLs that are available in the provided ```methQTLResult``` (for a single input), or to the overlapping QTLs for a list of ```methQTLResult```. The background of the enrichment is defined as all the SNPs/CpGs that have been used as input to the methQTL calling.
 
 ```{r interpretation, eval=TRUE, include=TRUE}
-res <- qtlBaseSbstitutionEnrichment(meth.qtl.res)
+res <- qtlBaseSubstitutionEnrichment(meth.qtl.res)
 qtlPlotBaseSubstitution(meth.qtl.res,merge=TRUE)
 ```
 

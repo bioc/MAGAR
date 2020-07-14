@@ -24,14 +24,14 @@
 submitClusterJobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncores=1){
   logger.start("Prepare cluster submission")
   json.path <- file.path(out.dir,"methQTL_configuration.json")
-  qtl.options2json(json.path)
+  qtlOptions2JSON(json.path)
   if(!is.null(covariates)){
     cov.file <- file.path(out.dir,"methQTL_covariates.txt")
     writeLines(covariates,cov.file)
   }
   methQTL.file <- file.path(out.dir,"methQTLInput")
   if(!file.exists(methQTL.file)){
-    save.methQTL(methQTL.input,methQTL.file)
+    saveMethQTL(methQTL.input,methQTL.file)
   }
   logger.completed()
   all.chroms <- unique(getAnno(methQTL.input)$Chromosome)

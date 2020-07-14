@@ -21,7 +21,7 @@
 #'             for larger ones.
 #' @param assembly The assembly used
 #' @param chromosome The chromosome for which correlation block calling is to be performed
-#' @param segmentation If performed, DNA methylation bases segmentation into PMDs/nonPMDs as a \code{GRanges}
+#' @param segmentation If performed, DNA methylation based segmentation into PMDs/nonPMDs as a \code{GRanges}
 #'        object using the 'epicPMDdetect' package
 #' @return A list representing the clustering of CpGs into correlation blocks. Each element is a cluster, which contains
 #'      row indices of the DNA methylation matrix that correspond to this cluster.
