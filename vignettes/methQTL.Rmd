@@ -123,6 +123,8 @@ qtlSetOption(
 
 The ```doImport``` function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. In this vignette, we will describe the import of DNA methylation data in *IDAT* format and genotyping data as *PLINK* files. First, you'll have to specify the paths to the corresponding *IDAT* and *plink* files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory (```hdf5dump```).
 
+Please note that we provide an accompanying R-package ([methQTL.data](https://github.com/MPIIComputationalEpigenetics/methQTL.data)) comprising additional information including microarray annotations and test data sets for this vignette. Furthermore, we provide a patched version of CRLMM that supports the newer Illumina genotyping microarrays (Illumina OmniExome and Illumina OmniExpress) from [GitHub](https://github.com/MPIIComputationalEpigenetics/crlmm).
+
 ```{r import,eval=TRUE}
 if(!requireNamespace("methQTL.data")){
   devtools::install_github("MPIIComputationalEpigenetics/methQTL-package.data")
