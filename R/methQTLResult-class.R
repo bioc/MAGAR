@@ -95,6 +95,7 @@ if(!isGeneric("getResult")) setGeneric("getResult",function(object,...) standard
 #' @rdname getResult
 #' @docType methods
 #' @aliases getResult,methQTLResult-method
+#' @aliases getResult
 #' @export
 setMethod("getResult",signature(object="methQTLResult"),
           function(object,cor.blocks=NULL){
@@ -132,20 +133,21 @@ setMethod("getResult",signature(object="methQTLResult"),
           }
 )
 
-if(!isGeneric("getResult.GWASMap")) setGeneric("getResult.GWASMap",function(object,...) standardGeneric("getResult.GWASMap"))
+if(!isGeneric("getResultGWASMap")) setGeneric("getResultGWASMap",function(object,...) standardGeneric("getResultGWASMap"))
 
-#' getResult.GWASMap
+#' getResultGWASMap
 #'
 #' Returns the methQTL results in the format used as input to GWAS-map and stores in the object.
 #'
 #' @param object An of type \code{\link{methQTLResult-class}}.
 #' @param meth.qtl An object of type \code{\link{methQTLInput-class}} containing further information about the QTLs
 #' @return The methQTL results as a \code{data.frame} with each row being a methQTL.
-#' @rdname getResult.GWASMap
+#' @rdname getResultGWASMap
 #' @docType methods
-#' @aliases getResult.GWASMap,methQTLResult-method
+#' @aliases getResultGWASMap,methQTLResult-method
+#' @aliases getResultGWASMap
 #' @export
-setMethod("getResult.GWASMap",signature(object="methQTLResult"),
+setMethod("getResultGWASMap",signature(object="methQTLResult"),
           function(object,meth.qtl){
             ret <- object@result.frame
 #            keep.lines <- apply(ret,1,function(line){
@@ -166,6 +168,7 @@ if(!isGeneric("getAnno")) setGeneric("getAnno",function(object,...) standardGene
 #' @rdname getAnno
 #' @docType methods
 #' @aliases getAnno,methQTL-method
+#' @aliases getAnno
 #' @export
 setMethod("getAnno",signature(object="methQTLResult"),
           function(object,type="meth"){
@@ -191,6 +194,7 @@ if(!isGeneric("getCorrelationBlocks")) setGeneric("getCorrelationBlocks",functio
 #' @docType methods
 #' @aliases getCorrelationBlocks,methQTLResult-method
 #' @return
+#' @export
 setMethod("getCorrelationBlocks",signature(object="methQTLResult"),
           function(object){
             cor.blocks <- object@correlation.blocks
@@ -246,9 +250,9 @@ setMethod("show","methQTLResult",
           }
 )
 
-if(!isGeneric("filter.pval")) setGeneric("filter.pval", function(object,...)standardGeneric("filter.pval"))
+if(!isGeneric("filterPval")) setGeneric("filterPval", function(object,...)standardGeneric("filterPval"))
 
-#' filter.pval
+#' filterPval
 #'
 #' This functions filters the methQTL results according to a given p-value cutoff
 #'
@@ -257,9 +261,10 @@ if(!isGeneric("filter.pval")) setGeneric("filter.pval", function(object,...)stan
 #' @return The filtered \code{\link{methQTLResult-class}} object
 #' @rdname filter.pval
 #' @docType methods
-#' @aliases filter.pval,methQTLResult-method
+#' @aliases filterPval,methQTLResult-method
 #' @author Michael Scherer
-setMethod("filter.pval","methQTLResult",
+#' @export
+setMethod("filterPval","methQTLResult",
           function(object,p.val.cutoff=0.01){
             res <- object@result.frame
             res <- res[res$p.val.adj.fdr <= p.val.cutoff,]
@@ -268,20 +273,21 @@ setMethod("filter.pval","methQTLResult",
           }
 )
 
-if(!isGeneric("save.methQTLResult")) setGeneric("save.methQTLResult", function(object,...)standardGeneric("save.methQTLResult"))
+if(!isGeneric("saveMethQTLResult")) setGeneric("saveMethQTLResult", function(object,...)standardGeneric("saveMethQTLResult"))
 
-#' save.methQTLResult
+#' saveMethQTLResult
 #'
 #' This functions stores a methQTLInputResult object in disk.
 #'
 #' @param object The \code{\link{methQTLResult-class}} object to be stored on disk.
 #' @param path A path to a non-existing directory for files to be stored.
 #'
-#' @rdname save.methQTLResult
+#' @rdname saveMethQTLResult
 #' @docType methods
-#' @aliases save.methQTLResult,methQTL-method
+#' @aliases saveMethQTLResult,methQTL-method
 #' @author Michael Scherer
-setMethod("save.methQTLResult","methQTLResult",
+#' @export
+setMethod("saveMethQTLResult","methQTLResult",
           function(object,path){
             if(file.exists(path)){
               if(dir.exists(path)){
@@ -308,20 +314,20 @@ setMethod("save.methQTLResult","methQTLResult",
           }
 )
 
-#' load.methQTLResult
+#' loadMethQTLResult
 #'
 #' This functions load a \code{\link{methQTLResult-class}} object from disk.
 #'
-#' @param path Path to the directory that has been created by \code{save.methQTLResult,methQTLInput-method}.
+#' @param path Path to the directory that has been created by \code{saveMethQTLResult,methQTLInput-method}.
 #' @return The object of type \code{\link{methQTLResult-class}} that has been stored on disk.
 #' @author Michael Scherer
 #' @export
-load.methQTLResult <- function(path){
+loadMethQTLResult <- function(path){
   if(any(!(file.exists(file.path(path,"result_frame.RDS"))),
          !file.exists(file.path(path,"anno_meth.RDS")),
          !file.exists(file.path(path,"anno_geno.RDS")),
          !file.exists(file.path(path,"correlation_blocks.RDS")))){
-    stop("Invalid value for path. Potentially not a directory saved with save.methQTLResult")
+    stop("Invalid value for path. Potentially not a directory saved with saveMethQTLResult")
   }
   load_env<-new.env(parent=emptyenv())
   load(file.path(path, "methQTLResult.RData"),envir=load_env)
@@ -337,7 +343,7 @@ load.methQTLResult <- function(path){
   return(object)
 }
 
-#' join.methQTLResult
+#' joinMethQTLResult
 #'
 #' This function combines a list of \code{\link{methQTLResult-class}} objects.
 #'
@@ -345,7 +351,7 @@ load.methQTLResult <- function(path){
 #' @return An object of type \code{\link{methQTLResult-class}} containing the combined information
 #' @author Michael Scherer
 #' @export
-join.methQTLResult <- function(obj.list){
+joinMethQTLResult <- function(obj.list){
   if(any(!unlist(lapply(obj.list,function(x)inherits(x,"methQTLResult"))))){
     logger.error("Objects needs to be of type methQTLResult")
   }
@@ -373,9 +379,11 @@ join.methQTLResult <- function(obj.list){
       logger.error("Incompatible representative CpG computation methods")
     }
   }
-  result.frame <- data.frame(result.frame[order(result.frame[,1]),])
-  anno.meth <- data.frame(anno.meth[order(anno.meth[,1]),])
-  anno.geno <- data.frame(anno.geno[order(anno.geno[,1]),])
+  if(!is.null(result.frame)&&nrow(result.frame)>0){
+    result.frame <- data.frame(result.frame[order(result.frame[,1]),])
+    anno.meth <- data.frame(anno.meth[order(anno.meth[,1]),])
+    anno.geno <- data.frame(anno.geno[order(anno.geno[,1]),])
+  }
   ret.obj <- new("methQTLResult",
                  result.frame=result.frame,
                  anno.meth=anno.meth,

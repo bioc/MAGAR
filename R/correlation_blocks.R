@@ -6,7 +6,7 @@
 # Methods for calling correlation blocks from DNA methylation data.
 ##########################################################################################
 
-#' compute.correlation.blocks
+#' computeCorrelationBlocks
 #'
 #' This function computes CpG correlation blocks from correlations of CpGs across samples by Louvian
 #' clustering.
@@ -21,7 +21,7 @@
 #'             for larger ones.
 #' @param assembly The assembly used
 #' @param chromosome The chromosome for which correlation block calling is to be performed
-#' @param segmentation If performed, DNA methylation bases segmentation into PMDs/nonPMDs as a \code{GRanges}
+#' @param segmentation If performed, DNA methylation based segmentation into PMDs/nonPMDs as a \code{GRanges}
 #'        object using the 'epicPMDdetect' package
 #' @return A list representing the clustering of CpGs into correlation blocks. Each element is a cluster, which contains
 #'      row indices of the DNA methylation matrix that correspond to this cluster.
@@ -37,12 +37,14 @@
 #'
 #' @author Michael Scherer
 #' @export
-compute.correlation.blocks <- function(meth.data,
+#' @import igraph
+#' @import bigstatsr
+computeCorrelationBlocks <- function(meth.data,
                                        annotation,
-                                       cor.threshold=qtl.getOption("cluster.cor.threshold"),
-                                       sd.gauss=qtl.getOption("standard.deviation.gauss"),
-                                       absolute.cutoff=qtl.getOption("absolute.distance.cutoff"),
-                                       max.cpgs=qtl.getOption("max.cpgs"),
+                                       cor.threshold=qtlGetOption("cluster.cor.threshold"),
+                                       sd.gauss=qtlGetOption("standard.deviation.gauss"),
+                                       absolute.cutoff=qtlGetOption("absolute.distance.cutoff"),
+                                       max.cpgs=qtlGetOption("max.cpgs"),
                                        assembly="hg19",
                                        chromosome="chr1",
 				       segmentation=NULL){
@@ -50,7 +52,7 @@ compute.correlation.blocks <- function(meth.data,
   if(nrow(annotation)>max.cpgs){
     logger.info(paste("Split workload, since facing",nrow(annotation),"CpGs (Maximum is",max.cpgs,")"))
     bin.split <- round(nrow(annotation)/2)
-    return(c(compute.correlation.blocks(meth.data=meth.data[1:bin.split,],
+    return(c(computeCorrelationBlocks(meth.data=meth.data[1:bin.split,],
                                         annotation=annotation[1:bin.split,],
                                         cor.threshold = cor.threshold,
                                         sd.gauss = sd.gauss,
@@ -59,7 +61,7 @@ compute.correlation.blocks <- function(meth.data,
 					assembly=assembly,
                                         chromosome=chromosome,
 					segmentation=segmentation),
-             lapply(compute.correlation.blocks(meth.data=meth.data[(bin.split+1):nrow(annotation),],
+             lapply(computeCorrelationBlocks(meth.data=meth.data[(bin.split+1):nrow(annotation),],
                                         annotation=annotation[(bin.split+1):nrow(annotation),],
                                         cor.threshold = cor.threshold,
                                         sd.gauss = sd.gauss,
@@ -73,19 +75,19 @@ compute.correlation.blocks <- function(meth.data,
              ))
   }
   logger.start("Compute correlation matrix")
-  if(qtl.getOption("correlation.type")=="pearson"){
+  if(qtlGetOption("correlation.type")=="pearson"){
     cor.all <- big_cor(as_FBM(t(as.matrix(meth.data)),type="double"))
   }else{
-    cor.all <- cor(t(as.matrix(meth.data)),qtl.getOption("correlation.type"))
+    cor.all <- cor(t(as.matrix(meth.data)),qtlGetOption("correlation.type"))
   }
   rm(meth.data)
   logger.completed()
   cor.all <- cor.all[,,drop=F]
-  if(qtl.getOption("hdf5dump")){
+  if(qtlGetOption("hdf5dump")){
     cor.all <- writeHDF5Array(cor.all)
   }
   rep.vals <- cor.all<cor.threshold
-  if(qtl.getOption("hdf5dump")){
+  if(qtlGetOption("hdf5dump")){
     rep.vals <- writeHDF5Array(rep.vals)
   }
   cor.all[rep.vals] <- 0
@@ -95,13 +97,13 @@ compute.correlation.blocks <- function(meth.data,
   pairwise.distance <- abs(as.data.frame(lapply(genomic.positions,function(x)x-genomic.positions)))
   logger.completed()
   rep.vals <- pairwise.distance>absolute.cutoff
-  if(qtl.getOption("hdf5dump")){
+  if(qtlGetOption("hdf5dump")){
     rep.vals <- writeHDF5Array(rep.vals)
   }
   cor.all[rep.vals] <- 0
   gc()
   logger.start("Weight distances")
-  if(qtl.getOption("hdf5dump")){
+  if(qtlGetOption("hdf5dump")){
     weighted.distances <- matrix(nrow=nrow(cor.all),ncol=ncol(cor.all))
     weighted.distances <- writeHDF5Array(weighted.distances)
     chunk.size <- 10000
@@ -120,8 +122,8 @@ compute.correlation.blocks <- function(meth.data,
     weighted.distances <- cor.all*dnorm(as.matrix(pairwise.distance),0,sd.gauss)
   }
   logger.completed()
-  weighted.distances <- weight.segmentation(weighted.distances,annotation,segmentation)
-  weighted.distances <- weight.functional.annotation(weighted.distances,annotation,chromosome=chromosome)
+  weighted.distances <- weightSegmentation(weighted.distances,annotation,segmentation)
+  weighted.distances <- weightFunctionalAnnotation(weighted.distances,annotation,chromosome=chromosome)
   colnames(weighted.distances) <- as.character(1:ncol(weighted.distances))
   rownames(weighted.distances) <- as.character(1:nrow(weighted.distances))
   rm(rep.vals)
@@ -137,7 +139,7 @@ compute.correlation.blocks <- function(meth.data,
   return(lapply(groups(clust),function(x)as.numeric(x)))
 }
 
-#' weight.functional.annotation
+#' weightFunctionalAnnotation
 #'
 #' This functions weights the distance matrix according to predefined functional annotations accoding to the ENSEMBL
 #' regulatory build regions.
@@ -149,11 +151,11 @@ compute.correlation.blocks <- function(meth.data,
 #' @return The modified distance matrix with CpGs in the same functional annotation category prioritized
 #' @author Michael Scherer
 #' @noRd
-weight.functional.annotation <- function(input.matrix,
+weightFunctionalAnnotation <- function(input.matrix,
                                          genomic.annotation,
                                          assembly="hg19",
                                          chromosome=chromosome){
-  if(qtl.getOption("use.functional.annotation")){
+  if(qtlGetOption("use.functional.annotation")){
     logger.start("Weighting functional annotation")
     genomic.annotation <- makeGRangesFromDataFrame(genomic.annotation)
     ensembl.types <- c("ctcf","distal","dnase","proximal","tfbs","tss")
@@ -164,14 +166,14 @@ weight.functional.annotation <- function(input.matrix,
       }
       anno.ensembl <- rnb.get.annotation(ensembl.type,assembly = assembly)
       op <- findOverlaps(genomic.annotation,anno.ensembl)
-      input.matrix[queryHits(op),queryHits(op)] <- input.matrix[queryHits(op),queryHits(op)]*qtl.getOption("functional.annotation.weight")
+      input.matrix[queryHits(op),queryHits(op)] <- input.matrix[queryHits(op),queryHits(op)]*qtlGetOption("functional.annotation.weight")
     }
     logger.completed()
   }
   return(input.matrix)
 }
 
-#' weight.segmentation
+#' weightSegmentation
 #'
 #' This functions weights the distance matrix according to DNA methylation based segmentation into
 #' PMDs/nonPMDs using the 'epicPMDdetect' package
@@ -182,17 +184,17 @@ weight.functional.annotation <- function(input.matrix,
 #' @return The modified distance matrix with CpGs in the same category PMD/nonPMD priortized
 #' @author Michael Scherer
 #' @noRd
-weight.segmentation <- function(input.matrix,
-					 genomic.annotation,
-                                         segmentation){
-  if(qtl.getOption("use.segmentation")){
+weightSegmentation <- function(input.matrix,
+				genomic.annotation,
+                                segmentation){
+  if(qtlGetOption("use.segmentation")){
       logger.start("Weighting segmentation")
       if(is.null(segmentation)){
         return(input.matrix)
       }
       genomic.annotation <- makeGRangesFromDataFrame(genomic.annotation)
       op <- findOverlaps(genomic.annotation,segmentation)
-      input.matrix[queryHits(op),queryHits(op)] <- input.matrix[queryHits(op),queryHits(op)]*qtl.getOption("functional.annotation.weight")
+      input.matrix[queryHits(op),queryHits(op)] <- input.matrix[queryHits(op),queryHits(op)]*qtlGetOption("functional.annotation.weight")
       logger.completed()
   }
   return(input.matrix)

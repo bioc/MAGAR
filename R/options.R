@@ -57,7 +57,7 @@ assign("IMPUTATION.REFERENCE.PANEL","apps@hrc-r1.1",QTL.OPTIONS)
 assign("IMPUTATION.PHASING.METHOD","shapeit",QTL.OPTIONS)
 assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 
-#' qtl.setOption
+#' qtlSetOption
 #'
 #' Change global options for methQTL calculation
 #'
@@ -89,7 +89,7 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #' @param bgzip.path Path to an installation of BGZIP (comes with the package for Linux)
 #' @param tabix.path Path to an installation of TABIX (comes with the package for Linux)
 #' @param correlation.type The type of correlation to be used. Please note that for \code{type='pearson'} (default) the more efficient
-#'          implementation of correlation in the \code{\link{bigstatr}} is used. Further available options are \code{'spearman'} and
+#'          implementation of correlation in the \code{bigstatsr} is used. Further available options are \code{'spearman'} and
 #'          \code{'kendall'}.
 #' @param cluster.cor.threshold Threshold for CpG methylatin state correlation to be considered as connected in
 #'            the distance graph used to compute the correlation clustering.
@@ -97,7 +97,7 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #'            according to its distance.
 #' @param absolute.distance.cutoff Distance cutoff after which a CpG correlation is not considered anymore.
 #' @param linear.model.type Linear model type to be used. Can be either \code{"categorical.anova"} or \code{"classical.linear"}. If \code{'meth.qtl.type'='fastQTL'}, this option is automatically set to \code{'fastQTL'}
-#'            see \code{\link{call.methQTL.block}} for more informations.
+#'            see \code{\link{callMethQTLBlock}} for more informations.
 #' @param representative.cpg.computation Option specifying how reference CpGs per correlation block are to be computed. Available
 #'            options are \code{"row.medians"} for the site that is the row median across the samples within the
 #'            correlation block (for ties a random selection is performed), \code{"mean.center"} for an artifical site in the geometric center of the block with
@@ -146,9 +146,9 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #' @author Michael Scherer
 #' @examples
 #' \donttest{
-#' qtl.getOption("rnbeads.report")
-#' qtl.setOption(rnbeads.report=getwd())
-#' qtl.getOption("rnbeads.report")
+#' qtlGetOption("rnbeads.report")
+#' qtlSetOption(rnbeads.report=getwd())
+#' qtlGetOption("rnbeads.report")
 #' }
 #' @references
 #'   1. Ongen, H., Buil, A., Brown, A. A., Dermitzakis, E. T., & Delaneau, O. (2016).
@@ -159,7 +159,7 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #'    https://doi.org/10.1038/ng.3656
 #'   3. Sherry, S. T. et al. (2001). dbSNP: the NCBI database of genetic variation.
 #'    Nucleic Acids Res. 29, 308–311, https://doi.org/10.1093/nar/29.1.308.
-qtl.setOption <- function(rnbeads.options=NULL,
+qtlSetOption <- function(rnbeads.options=NULL,
                        meth.data.type="idat.dir",
                        geno.data.type="plink",
                        rnbeads.report="temp",
@@ -463,15 +463,15 @@ qtl.setOption <- function(rnbeads.options=NULL,
   }
 }
 
-#' qtl.getOption
+#' qtlGetOption
 #' Print the value of the global option
 #'
-#' @param names string or character vector containing the names of the options to be printed. All options are listed in \code{\link{qtl.setOption}}
+#' @param names string or character vector containing the names of the options to be printed. All options are listed in \code{\link{qtlSetOption}}
 #'
 #' @return the option for the specified option
 #' @author Michael Scherer
 #' @export
-qtl.getOption <- function(names){
+qtlGetOption <- function(names){
   if(!all(names %in% QTL.OPTIONS[['ALL']])){
     stop(paste0('No option(s) available named: ',names[!(names%in%QTL.OPTIONS[['ALL']])]))
   }
@@ -479,7 +479,7 @@ qtl.getOption <- function(names){
   if('rnbeads.options'%in%names){
     if(is.null(QTL.OPTIONS[['RNBEADS.OPTIONS']])){
       logger.info("Loading system default for option 'rnbeads.options'")
-      qtl.setOption('rnbeads.options'=system.file("extdata/rnbeads_options.xml",package="methQTL"))
+      qtlSetOption('rnbeads.options'=system.file("extdata/rnbeads_options.xml",package="methQTL"))
     }
     ret <- c(ret,rnbeads.options=QTL.OPTIONS[['RNBEADS.OPTIONS']])
   }
@@ -567,7 +567,7 @@ qtl.getOption <- function(names){
     }
     ret <- c(ret,tabix.path=tabix.path)
   }
-  if('correlation.type'%in%names){
+   if('correlation.type'%in%names){
     ret <- c(ret,correlation.type=QTL.OPTIONS[['CORRELATION.TYPE']])
   }
   if('cluster.cor.threshold'%in%names){
@@ -636,7 +636,7 @@ qtl.getOption <- function(names){
   return(ret[names])
 }
 
-#' qtl.options2json
+#' qtlOptions2JSON
 #'
 #' This function stores the current options setting as a JSON file at the specified path
 #'
@@ -644,11 +644,12 @@ qtl.getOption <- function(names){
 #' @author Michael Scherer
 #' @export
 #' @examples {
-#'   qtl.setOption('cluster.cor.threshold'=0.5)
-#'   qtl.options2json("my_opts.json")
-#'   qtl.json2options("my_opts.json")
+#'   qtlSetOption('cluster.cor.threshold'=0.5)
+#'   qtlOptions2JSON("my_opts.json")
+#'   qtlJSON2options("my_opts.json")
 #' }
-qtl.options2json <- function(path=file.path(getwd(),"methQTL_options.json")){
+#' @import jsonlite
+qtlOptions2JSON <- function(path=file.path(getwd(),"methQTL_options.json")){
   all.options <- as.list(QTL.OPTIONS)
   all.options <- all.options[!(names(all.options) %in% "ALL")]
   names(all.options) <- sapply(names(all.options),tolower)
@@ -656,24 +657,25 @@ qtl.options2json <- function(path=file.path(getwd(),"methQTL_options.json")){
   write(all.options,path)
 }
 
-#' qtl.json2options
+#' qtlJSON2options
 #'
 #' This function reads an option setting from a JSON file and applies them to the current session
 #'
 #' @param path Path to a JSON file containing the options to be specified
 #' @author Michael Scherer
 #' @export
-qtl.json2options <- function(path){
+#' @import jsonlite
+qtlJSON2options <- function(path){
   if(!file.exists(path) || !grepl(".json",path,ignore.case = T)){
     logger.error("Invalid value for path, needs to be a JSON file")
   }
   all.options <- fromJSON(path)
   all.options <- lapply(all.options,function(opt){
-	if(class(opt)=="data.frame"){
-           unlist(opt)
-	}else{
-	   opt
-	}
+  	if(class(opt)=="data.frame"){
+             unlist(opt)
+  	}else{
+  	   opt
+  	}
   })
-  do.call(qtl.setOption,all.options)
+  do.call(qtlSetOption,all.options)
 }

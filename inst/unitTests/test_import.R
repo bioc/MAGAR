@@ -1,14 +1,16 @@
-#  test.import <- function(){
-#    idat.files <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
-#    s.anno <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_CD4_IPC.tsv"
-#    plink.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO//"
-#    data.loc <- c(idat.dir=idat.files,geno.dir=plink.files)
-#    qtl.setOption(hdf5dump=T,
-#		  n.prin.comp=4)
-#    res <- do.import(data.location = data.loc,s.anno = s.anno,s.id.col = "ind_IPC",tab.sep = "\t",
-#                     out.folder="/TL/deep/projects/work/mscherer/projects/methQTL/test/")
-#    checkTrue(inherits(res,"methQTLInput"))
-#  }
+ test.import <- function(){
+   idat.files <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
+   s.anno <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_CD4_IPC.tsv"
+   plink.files <- "/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO//"
+   data.loc <- c(idat.dir=idat.files,geno.dir=plink.files)
+   qtlSetOption(hdf5dump=T,
+	  n.prin.comp=4)
+   res <- doImport(data.location = data.loc,s.anno = s.anno,s.id.col = "ind_IPC",tab.sep = "\t",
+                    out.folder="/TL/deep/projects/work/mscherer/projects/methQTL/test/")
+   checkTrue(inherits(res,"methQTLInput"))
+ }
+library(methQTL)
+ test.import()
 
 #   test.import.imputed <- function(){
 #     idat.files <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
@@ -73,19 +75,19 @@
 #  out.dir <- "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/test_package/"
 #  idat.platform="humanomni258v1p1b"
 #  gender.col=NULL
-#  qtl.setOption(meth.data.type="GEO")
-#  qtl.setOption(missing.values.samples = 1)
-#  qtl.setOption(db.snp.ref="/DEEP_fhgfs/projects/mscherer/data/misc/common_all_20180423_hg19.vcf.gz")
+#  qtlSetOption(meth.data.type="GEO")
+#  qtlSetOption(missing.values.samples = 1)
+#  qtlSetOption(db.snp.ref="/DEEP_fhgfs/projects/mscherer/data/misc/common_all_20180423_hg19.vcf.gz",
+#	           geno.data.type="idat",)
 #  data.loc <- c(idat.dir="GSE79144",geno.dir=idat.files)
 #  rnbeads.report = out.dir
-#  res <- do.import(data.loc,
-#                   data.type.geno="idat",
+#  res <- doImport(data.loc,
 #                   s.anno=s.anno,
 #                   tab.sep="\t",
 #                   s.id.col=s.id.col,
 #                   out.folder=out.dir,
 #                   idat.platform=idat.platform)
-#  res <- do.methQTL(res,
+#  res <- doMethQTL(res,
 #                    sel.covariates = NULL,
 #                    out.dir=out.dir,
 #                    ncores=10)

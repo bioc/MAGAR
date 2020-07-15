@@ -4,6 +4,7 @@
 \name{getMethData,methQTLInput-method}
 \alias{getMethData,methQTLInput-method}
 \alias{getMethData,methQTL-method}
+\alias{getMethData}
 \title{getMethData}
 \usage{
 \S4method{getMethData}{methQTLInput}(object, site = NULL, sample = NULL)

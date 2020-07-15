@@ -6,7 +6,7 @@
 # Methods to perform data import for methQTL analysis.
 ##########################################################################################
 
-#' do.import
+#' doImport
 #'
 #' Performs input for the given DNA methylation and genotyping data.
 #'
@@ -26,7 +26,7 @@
 #' @param tab.sep The table separator used for the sample annotation sheet.
 #' @param s.id.col The column name of the sample annotation sheet that specifies the sample identifier.
 #' @param out.folder The output directory to store diagnostic plots
-#' @param ... Futher parameters passed to e.g. \code{\link{do.geno.import}}
+#' @param ... Futher parameters passed to e.g. \code{\link{doGenoImport}}
 #' @return An object of type \code{\link{methQTLInput-class}} with the methylation and genotyping information added.
 #' @details Import of DNA methylation and genotyping data is done separately:
 #'          \describe{
@@ -35,7 +35,7 @@
 #'            series. If you want to specify further options, we refer to the \code{\link{rnb.options}}.}
 #'            \item{Genotyping data}{Genotyping data is processed using PLINK. We focus on genotyping data generated
 #'            with the Illumina BeadArray series and use default options. For further option settings, you should consult
-#'            the \code{\link{qtl.setOption}} documentation.}
+#'            the \code{\link{qtlSetOption}} documentation.}
 #'          }
 #'
 #'          If \code{assembly.meth} and \code{assembly.geno} do not match, we use the liftOver function to match the
@@ -43,8 +43,9 @@
 #'
 #' @author Michael Scherer
 #' @export
+#' @import HDF5Array
 
-do.import <- function(data.location,
+doImport <- function(data.location,
                       s.anno=NULL,
                       assembly.meth="hg19",
                       assembly.geno="hg19",
@@ -74,11 +75,11 @@ do.import <- function(data.location,
   if(ncol(pheno.data)==1){
     logger.warning("Pheno data does only contain one column. Did you specify the wrong 'sep.tab'?")
   }
-  geno.import <- do.geno.import(data.location,pheno.data,s.id.col,out.folder,...)
+  geno.import <- doGenoImport(data.location,pheno.data,s.id.col,out.folder,...)
   pheno.data <- geno.import$pheno.data
   s.anno <- file.path(out.folder,ifelse(tab.sep==",","sample_annotation.csv","sample_annotation.tsv"))
   write.table(pheno.data,s.anno,sep=tab.sep)
-  meth.import <- do.meth.import(data.location,
+  meth.import <- doMethImport(data.location,
                                 assembly.meth,
                                 s.anno,
                                 s.id.col,
@@ -93,7 +94,7 @@ do.import <- function(data.location,
   }
   meth.data <- meth.import$data[,sel.meth]
   geno.data <- geno.import$data[,sel.geno]
-  if(qtl.getOption("hdf5dump")){
+  if(qtlGetOption("hdf5dump")){
   	meth.data <- as(meth.data,"HDF5Matrix")
 	  geno.data <- as(geno.data,"HDF5Matrix")
   }
@@ -114,7 +115,7 @@ do.import <- function(data.location,
     pheno.data=pheno.data,
     samples=s.names,
     assembly=assembly.meth,
-    disk.dump=qtl.getOption("hdf5dump"),
+    disk.dump=qtlGetOption("hdf5dump"),
     imputed=geno.import$imputed,
     platform=meth.import$platform,
     segmentation=meth.import$segmentation
@@ -126,7 +127,7 @@ do.import <- function(data.location,
   return(dataset.import)
 }
 
-#' do.meth.import
+#' doMethImport
 #'
 #' This function performs import of DNA methylation data and basic preprocessing steps implemented in the \code{\link{RnBeads}} package.
 #'
@@ -137,7 +138,7 @@ do.import <- function(data.location,
 #' @param tab.sep Table separator used.
 #' @param snp.location Locations of SNPs called in the genotyped processing to be removed from the list of CpGs.
 #' @param out.folder If not \code{NULL} a directory in which intermediate results are to be written
-#' @param ... Further parameters passed to, e.g., qtl.run.segmentation, do.geno.import.idat
+#' @param ... Further parameters passed to, e.g., \code{\link{qtlRunSegmentation}}, \code{\link{doGenoImportIDAT}}
 #' @return A list with five elements:
 #'          \describe{
 #'            \item{sample}{The samples used in the dataset as a character vector}
@@ -152,21 +153,24 @@ do.import <- function(data.location,
 #'          specify another XML file with custom RnBeads options.
 #' @author Michael Scherer
 #' @noRd
-do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep=",",snp.location=NULL,out.folder=NULL,...){
+#' @import RnBeads
+doMethImport <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep=",",snp.location=NULL,out.folder=NULL,...){
   logger.start("Processing DNA methylation data")
-  rnb.xml2options(qtl.getOption("rnbeads.options"))
+  rnb.xml2options(qtlGetOption("rnbeads.options"))
   rnb.options(identifiers.column=s.id.col,
               assembly=assembly,
               import.table.separator=tab.sep)
-  if(qtl.getOption("meth.data.type")%in%c("GEO","rnb.set")){
+  if(qtlGetOption("meth.data.type")%in%c("GEO","rnb.set")){
     data.s <- data.location[["idat.dir"]]
+  }else if(qtlGetOption("meth.data.type")=="data.files"){
+    data.s <- c(s.anno,data.location[["idat.dir"]])
   }else{
     data.s <- c(data.location[["idat.dir"]],s.anno)
   }
-  rnb.imp <- rnb.execute.import(data.source = data.s, data.type = qtl.getOption("meth.data.type"))
-  if(qtl.getOption("rnbeads.qc")){
-    if(dir.exists(qtl.getOption("rnbeads.report"))){
-      rnb.report <- file.path(qtl.getOption("rnbeads.report"),"rnbeads_QC")
+  rnb.imp <- rnb.execute.import(data.source = data.s, data.type = qtlGetOption("meth.data.type"))
+  if(qtlGetOption("rnbeads.qc")){
+    if(dir.exists(qtlGetOption("rnbeads.report"))){
+      rnb.report <- file.path(qtlGetOption("rnbeads.report"),"rnbeads_QC")
     }else if(!is.null(out.folder)){
       rnb.report <- file.path(out.folder,"rnbeads_QC")
     }else{
@@ -174,8 +178,8 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
     }
     rnb.run.qc(rnb.imp,rnb.report)
   }
-  if(dir.exists(qtl.getOption("rnbeads.report"))){
-    rnb.report <- file.path(qtl.getOption("rnbeads.report"),"rnbeads_preprocessing")
+  if(dir.exists(qtlGetOption("rnbeads.report"))){
+    rnb.report <- file.path(qtlGetOption("rnbeads.report"),"rnbeads_preprocessing")
   }else if(!is.null(out.folder)){
     rnb.report <- file.path(out.folder,"rnbeads_preprocessing")
   }else{
@@ -196,10 +200,10 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
     rnb.imp <- remove.sites(rnb.imp,rem.sites)
     logger.completed()
   }
-  segmentation <- qtl.run.segmentation(rnb.imp,out.folder,...)
+  segmentation <- qtlRunSegmentation(rnb.imp,out.folder,...)
   s.names <- samples(rnb.imp)
   meth.data <- meth(rnb.imp)
-  if(qtl.getOption("hdf5dump")){
+  if(qtlGetOption("hdf5dump")){
     meth.data <- writeHDF5Array(meth.data)
   }
   anno.meth <- annotation(rnb.imp)
@@ -207,15 +211,15 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
   return(list(samples=s.names,data=meth.data,annotation=anno.meth,platform=rnb.imp@target,segmentation=segmentation))
 }
 
-#' do.geno.import
+#' doGenoImport
 #'
 #' This routine performs data import and processing of genotyping data using the \code{PLINK} program.
 #'
-#' @param data.location Path to the directory, where the PLINK files are stored. For more information, see \code{\link{do.import}}
+#' @param data.location Path to the directory, where the PLINK files are stored. For more information, see \code{\link{doImport}}
 #' @param s.anno The sample annotation sheet.
 #' @param s.id.col The column name of the sample annotation sheet specifying the sample identifiers.
 #' @param out.folder The output folder for storing diagnostic plots.
-#' @param ... Futher parameters passed to \code{\link{do.geno.import.imputed}} or \code{\link{do.geno.import.idat}} depending on the
+#' @param ... Futher parameters passed to \code{\link{doGenoImportImputed}} or \code{\link{doGenoImportIDAT}} depending on the
 #'          option \code{'geno.data.type'}.
 #' @return A list of three elements:
 #'        \describe{
@@ -224,12 +228,13 @@ do.meth.import <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep
 #'          \item{pheno.data}{The, potentially modified, sample annotation sheet}
 #'        }
 #' @author Michael Scherer
-#' @noRd
-do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
+#' @export
+#' @import data.table
+doGenoImport <- function(data.location,s.anno,s.id.col,out.folder,...){
   logger.start("Processing genotyping data")
   snp.loc <- data.location[["geno.dir"]]
   all.files <- list.files(snp.loc,full.names=T)
-  data.type <- qtl.getOption("geno.data.type")
+  data.type <- qtlGetOption("geno.data.type")
   if(data.type=="plink"){
     bed.file <- all.files[grepl(".bed",all.files)]
     bim.file <- all.files[grepl(".bim",all.files)]
@@ -240,19 +245,19 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
       if(any(c(length(dos.file)==0,length(id.map)==0))){
         stop("Incompatible input to genotyping processing, needs to be in PLINK format (i.e. .bed, .bim and .fam files)")
       }
-      return(do.geno.import.imputed(dos.file,id.map,s.anno,s.id.col,out.folder,...))
+      return(doGenoImportImputed(dos.file,id.map,s.anno,s.id.col,out.folder,...))
     }
   }else if(data.type=="idat"){
-    res <- do.geno.import.idat(snp.loc,s.anno,s.id.col,out.folder,...)
+    res <- doGenoImportIDAT(snp.loc,s.anno,s.id.col,out.folder,...)
     bed.file <- res["bed.file"]
     bim.file <- res["bim.file"]
     fam.file <- res["fam.file"]
   }
-  if(qtl.getOption("impute.geno.data")){
+  if(qtlGetOption("impute.geno.data")){
     if(any(grepl("_",s.anno[,s.id.col]))){
 	stop("Underscores are not allowed in the sampleID if imputation is to be performed")
     }
-    res <- do.imputation(bed.file,
+    res <- doImputation(bed.file,
                          bim.file,
                          fam.file,
                          out.folder)
@@ -271,9 +276,9 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   proc.data <- file.path(out.folder,"processed_snp_data")
   write.table(keep.frame,keep.file,sep="\t",row.names=F,col.names=F,quote=F)
   plink.file <- gsub(".bed","",bed.file)
-  cmd <- paste(qtl.getOption("plink.path"),"--bfile",plink.file,"--keep",keep.file,"--hwe",qtl.getOption("hardy.weinberg.p"),
-               "--maf",qtl.getOption("minor.allele.frequency"),"--mind",qtl.getOption("missing.values.samples"),
-               "--geno",qtl.getOption("plink.geno"),"--make-bed --out",proc.data)
+  cmd <- paste(qtlGetOption("plink.path"),"--bfile",plink.file,"--keep",keep.file,"--hwe",qtlGetOption("hardy.weinberg.p"),
+               "--maf",qtlGetOption("minor.allele.frequency"),"--mind",qtlGetOption("missing.values.samples"),
+               "--geno",qtlGetOption("plink.geno"),"--make-bed --out",proc.data)
   system(cmd)
   snp.dat <- read.plink(bed=paste0(proc.data,".bed"),bim=paste0(proc.data,".bim"),fam=paste0(proc.data,".fam"))
   snp.mat <- t(as(snp.dat$genotypes,"numeric"))
@@ -282,10 +287,10 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   ids <- as.character(anno.geno$Name)
   if(!any(grepl("rs*",ids))){
     logger.start("Matching ids in dbSNP")
-    if(is.null(qtl.getOption("db.snp.ref"))){
+    if(is.null(qtlGetOption("db.snp.ref"))){
       logger.warning("Please provide a valid path to dbSNP. Cannot map ids to SNPs.")
     }else{
-      db.snp <- fread(qtl.getOption("db.snp.ref"))
+      db.snp <- fread(qtlGetOption("db.snp.ref"))
       db.snp.gr <- makeGRangesFromDataFrame(db.snp,seqnames="#CHROM",start.field="POS",end.field="POS")
       seqlevelsStyle(db.snp.gr) <- "UCSC"
       anno.geno.gr <- makeGRangesFromDataFrame(anno.geno,seqnames="Chromosome",start.field = "Start",end.field = "Start")
@@ -308,7 +313,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
   })
   anno.geno$Allele.1.Freq <- maj.allele.frequencies
   anno.geno$Allele.2.Freq <- 1-maj.allele.frequencies
-  if(qtl.getOption("recode.allele.frequencies")){
+  if(qtlGetOption("recode.allele.frequencies")){
     allele.frequencies <- maj.allele.frequencies<0.5
     allele.frequencies[is.na(allele.frequencies)] <- FALSE
     snp.mat[allele.frequencies,] <- 2-(snp.mat[allele.frequencies,])
@@ -334,7 +339,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
           axis.text = element_text(size=15,color="black"))
   ggsave(file.path(out.folder,"genetics_PCA.pdf"),plot)
   logger.completed()
-  n.comps <- qtl.getOption('n.prin.comp')
+  n.comps <- qtlGetOption('n.prin.comp')
   if(!is.null(n.comps)){
     loads <- pca.obj$x
     if(n.comps>ncol(loads)){
@@ -345,14 +350,14 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
     s.anno <- data.frame(s.anno,loads[,1:n.comps])
     colnames(s.anno)[(ncol.anno+1):ncol(s.anno)] <- paste0("PC",1:n.comps)
   }
-  if(qtl.getOption("hdf5dump")){
+  if(qtlGetOption("hdf5dump")){
     snp.mat <- writeHDF5Array(snp.mat)
   }
   logger.completed()
   return(list(data=snp.mat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col],imputed=FALSE))
 }
 
-#' do.geno.import.imputed
+#' doGenoImportImputed
 #'
 #' This function executes import of imputed genotyping data
 #'
@@ -375,7 +380,7 @@ do.geno.import <- function(data.location,s.anno,s.id.col,out.folder,...){
 #'  columns, where each entry is a continous numeric value containing the dosage.
 #' @author Michael Scherer
 #' @export
-do.geno.import.imputed <- function(dos.file,
+doGenoImportImputed <- function(dos.file,
                             id.map,
                             s.anno,
                             s.id.col,
@@ -414,7 +419,7 @@ do.geno.import.imputed <- function(dos.file,
          axis.ticks=element_line(color="black"),plot.title = element_text(size=18,color="black",hjust = .5),
          axis.text = element_text(size=15,color="black"))
   ggsave(file.path(out.folder,"genetics_PCA.pdf"),plot)
-  n.comps <- qtl.getOption('n.prin.comp')
+  n.comps <- qtlGetOption('n.prin.comp')
   if(!is.null(n.comps)){
     loads <- pca.obj$x
     if(n.comps>ncol(loads)){
@@ -439,7 +444,7 @@ do.geno.import.imputed <- function(dos.file,
   })
   anno.geno$Allele.1.Freq <- maj.allele.frequencies
   anno.geno$Allele.2.Freq <- 1-maj.allele.frequencies
-  if(qtl.getOption("recode.allele.frequencies")){
+  if(qtlGetOption("recode.allele.frequencies")){
     allele.frequencies <- maj.allele.frequencies<0.5
     allele.frequencies[is.na(allele.frequencies)] <- FALSE
     snp.dat[allele.frequencies,] <- 2-(snp.dat[allele.frequencies,])
@@ -450,7 +455,7 @@ do.geno.import.imputed <- function(dos.file,
     anno.geno$Allele.2.Freq[allele.frequencies] <- maj.allele.frequencies[allele.frequencies]
   }
   logger.completed()
-   if(qtl.getOption("hdf5dump")){
+   if(qtlGetOption("hdf5dump")){
     snp.dat <- writeHDF5Array(snp.dat)
   }
 return(list(data=snp.dat,annotation=anno.geno,pheno.data=s.anno,samples=s.anno[,s.id.col],imputed=TRUE))
@@ -461,7 +466,7 @@ match.assemblies <- function(meth.qtl){
   return(meth.qtl)
 }
 
-#' do.geno.import.idat
+#' doGenoImportIDAT
 #'
 #' This function imports genotyping data from IDAT files using the \code{'crlmm'} R-package
 #'
@@ -476,6 +481,8 @@ match.assemblies <- function(meth.qtl){
 #'          provide two custom annotations, which can be used using the 'OmniExpress' and
 #'          'OmniExome' options, respectively.
 #' @param call.method The genotype calling method passed to \code{\link{genotype.Illumina}}
+#' @param gender.col Optional parameter specifying the column name in the sample annotation sheet specifying
+#'     the individual's sexes. If not specified, the package will search for such a column.
 #' @return A vector with three elements: \describe{
 #'   \item{\code{"bed.file"}}{Path to the BED file for PLINK}
 #'   \item{\code{"bim.file"}}{Path to the BIM file for PLINK}
@@ -483,7 +490,9 @@ match.assemblies <- function(meth.qtl){
 #' }
 #' @author Michael Scherer
 #' @export
-do.geno.import.idat <- function(idat.files,
+#' @import crlmm
+#' @import data.table
+doGenoImportIDAT <- function(idat.files,
                                    s.anno,
                                    s.id.col,
                                    out.dir,
@@ -520,7 +529,10 @@ do.geno.import.idat <- function(idat.files,
     sex <- rep(NA,nrow(s.anno))
   }
   if(idat.platform=="OmniExpress"){
-	my.anno <- readRDS(system.file("extdata/omni_express_annotation.rds",package="methQTL"))
+	if(!requireNamespace("methQTL.data")){
+		stop("Missing required package methQTL.data for idat.platform OmniExpress")
+	}
+	my.anno <- readRDS(system.file("extdata/omni_express_annotation.rds",package="methQTL.data"))
 	genome <- "hg19"
         crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
                          arrayNames=array.names,
@@ -535,7 +547,10 @@ do.geno.import.idat <- function(idat.files,
                          gender=sex)
 	annot <- my.anno@data
   }else if(idat.platform=="OmniExome"){
-	my.anno <- readRDS(system.file("extdata/omni_exome_annotation.rds",package="methQTL"))
+	if(!requireNamespace("methQTL.data")){
+		stop("Missing required package methQTL.data for idat.platform OmniExome")
+	}
+	my.anno <- readRDS(system.file("extdata/omni_exome_annotation.rds",package="methQTL.data"))
 	genome <- "hg19"
         crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
                          arrayNames=array.names,
@@ -588,9 +603,9 @@ do.geno.import.idat <- function(idat.files,
   allele.A <- allele.A[!is.chr.0]
   allele.B <- allele.B[!is.chr.0]
   snp.names <- featureNames(f.dat)[!is.chr.0]
-  if(!is.null(qtl.getOption("db.snp.ref"))){
+  if(!is.null(qtlGetOption("db.snp.ref"))){
     logger.start("Matching reference allele according to dbSNP")
-    db.snp <- fread(qtl.getOption("db.snp.ref"))
+    db.snp <- fread(qtlGetOption("db.snp.ref"))
     db.snp.gr <- makeGRangesFromDataFrame(db.snp,seqnames="#CHROM",start.field="POS",end.field="POS")
     anno.gr <- GRanges(Rle(chroms),IRanges(start=position,end=position))
     op <- findOverlaps(anno.gr,db.snp.gr)
@@ -632,7 +647,7 @@ do.geno.import.idat <- function(idat.files,
 	      allele.2=allele.B
               )
   # Sort data by chrosome
-  cmd <- paste(qtl.getOption('plink.path'),"--bfile",file.path(out.dir,"plink"),"--make-bed --out",file.path(out.dir,"plink_sorted"))
+  cmd <- paste(qtlGetOption('plink.path'),"--bfile",file.path(out.dir,"plink"),"--make-bed --out",file.path(out.dir,"plink_sorted"))
   system(cmd)
   cmd <- paste("rm -rf",file.path(out.dir,"plink.*"))
   system(cmd)
@@ -644,7 +659,7 @@ do.geno.import.idat <- function(idat.files,
   ))
 }
 
-#' qtl.run.segmentation
+#' qtlRunSegmentation
 #'
 #' This function performs DNA methylation based segmentation using the 'epicPMDdetect' package
 #'
@@ -655,10 +670,10 @@ do.geno.import.idat <- function(idat.files,
 #' @details The 'epicPMDdetect' package has been created by Malte Gross
 #' @author Michael Scherer
 #' @export
-qtl.run.segmentation <- function(rnb.set,
+qtlRunSegmentation <- function(rnb.set,
 				out.folder,
 				train.chr="chr2"){
-  if(qtl.getOption("use.segmentation")){
+  if(qtlGetOption("use.segmentation")){
     if(requireNamespace("epicPMDdetect")){
       logger.start("Start segmentation")
       gr <- epicPMDdetect::buildMethGrangesFromRnbSet(rnb.set)

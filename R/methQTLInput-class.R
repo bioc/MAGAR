@@ -47,8 +47,8 @@ setClassUnion("GRangesOrNULL",c("GRanges","NULL"))
 #'   \item{\code{\link[=getGeno,methQTL-method]{getGeno}}}{Returns the genotyping matrix.}
 #'   \item{\code{\link[=getPheno,methQTL-method]{getPheno}}}{Returns the phenotypic information.}
 #'   \item{\code{\link[=getAnno,methQTL-method]{getAnno}}}{Returns the genomic annotation.}
-#'   \item{\code{\link[=save.methQTL,methQTLInput-method]{save.methQTL}}}{Stores the object on disk.}
-#'   \item{\code{\link[=impute.meth,methQTL-method]{impute.meth}}}{Imputes the DNA methylation data matrix}
+#'   \item{\code{\link[=saveMethQTL,methQTLInput-method]{saveMethQTL}}}{Stores the object on disk.}
+#'   \item{\code{\link[=imputeMeth,methQTL-method]{imputeMeth}}}{Imputes the DNA methylation data matrix}
 #' }
 #'
 #' @name methQTLInput-class
@@ -167,6 +167,7 @@ if(!isGeneric("getMethData")) setGeneric("getMethData",function(object,...) stan
 #' @rdname getMethData
 #' @docType methods
 #' @aliases getMethData,methQTL-method
+#' @aliases getMethData
 #' @export
 setMethod("getMethData",signature(object="methQTLInput"),
           function(object,site=NULL,sample=NULL){
@@ -192,6 +193,7 @@ if(!isGeneric("getGeno")) setGeneric("getGeno",function(object,...) standardGene
 #' @rdname getGeno
 #' @docType methods
 #' @aliases getGeno,methQTL-method
+#' @aliases getGeno
 #' @export
 setMethod("getGeno",signature(object="methQTLInput"),
         function(object,site=NULL,sample=NULL){
@@ -215,6 +217,7 @@ if(!isGeneric("getPheno")) setGeneric("getPheno",function(object) standardGeneri
 #' @rdname getPheno
 #' @docType methods
 #' @aliases getPheno,methQTL-method
+#' @aliases getPheno
 #' @export
 setMethod("getPheno",signature(object="methQTLInput"),
           function(object){
@@ -236,6 +239,7 @@ if(!isGeneric("getAnno")) setGeneric("getAnno",function(object,...) standardGene
 #' @rdname getAnno
 #' @docType methods
 #' @aliases getAnno,methQTL-method
+#' @aliases getAnno
 #' @export
 setMethod("getAnno",signature(object="methQTLInput"),
           function(object,type="meth"){
@@ -261,6 +265,7 @@ if(!isGeneric("getSamples")) setGeneric("getSamples",function(object) standardGe
 #' @rdname getSamples
 #' @docType methods
 #' @aliases getSamples,methQTL-method
+#' @aliases getSamples
 #' @export
 setMethod("getSamples",signature(object="methQTLInput"),
           function(object){
@@ -268,22 +273,23 @@ setMethod("getSamples",signature(object="methQTLInput"),
           }
 )
 
-if(!isGeneric("impute.meth")) setGeneric("impute.meth",function(object) standardGeneric("impute.meth"))
+if(!isGeneric("imputeMeth")) setGeneric("imputeMeth",function(object) standardGeneric("imputeMeth"))
 
-#' impute.meth
+#' imputeMeth
 #'
 #' Replaces missing values in the DNA methylation data matrix by imputed values
 #'
 #' @param object An object of class \code{\link{methQTLInput-class}}.
 #' @return The object with imputed values.
 #'
-#' @rdname impute.meth
+#' @rdname imputeMeth
 #' @docType methods
-#' @aliases impute.meth,methQTL-method
+#' @aliases imputeMeth,methQTL-method
+#' @aliases imputeMeth
 #' @export
-setMethod("impute.meth",signature(object="methQTLInput"),
+setMethod("imputeMeth",signature(object="methQTLInput"),
           function(object){
-            rnb.xml2options(qtl.getOption("rnbeads.options"))
+            rnb.xml2options(qtlGetOption("rnbeads.options"))
             if(!object@disk.dump){
               object@meth.data <- rnb.execute.imputation(object@meth.data)
             }else{
@@ -310,20 +316,21 @@ setMethod("show","methQTLInput",
   }
 )
 
-if(!isGeneric("save.methQTL")) setGeneric("save.methQTL", function(object,...)standardGeneric("save.methQTL"))
+if(!isGeneric("saveMethQTL")) setGeneric("saveMethQTL", function(object,...)standardGeneric("saveMethQTL"))
 
-#' save.methQTL
+#' saveMethQTL
 #'
 #' This functions stores a methQTLInput object in disk.
 #'
 #' @param object The \code{\link{methQTLInput-class}} object to be stored on disk.
 #' @param path A path to a non-existing directory for files to be stored.
 #'
-#' @rdname save.methQTL
+#' @rdname saveMethQTL
 #' @docType methods
-#' @aliases save.methQTL,methQTL-method
+#' @aliases saveMethQTL,methQTL-method
 #' @author Michael Scherer
-setMethod("save.methQTL","methQTLInput",
+#' @export
+setMethod("saveMethQTL","methQTLInput",
           function(object,path){
             if(file.exists(path)){
               if(dir.exists(path)){
@@ -360,21 +367,21 @@ setMethod("save.methQTL","methQTLInput",
           }
 )
 
-#' load.methQTL
+#' loadMethQTL
 #'
 #' This functions load a \code{\link{methQTLInput-class}} object from disk.
 #'
-#' @param path Path to the directory that has been created by \code{\link{save.methQTL,methQTLInput-method}}.
+#' @param path Path to the directory that has been created by \code{\link{saveMethQTL,methQTLInput-method}}.
 #' @return The object of type \code{\link{methQTLInput-class}} that has been stored on disk.
 #' @author Michael Scherer
 #' @export
-load.methQTL <- function(path){
+loadMethQTL <- function(path){
   if(any(!(file.exists(file.path(path,"meth_data.RDS"))||file.exists(file.path(path,"meth_data.h5"))),
          !(file.exists(file.path(path,"geno_data.RDS"))||file.exists(file.path(path,"geno_data.h5"))),
          !file.exists(file.path(path,"anno_meth.RDS")),
          !file.exists(file.path(path,"anno_geno.RDS")),
          !file.exists(file.path(path,"pheno_data.RDS")))){
-    stop("Invalid value for path. Potentially not a directory saved with save.methQTL")
+    stop("Invalid value for path. Potentially not a directory saved with saveMethQTL")
   }
   load_env<-new.env(parent=emptyenv())
   load(file.path(path, "methQTLInput.RData"),envir=load_env)
