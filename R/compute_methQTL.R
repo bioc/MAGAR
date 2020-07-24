@@ -113,6 +113,9 @@ doMethQTLChromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.d
   sel.meth <- which(anno$Chromosome %in% chrom)
   sel.anno <- anno[sel.meth,]
   sel.meth <- getMethData(meth.qtl)[sel.meth,]
+  if(qtlGetOption("hdf5dump")){
+    sel.meth <- writeHDF5Array(sel.meth)
+  }
   if(qtlGetOption('compute.cor.blocks')){
     cor.blocks <- computeCorrelationBlocks(sel.meth,sel.anno,assembly=meth.qtl@assembly,chromosome=chrom,segmentation=meth.qtl@segmentation)
     cor.blocks <- lapply(cor.blocks,as.numeric)

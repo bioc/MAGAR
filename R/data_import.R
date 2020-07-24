@@ -53,6 +53,13 @@ doImport <- function(data.location,
                       s.id.col="sample_id",
                       out.folder=tempdir(),
                       ...){
+
+  if(!dir.exists(out.folder)){
+    stop("Output directory does not exist.")
+  }
+  if(dir.exists(file.path(out.folder,"rnbeads_preprocessing"))){
+    stop("RnBeads directory (rnbeads_preprocessing) does already exist. Please remove it and restart.")
+  }
   logger.start("Import methQTL data")
   if(is.null(s.anno)){
     for(i in 1:length(data.location)){
@@ -207,6 +214,7 @@ doMethImport <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep="
     meth.data <- writeHDF5Array(meth.data)
   }
   anno.meth <- annotation(rnb.imp)
+  gc()
   logger.completed()
   return(list(samples=s.names,data=meth.data,annotation=anno.meth,platform=rnb.imp@target,segmentation=segmentation))
 }
@@ -307,13 +315,16 @@ doGenoImport <- function(data.location,s.anno,s.id.col,out.folder,...){
   if(!any(grepl("chr*",anno.geno$Chromosome))){
     anno.geno$Chromosome <- paste0("chr",anno.geno$Chromosome)
   }
+  logger.start("Computing allele frequencies")
   maj.allele.frequencies <- apply(snp.mat,1,function(x){
     x <- x[!is.na(x)]
     (2*sum(x==0)+sum(x==1))/(2*length(x))
   })
   anno.geno$Allele.1.Freq <- maj.allele.frequencies
   anno.geno$Allele.2.Freq <- 1-maj.allele.frequencies
+  logger.completed()
   if(qtlGetOption("recode.allele.frequencies")){
+    logger.start("Recoding allele frequencies")
     allele.frequencies <- maj.allele.frequencies<0.5
     allele.frequencies[is.na(allele.frequencies)] <- FALSE
     snp.mat[allele.frequencies,] <- 2-(snp.mat[allele.frequencies,])
@@ -322,6 +333,7 @@ doGenoImport <- function(data.location,s.anno,s.id.col,out.folder,...){
     anno.geno$Allele.1[allele.frequencies] <- temp
     anno.geno$Allele.1.Freq[allele.frequencies] <- 1-maj.allele.frequencies[allele.frequencies]
     anno.geno$Allele.2.Freq[allele.frequencies] <- maj.allele.frequencies[allele.frequencies]
+    logger.completed()
   }else{
     snp.mat[snp.mat==2] <- 3
     snp.mat[snp.mat==0] <- 2
