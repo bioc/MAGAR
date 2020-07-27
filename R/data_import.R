@@ -130,6 +130,9 @@ doImport <- function(data.location,
   if(assembly.meth != assembly.geno){
     dataset.import <- match.assemblies(dataset.import)
   }
+  rm(meth.data)
+  rm(geno.data)
+  gc()
   logger.completed()
   return(dataset.import)
 }

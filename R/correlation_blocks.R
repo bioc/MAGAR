@@ -134,6 +134,8 @@ computeCorrelationBlocks <- function(meth.data,
   logger.completed()
   logger.start("Compute clustering")
   clust <- cluster_louvain(graph.ad)
+  rm(weighted.distances)
+  gc()
   logger.completed()
   logger.completed()
   return(lapply(groups(clust),function(x)as.numeric(x)))
