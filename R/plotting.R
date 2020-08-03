@@ -261,6 +261,7 @@ qtlVennPlot <- function(meth.qtl.result.list,out.folder,type="SNP",out.name=NULL
 #' @details The plot is directly drawn and can be stored on disk using the known R graphic devices
 #' @export
 #' @author Michael Scherer
+#' @import UpSetR
 qtlUpsetPlot <- function(meth.qtl.result.list,type="SNP",...){
   if(!requireNamespace("UpSetR")){
     stop("Please install the 'UpSetR' package")
@@ -363,7 +364,7 @@ qtlLOLAPlot <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19",pva
 #' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}}
 #' @param type Either \code{"genomic"} or \code{"count"}, for genomic size of the correlation
 #'               block in base pairs or as the number of CpGs
-#' @return An objec of type ggplot containing the histogram as a plot
+#' @return An object of type ggplot containing the histogram as a plot
 #' @author Michael Scherer
 #' @export
 qtlPlotClusterSize <- function(meth.qtl.res,type="count"){
@@ -439,4 +440,61 @@ qtlPlotBaseSubstitution <- function(meth.qtl.res,...){
 		my_theme+
 		scale_fill_gradient2(low="dodgerblue3",mid="white",high="firebrick3")
 
+}
+
+#' qtlUpSetPlotCorBlocks
+#'
+#' This function overlaps correlation blocks for a list of methQTL results
+#'
+#' @param meth.qtl.res.list A list of \code{\link{methQTLResult}} objects, for which correlation blocks are to be overlapped
+#' @param ... Further argument passed to \code{\link[UpSetR]{upset}}
+#' @details This function draws an UpSetPlot for the overlaps directly from to the open graphics device
+#' @export
+#' @author Michael Scherer
+#' @import UpSetR
+qtlUpSetPlotCorBlocks <- function(meth.qtl.res.list,...){
+  if(!requireNamespace("UpSetR")){
+    stop("Please install the 'UpSetR' package")
+  }
+  cor.blocks <- lapply(meth.qtl.res.list,function(x){
+    lapply(unlist(getCorrelationBlocks(x),recursive = F),function(y){
+      paste(sort(y),collapse = "_")
+    })
+  })
+  UpSetR::upset(UpSetR::fromList(cor.blocks),
+                nsets = length(cor.blocks),
+                order.by = "freq",
+                mainbar.y.label = "Number of overlapping correlation blocks",
+                sets.x.label = "Correlation blocks per class",
+                text.scale = c(1,1,1.5,1.5,2,1.5),
+                number.angles = 30,
+                ...)
+}
+
+#' qtlUpSetPlotTagCpGs
+#'
+#' This function overlaps the tagCpGs for a list of methQTL results
+#'
+#' @param meth.qtl.res.list A list of \code{\link{methQTLResult}} objects, for which correlation blocks are to be overlapped
+#' @param ... Further argument passed to \code{\link[UpSetR]{upset}}
+#' @details This function draws an UpSetPlot for the overlaps directly from to the open graphics device
+#' @export
+#' @author Michael Scherer
+#' @import UpSetR
+qtlUpSetPlotTagCpGs <- function(meth.qtl.res.list,
+                                ...){
+  if(!requireNamespace("UpSetR")){
+    stop("Please install the 'UpSetR' package")
+  }
+  cpgs <- lapply(meth.qtl.res.list,function(x){
+    unique(getResult(x)$CpG)
+  })
+  UpSetR::upset(UpSetR::fromList(cpgs),
+                nsets = length(cpgs),
+                order.by = "freq",
+                mainbar.y.label = "Number of overlapping tag-CpGs",
+                sets.x.label = "tag-CpGs per class",
+                text.scale = c(1,1,1.5,1.5,2,1.5),
+                number.angles = 30,
+                ...)
 }

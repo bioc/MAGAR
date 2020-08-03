@@ -97,7 +97,7 @@ doImport <- function(data.location,
   sel.meth <- match(s.names,meth.import$samples)
   sel.geno <- match(s.names,geno.import$samples)
   if(any(is.na(sel.geno))||any(is.na(sel.meth))){
-	stop("Sample IDs for methylation and genotyping data do not match")
+	  stop("Sample IDs for methylation and genotyping data do not match")
   }
   meth.data <- meth.import$data[,sel.meth]
   geno.data <- geno.import$data[,sel.geno]
@@ -105,7 +105,11 @@ doImport <- function(data.location,
   	meth.data <- as(meth.data,"HDF5Matrix")
 	  geno.data <- as(geno.data,"HDF5Matrix")
   }
-  pheno.data <- pheno.data[as.character(pheno.data[,s.id.col])%in%s.names,]
+  pheno.dat.names <- as.character(pheno.data[,s.id.col])
+  if(length(unique(pheno.dat.names))!=length(pheno.dat.names)){
+    stop("Sample identifiers in the sample annotation sheet are not unique!")
+  }
+  pheno.data <- pheno.data[pheno.dat.names%in%s.names,]
   if(is.null(s.names) || (length(unique(s.names)) < length(s.names))){
     stop("Invalid value for s.id.col, needs to specify unique identfiers in the sample annotation sheet")
   }

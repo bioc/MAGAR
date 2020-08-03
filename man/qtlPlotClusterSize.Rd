@@ -13,7 +13,7 @@ qtlPlotClusterSize(meth.qtl.res, type = "count")
 block in base pairs or as the number of CpGs}
 }
 \value{
-An objec of type ggplot containing the histogram as a plot
+An object of type ggplot containing the histogram as a plot
 }
 \description{
 This functions returns a histogram comprising the (genomic) sizes of the correlation blocks
