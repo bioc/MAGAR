@@ -15,7 +15,7 @@ qtlPlotAnnotationEnrichment(meth.qtl.res, ...)
 This functions returns and enrichment plot for different genomic annotation enrichments
 }
 \seealso{
-qtl.annotation.enrichment
+qtlAnnotationEnrichment
 }
 \author{
 Michael Scherer

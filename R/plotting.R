@@ -397,7 +397,7 @@ qtlPlotClusterSize <- function(meth.qtl.res,type="count"){
 #'
 #' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
 #' @param ... Further parameters passed to \code{\link{qtlAnnotationEnrichment}}
-#' @seealso qtl.annotation.enrichment
+#' @seealso qtlAnnotationEnrichment
 #' @export
 #' @author Michael Scherer
 qtlPlotAnnotationEnrichment <- function(meth.qtl.res,...){
@@ -405,7 +405,7 @@ qtlPlotAnnotationEnrichment <- function(meth.qtl.res,...){
 	all.annos <- c("cpgislands","promoters","genes","ctcf","distal","proximal","tfbs","dnase","tss")
 	enr.res <- lapply(all.types,function(type){
 			lapply(all.annos,function(anno){
-				qtl.annotation.enrichment(meth.qtl.res,type,anno)
+				qtlAnnotationEnrichment(meth.qtl.res,type,anno)
 			})
 		})
 	to.plot <- data.frame(First=names(unlist(enr.res)),Second=unlist(enr.res))
@@ -427,7 +427,7 @@ qtlPlotAnnotationEnrichment <- function(meth.qtl.res,...){
 #'
 #' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
 #' @param ... Further parameters passed to \code{\link{qtlBaseSubstitutionEnrichment}}
-#' @seealso qtl.base.substitution.enrichment
+#' @seealso qtlBaseSubstitutionEnrichment
 #' @export
 #' @author Michael Scherer
 qtlPlotBaseSubstitution <- function(meth.qtl.res,...){

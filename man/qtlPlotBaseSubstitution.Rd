@@ -15,7 +15,7 @@ qtlPlotBaseSubstitution(meth.qtl.res, ...)
 This function returns an enrichment plot for the different base substitutions.
 }
 \seealso{
-qtl.base.substitution.enrichment
+qtlBaseSubstitutionEnrichment
 }
 \author{
 Michael Scherer
