@@ -202,7 +202,7 @@ qtlManhattanPlot <- function(meth.qtl.result,type="CpG",stat="p.val.adj.fdr"){
     stop("Please install the 'qqman' package")
   }
   to.plot <- getResult(meth.qtl.result)
-  colnames(to.plot)[c(5,ifelse(type=="CpG",6,7),ifelse(stat=="P.value",4,ifelse(stat=="Beta",3,9)))] <- c("CHR","BP","P")
+  colnames(to.plot)[c(6,ifelse(type=="CpG",7,8),ifelse(stat=="P.value",4,ifelse(stat=="Beta",3,10)))] <- c("CHR","BP","P")
   to.plot$CHR <- as.numeric(gsub("chr","",to.plot$CHR))
   to.plot$P <- abs(to.plot$P)
   qqman::manhattan(to.plot,

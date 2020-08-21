@@ -192,15 +192,15 @@ getOverlapUniverse <- function(meth.qtl.res,type){
         paste(ro["SNP"],paste(ro["CorrelationBlock"][[1]],collapse = "_"),sep="_")
       })
     }else{
-      all.qtl <- as.character(getResult(meth.qtl.res)[,type])
+      all.qtl <- unique(as.character(getResult(meth.qtl.res)[,type]))
     }
   }
   if(is.list(meth.qtl.res)){
     if(!inherits(meth.qtl.res[[1]],"methQTLResult")){
       stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
     }
-    all.input <- overlap.inputs(meth.qtl.res,type=type)
-    all.qtl <- overlap.QTLs(meth.qtl.res = meth.qtl.res,type=type)
+    all.input <- overlapInputs(meth.qtl.res,type=type)
+    all.qtl <- overlapQTLs(meth.qtl.res = meth.qtl.res,type=type)
     res <- all.qtl[[1]]
     for(i in 2:length(all.qtl)){
       res <- intersect(res,all.qtl[[i]])
@@ -211,7 +211,7 @@ getOverlapUniverse <- function(meth.qtl.res,type){
     all.qtl <- unlist(sapply(all.qtl,function(qtl){
       strsplit(qtl,"_")
     }))
-    all.qtl <- all.qtl[!grepl("rs",all.qtl)]
+    all.qtl <- unique(all.qtl[!grepl("rs|[:]",all.qtl)])
   }
   if(type%in%"SNP"){
     all.input$End <- all.input$Start+1
