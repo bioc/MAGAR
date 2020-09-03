@@ -91,6 +91,7 @@ if(!isGeneric("getResult")) setGeneric("getResult",function(object,...) standard
 #' @param cor.blocks Correlation blocks as obtained using \code{getCorrelationBlocks}. Please note that the
 #'          correlation blocks need to contain the CpG identifiers, so the \code{\link{methQTLInput-class}} object
 #'          needs to be provided to \code{getCorrelationBlocks}.
+#' @param na.rm Flag indicating if rows containing NA values are to be removed from the result.
 #' @return The methQTL results as a \code{data.frame} with each row being a methQTL.
 #' @rdname getResult
 #' @docType methods
@@ -98,12 +99,14 @@ if(!isGeneric("getResult")) setGeneric("getResult",function(object,...) standard
 #' @aliases getResult
 #' @export
 setMethod("getResult",signature(object="methQTLResult"),
-          function(object,cor.blocks=NULL){
+          function(object,cor.blocks=NULL,na.rm=FALSE){
             ret <- object@result.frame
-            keep.lines <- apply(ret,1,function(line){
-              any(!is.na(line))
-            })
-            ret <- ret[keep.lines,]
+	    if(na.rm){
+		    keep.lines <- apply(ret,1,function(line){
+		      any(!is.na(line))
+		    })
+		    ret <- ret[keep.lines,]
+	    }
             if(!is.null(cor.blocks)){
               if(is.list(cor.blocks[[1]])){
                 cor.blocks.assigned <- list()

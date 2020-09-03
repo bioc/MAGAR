@@ -33,7 +33,7 @@ qtlLOLAEnrichment <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg1
       lola.db <- downloadLolaDbs(tempdir())[[assembly]]
     }
     lola.db <- loadRegionDB(lola.db)
-    lola.res <- runLOLA(userSets=all.qtl,userUniverse = all.qtl,lola.db)
+    lola.res <- runLOLA(userSets=all.qtl,userUniverse = all.input,lola.db)
     return(list(lola.res=lola.res,lola.db=lola.db))
   }
 }
