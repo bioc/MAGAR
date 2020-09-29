@@ -1,4 +1,4 @@
-Package: methQTL
+Package: MAGAR
 Type: Package
 Title: Package to compute methylation Quantitative Trait Loci (methQTL) from DNA methylation and genotyping data
 Version: 0.3.6

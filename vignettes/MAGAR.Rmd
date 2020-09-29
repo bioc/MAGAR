@@ -1,7 +1,7 @@
 ---
-title: "methQTL package"
+title: "MAGAR: Methylation-Aware Genotype Association in R"
 author: "Michael Scherer"
-date: "July 06, 2020"
+date: "September 14, 2020"
 header-includes:
   \usepackage{helvet}
   \hypersetup{colorlinks,
@@ -26,31 +26,31 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
-This vignette describes the [*methQTL* R-package](https://github.com/MPIIComputationalEpigenetics/methQTL-package) available from GitHub. The package uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). The package provides mutliple flavors of linear modeling strategies to compute *methQTL* as statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block (tag-CpG) is used for methQTL calling.
+This vignette describes the package "Methylation-Aware Genotype Association with R* ([*MAGAR*](https://github.com/MPIIComputationalEpigenetics/MAGAR)) available from GitHub. *MAGAR* uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). The package provides mutliple flavors of linear modeling strategies to compute *methQTL* as statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block (tag-CpG) is used in the methQTL calling.
 
 # Installation
 
-The package relies on some dependencies that are exclusively available from Bioconductor and not from CRAN, most notably [*RnBeads*](https://rnbeads.org). After installing the dependencies, *methQTL* can be installed from GitHub, after installing the *devtools* package.
+The package relies on some dependencies that are exclusively available from Bioconductor and not from CRAN, most notably [*RnBeads*](https://rnbeads.org). After installing the dependencies, *MAGAR* can be installed from GitHub, after installing the *devtools* package.
 
 ```{r installation, echo=FALSE}
 if(!requireNamespace("devtools")) install.packages("devtools")
 source("https://rnbeads.org/data/install.R")
-if(!requireNamespace("methQTL")){
-  devtools::install_github("MPIIComputationalEpigenetics/methQTL-package")
+if(!requireNamespace("MAGAR")){
+  devtools::install_github("MPIIComputationalEpigenetics/MAGAR")
 }  
-suppressPackageStartupMessages(library(methQTL))
+suppressPackageStartupMessages(library(MAGAR))
 ```
 
 ## Required external software tools
 
-The *methQTL* package requires a funtional installation of *PLINK* for handling genotyping data. Follow the installation instructions available [here](https://www.cog-genomics.org/plink2/) and specify the path to the installation for the package:
+*MAGAR* depends on a funtional installation of *PLINK* for handling genotyping data. Follow the installation instructions available [here](https://www.cog-genomics.org/plink2/) and specify the path to the installation for the package:
 
 ```{r plink_setup}
 #qtlSetOption(plink.path="/TL/deep-share/archive00/software/packages/plink/plink")
 qtlSetOption(plink.path="~/home_nfs/work/mscherer/projects/methQTL/package/software/plink")
 ```
 
-Additionally, depending on the type of the analysis, more external software tools are required. More specifically, if you want to perform imputation *bgzip* and *tabix* from the [*htslib*](http://www.htslib.org/download/) package are needed, as well as [*vcftools*](http://vcftools.sourceforge.net/downloads.html) for sorting VCF files. Lastly, if methQTL calling is to be performed through [*fastQTL*](http://fastqtl.sourceforge.net/), the software tools needs to be installed and specified.
+Additionally, depending on the type of the analysis, more external software tools are required. More specifically, if you want to perform imputation *bgzip* and *tabix* from the [*htslib*](http://www.htslib.org/download/) package are needed, as well as [*vcftools*](http://vcftools.sourceforge.net/downloads.html) for sorting VCF files. Lastly, if methQTL calling is to be performed through [*fastQTL*](http://fastqtl.sourceforge.net/), the software tool needs to be installed and the location of the executable specified to *MAGAR*.
 
 ```{r tools, eval=F}
 qtlSetOption(
@@ -63,11 +63,11 @@ qtlSetOption(
 
 # Input data
 
-The *methQTL* package requires two types of data as input: DNA methylation data obtained using the Illumina Infinium BeadArrays and genotyping data obtained using genotyping microarrays or whole genome sequencing.
+*MAGAR* uses two types of data as input: DNA methylation data obtained using the Illumina Infinium BeadArrays or bisulfite sequencing and genotyping data obtained using genotyping microarrays or whole genome sequencing.
 
 ## DNA methylation data (microarrays)
 
-The package utilizes the widely used [*RnBeads*](http://rnbeads.org/) software package for DNA methylation data import. It supports the various input options available in *RnBeads*, including a direct download from the Gene Expression Omnibus (GEO). For further options, we refer to the [RnBeads vignette](http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf) and documentation. In addition to the raw methylation data, a sample annotation sheet specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:
+*MAGAR* utilizes the widely used [*RnBeads*](http://rnbeads.org/) software package for DNA methylation data import. Thus, *MAGAR* supports the various input options available in *RnBeads*, including a direct download from the Gene Expression Omnibus (GEO), IDAT, and BED files. For further options, we refer to the [RnBeads vignette](http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf) and documentation. In addition to the raw methylation data, a sample annotation sheet specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:
 
 ```{bash sample_annotation, eval=FALSE}
 SampleID,age,sex,barcode
@@ -76,7 +76,7 @@ Sample_2,42,f,209054857842_R02C01
 Sample_3,45,m,209054857842_R03C01
 ```
 
-For further details on the import process, we refer to the [RnBeads vignette](http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf). Most importantly, analysis options need to be specified for the import and preprocessing modules of *RnBeads*. *methQTL* provides a default setting, which is available in *extdata/rnbeads_options.xml*. You can use this file as a template for your own setting and then specify it to the methQTL package:
+For further details on the import process, we refer to the [RnBeads vignette](http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf). Most importantly, analysis options need to be specified for the import and preprocessing modules of *RnBeads*. *MAGAR* provides a default setting, which is available in *extdata/rnbeads_options.xml*. You can use this file as a template for your own setting and then specify it to the package:
 
 ```{r options, eval=TRUE}
 opts <- rnb.xml2options(system.file("extdata/rnbeads_options.xml",package="methQTL"))
@@ -87,17 +87,17 @@ cat(rnb.options2xml(),file=xml.fi)
 qtlSetOption(rnbeads.options = xml.fi)
 ```
 
-To redefine the correlation blocks, we allow for including additional information such as genome-wide segmentation of the methylation landscape (see option ```useSegmentation``` and function ```qtl.run.segmentation```), and also functional annotation according to the Ensembl regulatory build [@Zerbino2015].
+To redefine the correlation blocks, we allow for including additional information such as genome-wide segmentation of the methylation landscape (see option ```use.segmentation``` and function ```qtlRunSegmentation```), and also functional annotation according to the Ensembl regulatory build [@Zerbino2015].
 
 ## Genotyping data
 
 ### PLINK files
 
-The package supports data that has already been processed by [*PLINK*](http://zzz.bwh.harvard.edu/plink/) and that is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, as variant calling files (*.vcf*), or as imputed files in the dosage format (*.dos*). For further processing, we use the command line tool *PLINK*, which comes with this package. However, this installation is only valid for Linux systems. For Windows and MacOS users, please install the *PLINK* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.
+*MAGAR* supports data that has already been processed by [*PLINK*](http://zzz.bwh.harvard.edu/plink/) and that is available either in the form of binary *.bed*, *.bim* and *.fam* files, as *.ped* and *.map*, as variant calling files (*.vcf*), or as imputed files in the dosage format (*.dos*). For further processing, we use the command line tool *PLINK*, which is shipped together with *MAGAR*. However, this installation is only valid for Linux systems. For Windows and MacOS users, please install the *PLINK* tool from [here](https://www.cog-genomics.org/plink/1.9/) and specify it using the option ```plink.path```. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.
 
 ### IDAT files
 
-The package also supports raw IDAT files and uses the [*CRLMM*](https://www.bioconductor.org/packages/release/bioc/html/crlmm.html) R-package, together with PLINK to perform genotype calling and data import. The package requires a single sample annotation sheet in the format described in the [DNA methylation data](DNA methylation data  (microarray)) section. In addition to the column names specified above, a column named *GenoSentrixPosition* has to be added, which specifies the IDAT file IDs.
+*MAGAR* also supports raw IDAT files and uses the [*CRLMM*](https://www.bioconductor.org/packages/release/bioc/html/crlmm.html) R-package, together with PLINK to perform genotype calling and data import. The package requires a single sample annotation sheet in the format described in the [DNA methylation data](DNA methylation data  (microarray)) section. In addition to the column names specified above, a column named *GenoSentrixPosition* has to be added, which specifies the IDAT file IDs.
 
 ```{bash sample_annotation_geno, eval=FALSE}
 SampleID,age,sex,barcode,GenoSentrixPosition
@@ -108,7 +108,7 @@ Sample_3,45,m,209054857842_R03C01,9742011016_R04C01
 
 ### Imputation
 
-Since Illumina SNP BeadArray data is typically imputed before further analysis, the package integrates a imputation functionality through the [Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html#!). Using the option setting described below, the package will automatically submit imputation jobs to the server and process the resulting files. In order to be able to perform computation on the server, an account is required. After the account is created, one has to request an API token in the user settings and specify it to *methQTL* using the option ```imputation.user.token```. During the imputation process, the package will stall for a while and wait for the job to finish. After the job is done, the package will prompt for entering the password send via e-mail to the user account. The imputation process has to be split according to chromosomes, which is why multiple e-mails will be send to the account, and the imputation process can take up to several days. However, after imputation, the imputed data will be available as PLINK files, such that the imputation has to be performed only once. For preprocessing the data for upload to the imputation server, the package requires the [bgzip](http://www.htslib.org/doc/bgzip.html) and [tabix](http://www.htslib.org/doc/tabix.html) tools from the [htslib](http://www.htslib.org/) package. Also see further options to configure the imputation jobs (see the Michigan Imputation Server [documentation](https://imputationserver.readthedocs.io/en/latest/) for further information):
+Since Illumina SNP BeadArray data is typically imputed before further analysis, the package integrates a imputation functionality through the [Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html#!). Using the option setting described below, the package will automatically submit imputation jobs to the server and process the resulting files. In order to be able to perform computation on the server, an account is required. After the account is created, one has to request an API token in the user settings and specify it to *MAGAR* using the option ```imputation.user.token```. During the imputation process, the package will stall for a while and wait for the job to finish. After the job is completed, the package will prompt for entering the password send via e-mail to the user account. The imputation process has to be split according to chromosomes, which is why multiple e-mails will be send to the account, and the imputation process can take up to several days. However, after imputation, the imputed data will be available as PLINK files, such that the imputation has to be performed only once. For preprocessing the data for upload to the imputation server, the package requires the [bgzip](http://www.htslib.org/doc/bgzip.html) and [tabix](http://www.htslib.org/doc/tabix.html) tools from the [htslib](http://www.htslib.org/) package. Also see further options to configure the imputation jobs at the Michigan Imputation Server [documentation](https://imputationserver.readthedocs.io/en/latest/):
 
 ```{r imputation options, eval=FALSE}
 qtlSetOption(
@@ -159,11 +159,11 @@ imp.data <- doImport(data.location = c(idat.dir=idat.dir,geno.dir=geno.dir),
                       out.folder = getwd())
 ```
 
-Please note that the ```recode.allele.frequencies``` option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies found. Alternatively, a path to a local version of dbSNP [@Sherry2001] can be provided through ```db.snp.ref```, and reference/alternative allele information will be automatically parsed from the database. This is especially crucial, if imputation is to be performed, since the Michigan Imputation Server is sensitive to reference mismatches.
+Please note that the ```recode.allele.frequencies``` option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies in the available samples. Alternatively, a path to a local version of dbSNP [@Sherry2001] can be provided through ```db.snp.ref```, and reference/alternative allele information will be automatically parsed from the database. This is especially crucial, if imputation is to be performed, since the Michigan Imputation Server is sensitive to reference mismatches.
 
 # methQTL calling
 
-Although *methQTL* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter, or as global parameters using ```?qtlSetOption```.
+Although *MAGAR* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter, or as global parameters using ```?qtlSetOption```.
 
 ```{r call_methQTL, eval=TRUE}
 qtlSetOption(standard.deviation.gauss=100,
@@ -192,12 +192,11 @@ This will return a clustering according to the correlation structure between nei
 
 ## Call methQTL per correlation block
 
-From the list of correlation blocks, *methQTL* computes methQTL interactions with all SNPs on the same chromosome. The process is split into three steps:
+From the list of correlation blocks, *MAGAR* computes methQTL interactions with all SNPs on the same chromosome. The process is split into three steps:
 
 1. Compute a representative CpG (tag-CpG) per correlation block, as specified with the option ```representative.cpg.computation``` (default: *row.medians*).
 2. Discard all SNPs that are further than ```absolute.distance.cutoff``` (default: 1,000,000) away from the representative CpG
-3. Call methQTL by using linear models. Multiple options of methQTL calling are available and can be selected via the option ```linear.model.type``` (default: *classical.linear*). Alternatively, *fastQTL* can be set as an option for
-```meth.qtl.type```. This will tell the package to use the fastQTL software [@Ongen2016].
+3. Call methQTL by using linear models. Multiple options of methQTL calling are available and can be selected via the option ```linear.model.type``` (default: *classical.linear*). Alternatively, *fastQTL* can be set as an option for ```meth.qtl.type```. This will tell the package to use the fastQTL software [@Ongen2016].
 
 The ```meth.qtl.type``` tells, how a methQTL interaction is defined and provides three options, in addition to the already mentioned *fastQTL*:
 
@@ -205,7 +204,7 @@ The ```meth.qtl.type``` tells, how a methQTL interaction is defined and provides
 2. *twoVSall*: A CpG can both positively and negatively be influenced by two independent SNPs. The package will output those fulfilling the p-value cutoff.
 3. *allVSall*: For each CpG, all SNPs showing a p-value lower than the p-value cutoff will be returned.
 
-In the latest stage, potential covariates can be specified using the option *sel.covariates*. We recommend to include at least *age* and *sex* as covariates, as they have a strong influence on the DNA methylation pattern.
+In the methQTL calling process, potential covariates can be specified using the option *sel.covariates*. We recommend to include at least *age* and *sex* as covariates, as they have a strong influence on the DNA methylation pattern.
 
 # Downstream analysis and interpretation
 
@@ -213,7 +212,7 @@ In the latest stage, potential covariates can be specified using the option *sel
 
 The above procedure will create an object of class ```methQTLResult```, which contains the methQTL that are called in the previous step. To get a table of all the methQTL, you need to extract the information from the object. In the majority of the function calls below, there is the option ```type```, which takes on the values:
 * 'SNP': To characterize the SNPs that influence any DNA methylation state
-* 'CpG': To characterize the representative CpGs per correlation block that are influences by any genotype
+* 'CpG': To characterize the representative CpGs per correlation block that are influences by any SNP genotype
 * 'cor.block': To characterize all CpGs, which are part of a correlation block, whose representative CpG is influenced by any genotype
 
 Furthermore, you can obtain genomic annotations for both the CpGs and the SNPs involved in the methQTL interactions:
@@ -231,7 +230,7 @@ For more detailed information about the output, also see the function ```getResu
 
 ## Plots
 
-To visualize methQTL, the package provides some plotting functions. All functions return an object of type ```ggplot```, which can be subsequently stored or viewed. Either all methQTL can be simultaneously visualized in a single plot, or a specific methQTL can be visualized:
+To visualize methQTL, *MAGAR* provides some plotting functions. Most functions return an object of type ```ggplot```, which can be subsequently stored or viewed. Either all methQTL can be simultaneously visualized in a single plot, or a specific methQTL can be visualized:
 
 ```{r plots,eval=TRUE, include=TRUE}
 result.table <- result.table[order(result.table$P.value,decreasing=F),]
@@ -261,9 +260,9 @@ spec.first <- getSpecificQTL(meth.qtl.list$First,meth.qtl.list[-1])
 
 # Advanced configuration
 
-## Employ methQTL on a scientific compute cluster
+## Employ *MAGAR* on a scientific compute cluster
 
-*methQTL* can automatically distribute jobs across a high performance compute cluster, which has been setup using the Sun Grid Engine (SGE) technology. You can pass the option ```cluster.submit``` to ```doMethQTL``` and thus activate the cluster submission. Note that you'll also have to specify a path to an executable *Rscript* and potentially specify resource requirements using the option setting ```cluster.config```.
+*MAGAR* can automatically distribute jobs across a high performance compute cluster, which has been setup using the Sun Grid Engine (SGE) technology. You can pass the option ```cluster.submit``` to ```doMethQTL``` and thus activate the cluster submission. Note that you'll also have to specify a path to an executable *Rscript* and potentially specify resource requirements using the option setting ```cluster.config```.
 
 ```{r cluster, eval=FALSE}
 qtlSetOption(cluster.config = c(h_vmem="60G",mem_free="20G"))

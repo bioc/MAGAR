@@ -498,7 +498,7 @@ match.assemblies <- function(meth.qtl){
 #' @param idat.platform The array platform to be used. Check those available using the crlmm function \code{\link{validCdfNames}}.
 #'          Additionally, for the Illumina OmniExpress 12 v1.0, and Infinium Omni2.5-8 v1.4 we
 #'          provide two custom annotations, which can be used using the 'OmniExpress' and
-#'          'OmniExome' options, respectively.
+#'          'Omni2-5' options, respectively.
 #' @param call.method The genotype calling method passed to \code{\link{genotype.Illumina}}
 #' @param gender.col Optional parameter specifying the column name in the sample annotation sheet specifying
 #'     the individual's sexes. If not specified, the package will search for such a column.
@@ -565,11 +565,11 @@ doGenoImportIDAT <- function(idat.files,
                          fitMixture=FALSE,
                          gender=sex)
 	annot <- my.anno@data
-  }else if(idat.platform=="OmniExome"){
+  }else if(idat.platform=="Omni2-5"){
 	if(!requireNamespace("methQTL.data")){
-		stop("Missing required package methQTL.data for idat.platform OmniExome")
+		stop("Missing required package methQTL.data for idat.platform Omni2-5")
 	}
-	my.anno <- readRDS(system.file("extdata/omni_exome_annotation.rds",package="methQTL.data"))
+	my.anno <- readRDS(system.file("extdata/omni_25_annotation.rds",package="methQTL.data"))
 	genome <- "hg19"
         crlmm.obj <- genotype.Illumina(sampleSheet=s.anno,
                          arrayNames=array.names,

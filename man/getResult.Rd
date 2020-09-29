@@ -6,7 +6,7 @@
 \alias{getResult}
 \title{getResult}
 \usage{
-\S4method{getResult}{methQTLResult}(object, cor.blocks = NULL)
+\S4method{getResult}{methQTLResult}(object, cor.blocks = NULL, na.rm = FALSE)
 }
 \arguments{
 \item{object}{An of type \code{\link{methQTLResult-class}}.}
@@ -14,6 +14,8 @@
 \item{cor.blocks}{Correlation blocks as obtained using \code{getCorrelationBlocks}. Please note that the
 correlation blocks need to contain the CpG identifiers, so the \code{\link{methQTLInput-class}} object
 needs to be provided to \code{getCorrelationBlocks}.}
+
+\item{na.rm}{Flag indicating if rows containing NA values are to be removed from the result.}
 }
 \value{
 The methQTL results as a \code{data.frame} with each row being a methQTL.
