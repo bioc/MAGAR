@@ -32,7 +32,7 @@ This vignette describes the package "Methylation-Aware Genotype Association with
 
 The package relies on some dependencies that are exclusively available from Bioconductor and not from CRAN, most notably [*RnBeads*](https://rnbeads.org). After installing the dependencies, *MAGAR* can be installed from GitHub, after installing the *devtools* package.
 
-```{r installation, echo=FALSE}
+```{r installation, echo=FALSE, eval=FALSE}
 if(!requireNamespace("devtools")) install.packages("devtools")
 source("https://rnbeads.org/data/install.R")
 if(!requireNamespace("MAGAR")){
@@ -78,7 +78,7 @@ Sample_3,45,m,209054857842_R03C01
 
 For further details on the import process, we refer to the [RnBeads vignette](http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf). Most importantly, analysis options need to be specified for the import and preprocessing modules of *RnBeads*. *MAGAR* provides a default setting, which is available in *extdata/rnbeads_options.xml*. You can use this file as a template for your own setting and then specify it to the package:
 
-```{r options, eval=TRUE}
+```{r options, eval=FALSE}
 opts <- rnb.xml2options(system.file("extdata/rnbeads_options.xml",package="methQTL"))
 rnb.options(identifiers.column="geo_accession",
 	import.idat.platform="probes450")
@@ -125,7 +125,7 @@ The ```doImport``` function requires the paths to the respective genotyping and 
 
 Please note that we provide an accompanying R-package ([methQTL.data](https://github.com/MPIIComputationalEpigenetics/methQTL.data)) comprising additional information including microarray annotations and test data sets for this vignette. Furthermore, we provide a patched version of CRLMM that supports the newer Illumina genotyping microarrays (Illumina OmniExome and Illumina OmniExpress) from [GitHub](https://github.com/MPIIComputationalEpigenetics/crlmm).
 
-```{r import,eval=TRUE}
+```{r import,eval=FALSE}
 if(!requireNamespace("methQTL.data")){
   devtools::install_github("MPIIComputationalEpigenetics/methQTL-package.data")
 }
@@ -165,7 +165,7 @@ Please note that the ```recode.allele.frequencies``` option specifies, if, accor
 
 Although *MAGAR* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter, or as global parameters using ```?qtlSetOption```.
 
-```{r call_methQTL, eval=TRUE}
+```{r call_methQTL, eval=FALSE}
 qtlSetOption(standard.deviation.gauss=100,
 	cluster.cor.threshold=0.75)
 meth.qtl.res <- doMethQTL(imp.data,default.options=F,p.val.cutoff=1e-3)
@@ -217,7 +217,7 @@ The above procedure will create an object of class ```methQTLResult```, which co
 
 Furthermore, you can obtain genomic annotations for both the CpGs and the SNPs involved in the methQTL interactions:
 
-```{r show_results, eval=TRUE}
+```{r show_results, eval=FALSE}
 result.table <- getResult(meth.qtl.res)
 head(result.table)
 anno.meth <- getAnno(meth.qtl.res,"meth")
@@ -232,7 +232,7 @@ For more detailed information about the output, also see the function ```getResu
 
 To visualize methQTL, *MAGAR* provides some plotting functions. Most functions return an object of type ```ggplot```, which can be subsequently stored or viewed. Either all methQTL can be simultaneously visualized in a single plot, or a specific methQTL can be visualized:
 
-```{r plots,eval=TRUE, include=TRUE}
+```{r plots,eval=FALSE, include=TRUE}
 result.table <- result.table[order(result.table$P.value,decreasing=F),]
 qtlPlotSNPCpGInteraction(imp.data,result.table$CpG[1],result.table$SNP[1])
 qtlDistanceScatterplot(meth.qtl.res)
@@ -242,7 +242,7 @@ qtlDistanceScatterplot(meth.qtl.res)
 
 The package provides a bunch of interpretation functions to characterize the detected methQTLs. This includes LOLA enrichment analysis[@LOLA] (```qtlLOLAEnrichment```), genomic annotation enrichment based on putative regulatory elements defined by the Ensembl Regulatory Build[@Zerbino2015] (```qtlAnnotationEnrichment```), enrichment analysis of different base substitutions in SNPs (```qtlBaseSubstitutionEnrichment```), or TFBS motif enrichment using [TFBSTools](http://bioconductor.org/packages/release/bioc/html/TFBSTools.html). Enrichment is compared for the methQTLs that are available in the provided ```methQTLResult``` (for a single input), or to the overlapping QTLs for a list of ```methQTLResult```. The background of the enrichment is defined as all the SNPs/CpGs that have been used as input to the methQTL calling.
 
-```{r interpretation, eval=TRUE, include=TRUE}
+```{r interpretation, eval=FALSE, include=TRUE}
 res <- qtlBaseSubstitutionEnrichment(meth.qtl.res)
 qtlPlotBaseSubstitution(meth.qtl.res,merge=TRUE)
 ```
