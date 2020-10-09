@@ -37,12 +37,11 @@ The package relies on some dependencies that are exclusively available from Bioc
 
 
 ```r
-#qtlSetOption(plink.path="/TL/deep-share/archive00/software/packages/plink/plink")
-qtlSetOption(plink.path="~/home_nfs/work/mscherer/projects/methQTL/package/software/plink")
+qtlSetOption(plink.path="path_to_plink")
 ```
 
 ```
-## Error in qtlSetOption(plink.path = "~/home_nfs/work/mscherer/projects/methQTL/package/software/plink"): could not find function "qtlSetOption"
+## Error in qtlSetOption(plink.path = "path_to_plink"): could not find function "qtlSetOption"
 ```
 
 Additionally, depending on the type of the analysis, more external software tools are required. More specifically, if you want to perform imputation *bgzip* and *tabix* from the [*htslib*](http://www.htslib.org/download/) package are needed, as well as [*vcftools*](http://vcftools.sourceforge.net/downloads.html) for sorting VCF files. Lastly, if methQTL calling is to be performed through [*fastQTL*](http://fastqtl.sourceforge.net/), the software tool needs to be installed and the location of the executable specified to *MAGAR*.
@@ -137,11 +136,11 @@ anno.sheet <-  system.file("extdata/sample_annotation.tsv",package="methQTL.data
 qtlSetOption(hdf5dump=TRUE,
 	meth.data.type="data.files",
 	geno.data.type="idat")
-options(fftempdir="/DEEP_fhgfs/projects/mscherer/deep/tmp/")
+options(fftempdir="tmp/")
 imp.data <- doImport(data.location = c(idat.dir=meth.mat,geno.dir=idat.geno),
                       s.anno = anno.sheet,
                       s.id.col = "geo_accession",
-		      out.folder = "/DEEP_fhgfs/projects/mscherer/data/450K/methQTLDo2016Tcells/test_package/",
+		      out.folder = "out_dir",
                       tab.sep = "\t",
 		      idat.platform="humanomni258v1p1b")
 ```
@@ -150,13 +149,13 @@ For imputed data, no further processing is performed on the genotyping data and 
 
 
 ```r
-idat.dir <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/"
-geno.dir <- "/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO_IMPUTED/"
-anno.sheet <- "/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv"
+idat.dir <- "idat_dir"
+geno.dir <- "geno_dir"
+anno.sheet <- "sample_annotation.tsv"
 qtlSetOption(hdf5dump=TRUE)
 imp.data <- doImport(data.location = c(idat.dir=idat.dir,geno.dir=geno.dir),
                       s.anno = anno.sheet,
-                      s.id.col = "ind_IPC",
+                      s.id.col = "ID",
                       tab.sep = "\t",
                       out.folder = getwd())
 ```

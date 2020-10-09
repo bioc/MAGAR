@@ -1,679 +1,87 @@
-<h1 id="methqtl-package">methQTL package</h1>
-<h2 id="michael-scherer">Michael Scherer</h2>
 <h1 id="introduction">Introduction</h1>
-<p>This vignette describes the <a href="https://github.com/MPIIComputationalEpigenetics/methQTL-package"><em>methQTL</em> R-package</a> available from GitHub. The package uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). The package provides mutliple flavors of linear modeling strategies to compute <em>methQTL</em> as statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block (tag-CpG) is used for methQTL calling.</p>
+<p>This vignette describes the package &quot;Methylation-Aware Genotype Association with R* (<a href="https://github.com/MPIIComputationalEpigenetics/MAGAR"><em>MAGAR</em></a>) available from GitHub. <em>MAGAR</em> uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). The package provides mutliple flavors of linear modeling strategies to compute <em>methQTL</em> as statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block (tag-CpG) is used in the methQTL calling.</p>
 <h1 id="installation">Installation</h1>
-<p>The package relies on some dependencies that are exclusively available from Bioconductor and not from CRAN, most notably <a href="https://rnbeads.org"><em>RnBeads</em></a>. After installing the dependencies, <em>methQTL</em> can be installed from GitHub, after installing the <em>devtools</em> package.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="cf">if</span>(<span class="op">!</span><span class="kw">requireNamespace</span>(<span class="st">&quot;devtools&quot;</span>)) <span class="kw">install.packages</span>(<span class="st">&quot;devtools&quot;</span>)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">source</span>(<span class="st">&quot;https://rnbeads.org/data/install.R&quot;</span>)</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="cf">if</span>(<span class="op">!</span><span class="kw">requireNamespace</span>(<span class="st">&quot;methQTL&quot;</span>)){</a>
-<a class="sourceLine" id="cb1-4" data-line-number="4">  devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;MPIIComputationalEpigenetics/methQTL-package&quot;</span>)</a>
-<a class="sourceLine" id="cb1-5" data-line-number="5">}  </a>
-<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="kw">suppressPackageStartupMessages</span>(<span class="kw">library</span>(methQTL))</a></code></pre></div>
+<p>The package relies on some dependencies that are exclusively available from Bioconductor and not from CRAN, most notably <a href="https://rnbeads.org"><em>RnBeads</em></a>. After installing the dependencies, <em>MAGAR</em> can be installed from GitHub, after installing the <em>devtools</em> package.</p>
+<h2 id="required-external-software-tools">Required external software tools</h2>
+<p><em>MAGAR</em> depends on a funtional installation of <em>PLINK</em> for handling genotyping data. Follow the installation instructions available <a href="https://www.cog-genomics.org/plink2/">here</a> and specify the path to the installation for the package:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">qtlSetOption</span>(<span class="dt">plink.path=</span><span class="st">&quot;path_to_plink&quot;</span>)</a></code></pre></div>
+<pre><code>## Error in qtlSetOption(plink.path = &quot;path_to_plink&quot;): could not find function &quot;qtlSetOption&quot;</code></pre>
+<p>Additionally, depending on the type of the analysis, more external software tools are required. More specifically, if you want to perform imputation <em>bgzip</em> and <em>tabix</em> from the <a href="http://www.htslib.org/download/"><em>htslib</em></a> package are needed, as well as <a href="http://vcftools.sourceforge.net/downloads.html"><em>vcftools</em></a> for sorting VCF files. Lastly, if methQTL calling is to be performed through <a href="http://fastqtl.sourceforge.net/"><em>fastQTL</em></a>, the software tool needs to be installed and the location of the executable specified to <em>MAGAR</em>.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">qtlSetOption</span>(</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">    <span class="dt">bgzip.path=</span><span class="st">&quot;path_to_bgzip&quot;</span>,</a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">    <span class="dt">tabix.path=</span><span class="st">&quot;path_to_tabix&quot;</span>,</a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">    <span class="dt">vctools.path=</span><span class="st">&quot;path_to_vcftools_folder&quot;</span>,</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">    <span class="dt">fast.qtl.path=</span><span class="st">&quot;path_to_fastQTL&quot;</span>,</a>
+<a class="sourceLine" id="cb3-6" data-line-number="6">)</a></code></pre></div>
 <h1 id="input-data">Input data</h1>
-<p>The <em>methQTL</em> package requires two types of data as input: DNA methylation data obtained using the Illumina Infinium BeadArrays and genotyping data obtained using genotyping microarrays or whole genome sequencing.</p>
+<p><em>MAGAR</em> uses two types of data as input: DNA methylation data obtained using the Illumina Infinium BeadArrays or bisulfite sequencing and genotyping data obtained using genotyping microarrays or whole genome sequencing.</p>
 <h2 id="dna-methylation-data-microarrays">DNA methylation data (microarrays)</h2>
-<p>The package utilizes the widely used <a href="http://rnbeads.org/"><em>RnBeads</em></a> software package for DNA methylation data import. It supports the various input options available in <em>RnBeads</em>, including a direct download from the Gene Expression Omnibus (GEO). For further options, we refer to the <a href="http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf">RnBeads vignette</a> and documentation. In addition to the raw methylation data, a sample annotation sheet specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="ex">SampleID</span>,age,sex,barcode</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="ex">Sample_1</span>,14,f,209054857842_R01C01</a>
-<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="ex">Sample_2</span>,42,f,209054857842_R02C01</a>
-<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="ex">Sample_3</span>,45,m,209054857842_R03C01</a></code></pre></div>
-<p>For further details on the import process, we refer to the <a href="http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf">RnBeads vignette</a>. Most importantly, analysis options need to be specified for the import and preprocessing modules of <em>RnBeads</em>. <em>methQTL</em> provides a default setting, which is available in <em>extdata/rnbeads_options.xml</em>. You can use this file as a template for your own setting and then specify it to the methQTL package:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">opts &lt;-<span class="st"> </span><span class="kw">rnb.xml2options</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata/rnbeads_options.xml&quot;</span>,<span class="dt">package=</span><span class="st">&quot;methQTL&quot;</span>))</a>
-<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="kw">rnb.options</span>(<span class="dt">identifiers.column=</span><span class="st">&quot;ind_IPC&quot;</span>)</a>
-<a class="sourceLine" id="cb3-3" data-line-number="3">xml.fi &lt;-<span class="st"> </span><span class="kw">file.path</span>(<span class="kw">getwd</span>(),<span class="st">&quot;rnbeads_options.xml&quot;</span>)</a>
-<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="kw">cat</span>(<span class="kw">rnb.options2xml</span>(),<span class="dt">file=</span>xml.fi)</a>
-<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="kw">qtl.setOption</span>(<span class="dt">rnbeads.options =</span> xml.fi)</a></code></pre></div>
-<p>To redefine the correlation blocks, we allow for including additional information such as genome-wide segmentation of the methylation landscape (see option <code>use.segmentation</code> and function <code>qtl.run.segmentation</code>), and also functional annotation according to the Ensembl regulatory build <span class="citation" data-cites="Zerbino2015">[@Zerbino2015]</span>.</p>
+<p><em>MAGAR</em> utilizes the widely used <a href="http://rnbeads.org/"><em>RnBeads</em></a> software package for DNA methylation data import. Thus, <em>MAGAR</em> supports the various input options available in <em>RnBeads</em>, including a direct download from the Gene Expression Omnibus (GEO), IDAT, and BED files. For further options, we refer to the <a href="http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf">RnBeads vignette</a> and documentation. In addition to the raw methylation data, a sample annotation sheet specifying the samples to be analyzed needs to be provided. The sheet contains a line for each sample and looks as follows:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="ex">SampleID</span>,age,sex,barcode</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="ex">Sample_1</span>,14,f,209054857842_R01C01</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="ex">Sample_2</span>,42,f,209054857842_R02C01</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="ex">Sample_3</span>,45,m,209054857842_R03C01</a></code></pre></div>
+<p>For further details on the import process, we refer to the <a href="http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf">RnBeads vignette</a>. Most importantly, analysis options need to be specified for the import and preprocessing modules of <em>RnBeads</em>. <em>MAGAR</em> provides a default setting, which is available in <em>extdata/rnbeads_options.xml</em>. You can use this file as a template for your own setting and then specify it to the package:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">opts &lt;-<span class="st"> </span><span class="kw">rnb.xml2options</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata/rnbeads_options.xml&quot;</span>,<span class="dt">package=</span><span class="st">&quot;methQTL&quot;</span>))</a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="kw">rnb.options</span>(<span class="dt">identifiers.column=</span><span class="st">&quot;geo_accession&quot;</span>,</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">    <span class="dt">import.idat.platform=</span><span class="st">&quot;probes450&quot;</span>)</a>
+<a class="sourceLine" id="cb5-4" data-line-number="4">xml.fi &lt;-<span class="st"> </span><span class="kw">file.path</span>(<span class="kw">getwd</span>(),<span class="st">&quot;rnbeads_options.xml&quot;</span>)</a>
+<a class="sourceLine" id="cb5-5" data-line-number="5"><span class="kw">cat</span>(<span class="kw">rnb.options2xml</span>(),<span class="dt">file=</span>xml.fi)</a>
+<a class="sourceLine" id="cb5-6" data-line-number="6"><span class="kw">qtlSetOption</span>(<span class="dt">rnbeads.options =</span> xml.fi)</a></code></pre></div>
+<p>To redefine the correlation blocks, we allow for including additional information such as genome-wide segmentation of the methylation landscape (see option <code>use.segmentation</code> and function <code>qtlRunSegmentation</code>), and also functional annotation according to the Ensembl regulatory build <span class="citation" data-cites="Zerbino2015">[@Zerbino2015]</span>.</p>
 <h2 id="genotyping-data">Genotyping data</h2>
 <h3 id="plink-files">PLINK files</h3>
-<p>The package supports data that has already been processed by <a href="http://zzz.bwh.harvard.edu/plink/"><em>PLINK</em></a> and that is available either in the form of binary <em>.bed</em>, <em>.bim</em> and <em>.fam</em> files, as <em>.ped</em> and <em>.map</em>, as variant calling files (<em>.vcf</em>), or as imputed files in the dosage format (<em>.dos</em>). For further processing, we use the command line tool <em>PLINK</em>, which comes with this package. However, this installation is only valid for Linux systems. For Windows and MacOS users, please install the <em>PLINK</em> tool from <a href="https://www.cog-genomics.org/plink/1.9/">here</a> and specify it using the option <code>plink.path</code>. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.</p>
+<p><em>MAGAR</em> supports data that has already been processed by <a href="http://zzz.bwh.harvard.edu/plink/"><em>PLINK</em></a> and that is available either in the form of binary <em>.bed</em>, <em>.bim</em> and <em>.fam</em> files, as <em>.ped</em> and <em>.map</em>, as variant calling files (<em>.vcf</em>), or as imputed files in the dosage format (<em>.dos</em>). For further processing, we use the command line tool <em>PLINK</em>, which is shipped together with <em>MAGAR</em>. However, this installation is only valid for Linux systems. For Windows and MacOS users, please install the <em>PLINK</em> tool from <a href="https://www.cog-genomics.org/plink/1.9/">here</a> and specify it using the option <code>plink.path</code>. The sample identifier specified earlier also needs to match the sample IDs of the genotype calls.</p>
 <h3 id="idat-files">IDAT files</h3>
-<p>The package also supports raw IDAT files and uses the <a href="https://www.bioconductor.org/packages/release/bioc/html/crlmm.html"><em>CRLMM</em></a> R-package, together with PLINK to perform genotype calling and data import. The package requires a single sample annotation sheet in the format described in the <a href="DNA%20methylation%20data%20(microarray)">DNA methylation data</a> section. In addition to the column names specified above, a column named <em>GenoSentrixPosition</em> has to be added, which specifies the IDAT file IDs.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="ex">SampleID</span>,age,sex,barcode,GenoSentrixPosition</a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="ex">Sample_1</span>,14,f,209054857842_R01C01,9701756058_R05C01</a>
-<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="ex">Sample_2</span>,42,f,209054857842_R02C01,9701756058_R07C01</a>
-<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="ex">Sample_3</span>,45,m,209054857842_R03C01,9742011016_R04C01</a></code></pre></div>
+<p><em>MAGAR</em> also supports raw IDAT files and uses the <a href="https://www.bioconductor.org/packages/release/bioc/html/crlmm.html"><em>CRLMM</em></a> R-package, together with PLINK to perform genotype calling and data import. The package requires a single sample annotation sheet in the format described in the <a href="DNA%20methylation%20data%20(microarray)">DNA methylation data</a> section. In addition to the column names specified above, a column named <em>GenoSentrixPosition</em> has to be added, which specifies the IDAT file IDs.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="ex">SampleID</span>,age,sex,barcode,GenoSentrixPosition</a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="ex">Sample_1</span>,14,f,209054857842_R01C01,9701756058_R05C01</a>
+<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="ex">Sample_2</span>,42,f,209054857842_R02C01,9701756058_R07C01</a>
+<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="ex">Sample_3</span>,45,m,209054857842_R03C01,9742011016_R04C01</a></code></pre></div>
 <h3 id="imputation">Imputation</h3>
-<p>Illumina SNP BeadArray data is typically imputed before further analysis, and the package allows for imputation through the <a href="https://imputationserver.sph.umich.edu/index.html#!">Michigan Imputation Server</a>. In order to be able to perform computation on the server, an account is required. After the account is created, one has to request an API token in the user settings and specify it to the package using the option <code>imputation.user.token</code>. During the imputation process, the package will stall for a while and wait for the job to finish. After the job is done, the package will prompt for entering the password send via e-mail to the user account. The imputation process has to be split according to chromosomes, which is why multiple e-mails will be send to the account, and the imputation process can take up to several days. However, after imputation, the imputed data will be available as PLINK files, such that the imputation has to be performed only once. For preprocessing the data for upload to the imputation server, the package requires the <a href="http://www.htslib.org/doc/bgzip.html">bgzip</a> and <a href="http://www.htslib.org/doc/tabix.html">tabix</a> tools from the <a href="http://www.htslib.org/">htslib</a> package. Also see further options to configure the imputation jobs (see the Michigan Imputation Server <a href="https://imputationserver.readthedocs.io/en/latest/">documentation</a> for further information):</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw">qtl.setOption</span>(</a>
-<a class="sourceLine" id="cb5-2" data-line-number="2">  <span class="dt">impute.geno.data=</span><span class="ot">TRUE</span>,</a>
-<a class="sourceLine" id="cb5-3" data-line-number="3">  <span class="dt">imputation.reference.panel=</span><span class="st">&quot;apps@hrc-r1.1&quot;</span>,</a>
-<a class="sourceLine" id="cb5-4" data-line-number="4">  <span class="dt">imputation.phasing.method=</span><span class="st">&quot;shapeit&quot;</span>,</a>
-<a class="sourceLine" id="cb5-5" data-line-number="5">  <span class="dt">imputation.population=</span><span class="st">&quot;eur&quot;</span></a>
-<a class="sourceLine" id="cb5-6" data-line-number="6">)</a></code></pre></div>
+<p>Since Illumina SNP BeadArray data is typically imputed before further analysis, the package integrates a imputation functionality through the <a href="https://imputationserver.sph.umich.edu/index.html#!">Michigan Imputation Server</a>. Using the option setting described below, the package will automatically submit imputation jobs to the server and process the resulting files. In order to be able to perform computation on the server, an account is required. After the account is created, one has to request an API token in the user settings and specify it to <em>MAGAR</em> using the option <code>imputation.user.token</code>. During the imputation process, the package will stall for a while and wait for the job to finish. After the job is completed, the package will prompt for entering the password send via e-mail to the user account. The imputation process has to be split according to chromosomes, which is why multiple e-mails will be send to the account, and the imputation process can take up to several days. However, after imputation, the imputed data will be available as PLINK files, such that the imputation has to be performed only once. For preprocessing the data for upload to the imputation server, the package requires the <a href="http://www.htslib.org/doc/bgzip.html">bgzip</a> and <a href="http://www.htslib.org/doc/tabix.html">tabix</a> tools from the <a href="http://www.htslib.org/">htslib</a> package. Also see further options to configure the imputation jobs at the Michigan Imputation Server <a href="https://imputationserver.readthedocs.io/en/latest/">documentation</a>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="kw">qtlSetOption</span>(</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">  <span class="dt">impute.geno.data=</span><span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb7-3" data-line-number="3">  <span class="dt">imputation.reference.panel=</span><span class="st">&quot;apps@hrc-r1.1&quot;</span>,</a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">  <span class="dt">imputation.phasing.method=</span><span class="st">&quot;shapeit&quot;</span>,</a>
+<a class="sourceLine" id="cb7-5" data-line-number="5">  <span class="dt">imputation.population=</span><span class="st">&quot;eur&quot;</span></a>
+<a class="sourceLine" id="cb7-6" data-line-number="6">)</a></code></pre></div>
 <h2 id="perform-data-import">Perform data import</h2>
-<p>The <code>do.import</code> function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. In this vignette, we will describe the import of DNA methylation data in <em>IDAT</em> format and genotyping data as <em>PLINK</em> files. First, you’ll have to specify the paths to the corresponding <em>IDAT</em> and <em>plink</em> files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory (<code>hdf5dump</code>).</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">idat.dir &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/&quot;</span></a>
-<a class="sourceLine" id="cb6-2" data-line-number="2">plink.dir &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO/&quot;</span></a>
-<a class="sourceLine" id="cb6-3" data-line-number="3">anno.sheet &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv&quot;</span></a>
-<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="kw">qtl.setOption</span>(<span class="dt">hdf5dump=</span><span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb6-5" data-line-number="5"><span class="kw">setHDF5DumpDir</span>(<span class="st">&quot;/DEEP_fhgfs/projects/mscherer/deep/tmp/&quot;</span>)</a>
-<a class="sourceLine" id="cb6-6" data-line-number="6">imp.data &lt;-<span class="st"> </span><span class="kw">do.import</span>(<span class="dt">data.location =</span> <span class="kw">c</span>(<span class="dt">idat.dir=</span>idat.dir,<span class="dt">geno.dir=</span>plink.dir),</a>
-<a class="sourceLine" id="cb6-7" data-line-number="7">                      <span class="dt">s.anno =</span> anno.sheet,</a>
-<a class="sourceLine" id="cb6-8" data-line-number="8">                      <span class="dt">s.id.col =</span> <span class="st">&quot;ind_IPC&quot;</span>,</a>
-<a class="sourceLine" id="cb6-9" data-line-number="9">                      <span class="dt">tab.sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>)</a></code></pre></div>
-<pre><code>## 2020-06-24 12:36:27     1.3  STATUS STARTED Import methQTL data
-## 2020-06-24 12:36:27     1.3  STATUS     STARTED Processing genotyping data
-## 2020-06-24 12:36:36     1.7    INFO         Loading system default for option &#39;plink.path&#39;
-## 2020-06-24 12:36:47     2.2  STATUS         STARTED Compute genotype PCA
-## 2020-06-24 12:36:48     2.2  STATUS         COMPLETED Compute genotype PCA
-## 2020-06-24 12:36:49     2.2  STATUS     COMPLETED Processing genotyping data
-## 2020-06-24 12:36:49     2.2  STATUS     STARTED Processing DNA methylation data
-## 2020-06-24 12:36:53     2.2  STATUS         STARTED Loading Data from IDAT Files
-## 2020-06-24 12:36:53     2.2    INFO             Added column barcode to the provided sample annotation table
-## 2020-06-24 12:36:54     2.2    INFO             Detected platform: MethylationEPIC
-## 2020-06-24 12:37:17     2.4  STATUS         COMPLETED Loading Data from IDAT Files
-## 2020-06-24 12:38:39     2.5  STATUS         STARTED Preprocessing
-## 2020-06-24 12:38:39     2.5    INFO             Number of cores: 1
-## 2020-06-24 12:38:39     2.5  STATUS             STARTED Filtering Procedures I
-## 2020-06-24 12:38:41     2.5  STATUS                 STARTED Removal of SNP-enriched Sites
-## 2020-06-24 12:38:41     2.5  STATUS                     Removed 139721 sites using SNP criterion &quot;any&quot;
-## 2020-06-24 12:38:41     2.5  STATUS                     Saved removed sites to /local/tmp/RtmpbsG9W8/rnbeads_preprocessing/preprocessing_data/removed_sites_snp.csv
-## 2020-06-24 12:38:41     2.5  STATUS                     Added a corresponding section to the report
-## 2020-06-24 12:38:41     2.5  STATUS                 COMPLETED Removal of SNP-enriched Sites
-## 2020-06-24 12:38:41     2.5  STATUS                 STARTED Removal of Cross-reactive Probes
-## 2020-06-24 12:38:41     2.5  STATUS                     Removed 34264 sites
-## 2020-06-24 12:38:42     2.5  STATUS                     Saved removed sites to /local/tmp/RtmpbsG9W8/rnbeads_preprocessing/preprocessing_data/removed_sites_cross_reactive.csv
-## 2020-06-24 12:38:42     2.5  STATUS                     Added a corresponding section to the report
-## 2020-06-24 12:38:42     2.5  STATUS                 COMPLETED Removal of Cross-reactive Probes
-## 2020-06-24 12:38:42     2.5    INFO                 Working with a p-value threshold of 0.05
-## 2020-06-24 12:38:44     2.6  STATUS                 STARTED Greedycut
-## 2020-06-24 12:39:05     2.8  STATUS                     Calculated a total of 1055 iterations
-## 2020-06-24 12:39:05     2.8    INFO                     Optimal number of iterations is 1055
-## 2020-06-24 12:39:09     2.8  STATUS                     Created ROC plot
-## 2020-06-24 12:39:12     2.8  STATUS                     Created line plots for matrix dimensions and other statistics
-## 2020-06-24 12:39:12     2.8  STATUS                     Saved removed sites to /local/tmp/RtmpbsG9W8/rnbeads_preprocessing/preprocessing_data/removed_sites_greedycut.csv
-## 2020-06-24 12:39:12     2.8  STATUS                 COMPLETED Greedycut
-## 2020-06-24 12:39:12     2.8  STATUS                 Retained 8 samples and 691856 sites
-## 2020-06-24 12:39:12     2.8  STATUS             COMPLETED Filtering Procedures I
-## 2020-06-24 12:39:12     2.8  STATUS             STARTED Summary of Filtering Procedures I
-## 2020-06-24 12:39:13     2.7  STATUS                 Created summary table of removed sites, samples and unreliable measurements
-## 2020-06-24 12:39:14     2.7  STATUS                 Added summary table of removed and retained items
-## 2020-06-24 12:39:14     2.7    INFO                 Subsampling 866895 sites for plotting density distributions
-## 2020-06-24 12:39:15     2.8  STATUS                 Constructed sequences of removed and retained methylation values
-## 2020-06-24 12:39:28     2.8  STATUS                 Added comparison between removed and retained beta values
-## 2020-06-24 12:39:29     2.8  STATUS             COMPLETED Summary of Filtering Procedures I
-## 2020-06-24 12:39:29     2.8  STATUS             STARTED Manipulating the object
-## 2020-06-24 12:40:29     2.8  STATUS                 Removed 175039 sites (probes)
-## 2020-06-24 12:40:29     2.8    INFO                 Retained 691856 sites and 8 samples
-## 2020-06-24 12:40:29     2.8  STATUS             COMPLETED Manipulating the object
-## 2020-06-24 12:40:29     2.8  STATUS             STARTED Normalization Procedure
-## 2020-06-24 12:41:09     3.6  STATUS                 Performed normalization with method wm.dasen
-## 2020-06-24 12:42:04     3.3  STATUS                 Performed normalization with method &quot;wm.dasen&quot;
-## 2020-06-24 12:42:22     3.6  STATUS                 Added 2D histogram of observed beta values and shifts
-## 2020-06-24 12:42:22     3.5  STATUS                 Added normalization section
-## 2020-06-24 12:42:22     3.5  STATUS             COMPLETED Normalization Procedure
-## 2020-06-24 12:42:22     3.5  STATUS             STARTED Filtering Procedures II
-## 2020-06-24 12:42:24     3.5  STATUS                 STARTED Probe Context Removal
-## 2020-06-24 12:42:24     3.5  STATUS                     Removed 1196 probe(s) having not acceptable context
-## 2020-06-24 12:42:24     3.5  STATUS                     Saved removed sites to /local/tmp/RtmpbsG9W8/rnbeads_preprocessing/preprocessing_data/removed_sites_context.csv
-## 2020-06-24 12:42:24     3.5  STATUS                     Added a corresponding section to the report
-## 2020-06-24 12:42:24     3.5  STATUS                 COMPLETED Probe Context Removal
-## 2020-06-24 12:42:24     3.5  STATUS                 STARTED Removal of Sites on Sex Chromosomes
-## 2020-06-24 12:42:24     3.5  STATUS                     Removed 16598 site(s) on sex chromosomes
-## 2020-06-24 12:42:24     3.5  STATUS                     Saved removed sites to /local/tmp/RtmpbsG9W8/rnbeads_preprocessing/preprocessing_data/removed_sites_sex.csv
-## 2020-06-24 12:42:24     3.5  STATUS                     Added a corresponding section to the report
-## 2020-06-24 12:42:24     3.5  STATUS                 COMPLETED Removal of Sites on Sex Chromosomes
-## 2020-06-24 12:42:24     3.5  STATUS                 STARTED Missing Value Removal
-## 2020-06-24 12:42:24     3.5  STATUS                     Using a sample quantile threshold of 0
-## 2020-06-24 12:42:24     3.5  STATUS                     Removed 44 site(s) with too many missing values
-## 2020-06-24 12:42:25     3.5  STATUS                     Saved removed sites to /local/tmp/RtmpbsG9W8/rnbeads_preprocessing/preprocessing_data/removed_sites_na.csv
-## 2020-06-24 12:42:30     3.3  STATUS                     Added a corresponding section to the report
-## 2020-06-24 12:42:30     3.3  STATUS                 COMPLETED Missing Value Removal
-## 2020-06-24 12:42:30     3.3  STATUS                 Retained 8 samples and 674018 sites
-## 2020-06-24 12:42:30     3.3  STATUS             COMPLETED Filtering Procedures II
-## 2020-06-24 12:42:30     3.3  STATUS             STARTED Summary of Filtering Procedures II
-## 2020-06-24 12:42:30     3.3  STATUS                 Created summary table of removed sites, samples and unreliable measurements
-## 2020-06-24 12:42:31     3.3  STATUS                 Added summary table of removed and retained items
-## 2020-06-24 12:42:31     3.3    INFO                 Subsampling 691856 sites for plotting density distributions
-## 2020-06-24 12:42:32     3.3  STATUS                 Constructed sequences of removed and retained methylation values
-## 2020-06-24 12:42:39     3.3  STATUS                 Added comparison between removed and retained beta values
-## 2020-06-24 12:42:39     3.3  STATUS             COMPLETED Summary of Filtering Procedures II
-## 2020-06-24 12:42:39     3.3  STATUS             STARTED Manipulating the object
-## 2020-06-24 12:43:35     3.1  STATUS                 Removed 17838 sites (probes)
-## 2020-06-24 12:43:35     3.1    INFO                 Retained 674018 sites and 8 samples
-## 2020-06-24 12:43:35     3.1  STATUS             COMPLETED Manipulating the object
-## 2020-06-24 12:43:35     3.1    INFO             No missing values present, imputation skipped
-## 2020-06-24 12:43:36     3.1  STATUS         COMPLETED Preprocessing
-## 2020-06-24 12:44:06     3.1  STATUS         STARTED Removing 870 CpGs overlapping with SNPs
-## 2020-06-24 12:45:02     3.1  STATUS         COMPLETED Removing 870 CpGs overlapping with SNPs
-## 2020-06-24 12:45:06     3.1  STATUS     COMPLETED Processing DNA methylation data
-## 2020-06-24 12:45:06     3.1  STATUS COMPLETED Import methQTL data</code></pre>
+<p>The <code>doImport</code> function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. In this vignette, we will describe the import of DNA methylation data in <em>IDAT</em> format and genotyping data as <em>PLINK</em> files. First, you’ll have to specify the paths to the corresponding <em>IDAT</em> and <em>plink</em> files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory (<code>hdf5dump</code>).</p>
+<p>Please note that we provide an accompanying R-package (<a href="https://github.com/MPIIComputationalEpigenetics/methQTL.data">methQTL.data</a>) comprising additional information including microarray annotations and test data sets for this vignette. Furthermore, we provide a patched version of CRLMM that supports the newer Illumina genotyping microarrays (Illumina OmniExome and Illumina OmniExpress) from <a href="https://github.com/MPIIComputationalEpigenetics/crlmm">GitHub</a>.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="cf">if</span>(<span class="op">!</span><span class="kw">requireNamespace</span>(<span class="st">&quot;methQTL.data&quot;</span>)){</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">  devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;MPIIComputationalEpigenetics/methQTL-package.data&quot;</span>)</a>
+<a class="sourceLine" id="cb8-3" data-line-number="3">}</a>
+<a class="sourceLine" id="cb8-4" data-line-number="4"><span class="kw">library</span>(methQTL.data)</a>
+<a class="sourceLine" id="cb8-5" data-line-number="5">idat.geno &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>,<span class="dt">package=</span><span class="st">&quot;methQTL.data&quot;</span>)</a>
+<a class="sourceLine" id="cb8-6" data-line-number="6">meth.mat &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;extdata/meth_matrix.tsv.gz&quot;</span>,<span class="dt">package=</span><span class="st">&quot;methQTL.data&quot;</span>)</a>
+<a class="sourceLine" id="cb8-7" data-line-number="7">anno.sheet &lt;-<span class="st">  </span><span class="kw">system.file</span>(<span class="st">&quot;extdata/sample_annotation.tsv&quot;</span>,<span class="dt">package=</span><span class="st">&quot;methQTL.data&quot;</span>)</a>
+<a class="sourceLine" id="cb8-8" data-line-number="8"><span class="kw">qtlSetOption</span>(<span class="dt">hdf5dump=</span><span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb8-9" data-line-number="9">    <span class="dt">meth.data.type=</span><span class="st">&quot;data.files&quot;</span>,</a>
+<a class="sourceLine" id="cb8-10" data-line-number="10">    <span class="dt">geno.data.type=</span><span class="st">&quot;idat&quot;</span>)</a>
+<a class="sourceLine" id="cb8-11" data-line-number="11"><span class="kw">options</span>(<span class="dt">fftempdir=</span><span class="st">&quot;tmp/&quot;</span>)</a>
+<a class="sourceLine" id="cb8-12" data-line-number="12">imp.data &lt;-<span class="st"> </span><span class="kw">doImport</span>(<span class="dt">data.location =</span> <span class="kw">c</span>(<span class="dt">idat.dir=</span>meth.mat,<span class="dt">geno.dir=</span>idat.geno),</a>
+<a class="sourceLine" id="cb8-13" data-line-number="13">                      <span class="dt">s.anno =</span> anno.sheet,</a>
+<a class="sourceLine" id="cb8-14" data-line-number="14">                      <span class="dt">s.id.col =</span> <span class="st">&quot;geo_accession&quot;</span>,</a>
+<a class="sourceLine" id="cb8-15" data-line-number="15">              <span class="dt">out.folder =</span> <span class="st">&quot;out_dir&quot;</span>,</a>
+<a class="sourceLine" id="cb8-16" data-line-number="16">                      <span class="dt">tab.sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>,</a>
+<a class="sourceLine" id="cb8-17" data-line-number="17">              <span class="dt">idat.platform=</span><span class="st">&quot;humanomni258v1p1b&quot;</span>)</a></code></pre></div>
 <p>For imputed data, no further processing is performed on the genotyping data and the dosage values are used as they are:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">idat.dir &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/idats/&quot;</span></a>
-<a class="sourceLine" id="cb8-2" data-line-number="2">geno.dir &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/450K/CEDAR/publication/139.165.108.18/srv/genmol/permanent/1be6993fe41c12a051c9244d67c91da2be49e5dd26a6cd79f442bc006971e2ef/CEDAR_GENO_IMPUTED/&quot;</span></a>
-<a class="sourceLine" id="cb8-3" data-line-number="3">anno.sheet &lt;-<span class="st"> &quot;/DEEP_fhgfs/projects/mscherer/data/EPIC/CEDAR/annotation/sample_annotation_IL_IPC_example.tsv&quot;</span></a>
-<a class="sourceLine" id="cb8-4" data-line-number="4"><span class="kw">qtl.setOption</span>(<span class="dt">hdf5dump=</span><span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb8-5" data-line-number="5">imp.data &lt;-<span class="st"> </span><span class="kw">do.import</span>(<span class="dt">data.location =</span> <span class="kw">c</span>(<span class="dt">idat.dir=</span>idat.dir,<span class="dt">geno.dir=</span>geno.dir),</a>
-<a class="sourceLine" id="cb8-6" data-line-number="6">                      <span class="dt">s.anno =</span> anno.sheet,</a>
-<a class="sourceLine" id="cb8-7" data-line-number="7">                      <span class="dt">s.id.col =</span> <span class="st">&quot;ind_IPC&quot;</span>,</a>
-<a class="sourceLine" id="cb8-8" data-line-number="8">                      <span class="dt">tab.sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>,</a>
-<a class="sourceLine" id="cb8-9" data-line-number="9">                      <span class="dt">out.folder =</span> <span class="kw">getwd</span>())</a></code></pre></div>
-<p>Please note that the <code>recode.allele.frequencies</code> option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies found. Alternatively, a path to a local version of dbSNP <span class="citation" data-cites="Sherry2001">[@Sherry2001]</span> can be provided through <code>db.snp.ref</code>, and reference/alternative allele information will be automatically parsed from the database. This is especially crucial, if imputation is to be performed, since the Michigan Imputation Server is sensitive to reference mismatches.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">idat.dir &lt;-<span class="st"> &quot;idat_dir&quot;</span></a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">geno.dir &lt;-<span class="st"> &quot;geno_dir&quot;</span></a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">anno.sheet &lt;-<span class="st"> &quot;sample_annotation.tsv&quot;</span></a>
+<a class="sourceLine" id="cb9-4" data-line-number="4"><span class="kw">qtlSetOption</span>(<span class="dt">hdf5dump=</span><span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb9-5" data-line-number="5">imp.data &lt;-<span class="st"> </span><span class="kw">doImport</span>(<span class="dt">data.location =</span> <span class="kw">c</span>(<span class="dt">idat.dir=</span>idat.dir,<span class="dt">geno.dir=</span>geno.dir),</a>
+<a class="sourceLine" id="cb9-6" data-line-number="6">                      <span class="dt">s.anno =</span> anno.sheet,</a>
+<a class="sourceLine" id="cb9-7" data-line-number="7">                      <span class="dt">s.id.col =</span> <span class="st">&quot;ID&quot;</span>,</a>
+<a class="sourceLine" id="cb9-8" data-line-number="8">                      <span class="dt">tab.sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>,</a>
+<a class="sourceLine" id="cb9-9" data-line-number="9">                      <span class="dt">out.folder =</span> <span class="kw">getwd</span>())</a></code></pre></div>
+<p>Please note that the <code>recode.allele.frequencies</code> option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies in the available samples. Alternatively, a path to a local version of dbSNP <span class="citation" data-cites="Sherry2001">[@Sherry2001]</span> can be provided through <code>db.snp.ref</code>, and reference/alternative allele information will be automatically parsed from the database. This is especially crucial, if imputation is to be performed, since the Michigan Imputation Server is sensitive to reference mismatches.</p>
 <h1 id="methqtl-calling">methQTL calling</h1>
-<p>Although <em>methQTL</em> conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input <code>methQTLInput</code> object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter, or as global parameters using <code>?qtl.setOption</code>.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">meth.qtl.res &lt;-<span class="st"> </span><span class="kw">do.methQTL</span>(imp.data)</a></code></pre></div>
-<pre><code>## 2020-06-24 12:45:06     3.1    INFO Loading default option setting
-## 2020-06-24 12:45:08     3.1  STATUS STARTED Imputation procedure knn 
-## 2020-06-24 12:45:15     3.1  STATUS COMPLETED Imputation procedure knn 
-## 
-## 2020-06-24 12:45:18     3.1  STATUS STARTED Computing methQTLs
-## 2020-06-24 12:45:18     3.1  STATUS     STARTED Computing methQTL for chromosome chr1
-## 2020-06-24 12:45:18     3.1  STATUS         STARTED Compute correlation blocks
-## 2020-06-24 12:45:18     3.1    INFO             Split workload, since facing 66034 CpGs (Maximum is 40000 )
-## 2020-06-24 12:45:18     3.1  STATUS             STARTED Compute correlation blocks
-## 2020-06-24 12:45:18     3.1  STATUS                 STARTED Compute correlation matrix
-## 2020-06-24 12:45:52    19.3  STATUS                 COMPLETED Compute correlation matrix
-## 2020-06-24 12:56:50    13.4  STATUS                 STARTED Compute pairwise distances
-## 2020-06-24 12:57:15    13.5  STATUS                 COMPLETED Compute pairwise distances
-## 2020-06-24 12:58:05    10.4  STATUS                 STARTED Weight distances
-## 2020-06-24 13:03:57    27.3  STATUS                 COMPLETED Weight distances
-## 2020-06-24 13:03:58    18.5  STATUS                 STARTED Compute graph
-## 2020-06-24 13:04:51    34.7  STATUS                 COMPLETED Compute graph
-## 2020-06-24 13:04:51    34.7  STATUS                 STARTED Compute clustering
-## 2020-06-24 13:04:53    34.7  STATUS                 COMPLETED Compute clustering
-## 2020-06-24 13:04:53    34.7  STATUS             COMPLETED Compute correlation blocks
-## 2020-06-24 13:04:53    34.7  STATUS             STARTED Compute correlation blocks
-## 2020-06-24 13:04:53    34.7  STATUS                 STARTED Compute correlation matrix
-## 2020-06-24 13:05:24    51.0  STATUS                 COMPLETED Compute correlation matrix
-## 2020-06-24 13:16:16    38.4  STATUS                 STARTED Compute pairwise distances
-## 2020-06-24 13:16:39    20.8  STATUS                 COMPLETED Compute pairwise distances
-## 2020-06-24 13:17:24    10.4  STATUS                 STARTED Weight distances
-## 2020-06-24 13:23:36    37.2  STATUS                 COMPLETED Weight distances
-## 2020-06-24 13:23:38    19.0  STATUS                 STARTED Compute graph
-## 2020-06-24 13:24:28    35.3  STATUS                 COMPLETED Compute graph
-## 2020-06-24 13:24:28    35.3  STATUS                 STARTED Compute clustering
-## 2020-06-24 13:24:29    35.3  STATUS                 COMPLETED Compute clustering
-## 2020-06-24 13:24:29    35.3  STATUS             COMPLETED Compute correlation blocks
-## 2020-06-24 13:24:29    35.3  STATUS             STARTED Compute methQTL per correlation block
-## 2020-06-24 13:24:29    35.3  STATUS                 STARTED Setting up Multicore
-## 2020-06-24 13:24:29    35.3    INFO                     Using 1 cores
-## 2020-06-24 13:24:29    35.3  STATUS                 COMPLETED Setting up Multicore
-## 2020-06-24 13:24:30    35.3    INFO                 No SNP closer than 500000
-## 2020-06-24 14:06:58    10.9    INFO                 No SNP closer than 500000
-## 2020-06-24 14:06:58    10.9    INFO                 No SNP closer than 500000
-## 2020-06-24 14:06:59    10.9    INFO                 No SNP closer than 500000
-## 2020-06-24 14:06:59    10.9    INFO                 No SNP closer than 500000
-## 2020-06-24 14:06:59    10.9    INFO                 No SNP closer than 500000
-## 2020-06-24 14:07:00    10.9    INFO                 No SNP closer than 500000
-## 2020-06-24 14:07:00    10.9    INFO                 No SNP closer than 500000
-## 2020-06-24 14:07:00    10.9    INFO                 No SNP closer than 500000
-## 2020-06-24 14:07:01    10.9    INFO                 No SNP closer than 500000
-## 2020-06-24 14:07:01    10.9    INFO                 No SNP closer than 500000
-## 2020-06-24 14:07:01    10.9    INFO                 No SNP closer than 500000
-## 2020-06-24 14:45:29    10.9  STATUS             COMPLETED Compute methQTL per correlation block
-## 2020-06-24 14:45:29    10.9  STATUS         COMPLETED Compute correlation blocks
-## 2020-06-24 14:45:29    10.9  STATUS         STARTED Computing methQTL for chromosome chr2
-## 2020-06-24 14:45:29    10.9  STATUS             STARTED Compute correlation blocks
-## 2020-06-24 14:45:29    10.9    INFO                 Split workload, since facing 52088 CpGs (Maximum is 40000 )
-## 2020-06-24 14:45:29    10.9  STATUS                 STARTED Compute correlation blocks
-## 2020-06-24 14:45:29    10.9  STATUS                     STARTED Compute correlation matrix
-## 2020-06-24 14:45:47    21.0  STATUS                     COMPLETED Compute correlation matrix
-## 2020-06-24 14:52:30    21.0  STATUS                     STARTED Compute pairwise distances
-## 2020-06-24 14:52:44    10.9  STATUS                     COMPLETED Compute pairwise distances
-## 2020-06-24 14:53:15    10.9  STATUS                     STARTED Weight distances
-## 2020-06-24 14:56:58    17.7  STATUS                     COMPLETED Weight distances
-## 2020-06-24 14:57:00    15.9  STATUS                     STARTED Compute graph
-## 2020-06-24 14:57:30    36.2  STATUS                     COMPLETED Compute graph
-## 2020-06-24 14:57:30    36.2  STATUS                     STARTED Compute clustering
-## 2020-06-24 14:57:31    36.2  STATUS                     COMPLETED Compute clustering
-## 2020-06-24 14:57:31    36.2  STATUS                 COMPLETED Compute correlation blocks
-## 2020-06-24 14:57:31    36.2  STATUS                 STARTED Compute correlation blocks
-## 2020-06-24 14:57:31    36.2  STATUS                     STARTED Compute correlation matrix
-## 2020-06-24 14:57:49    41.2  STATUS                     COMPLETED Compute correlation matrix
-## 2020-06-24 15:04:35    18.5  STATUS                     STARTED Compute pairwise distances
-## 2020-06-24 15:04:50    14.9  STATUS                     COMPLETED Compute pairwise distances
-## 2020-06-24 15:05:20    10.8  STATUS                     STARTED Weight distances
-## 2020-06-24 15:08:56    17.7  STATUS                     COMPLETED Weight distances
-## 2020-06-24 15:08:57    15.9  STATUS                     STARTED Compute graph
-## 2020-06-24 15:09:27    36.1  STATUS                     COMPLETED Compute graph
-## 2020-06-24 15:09:27    36.1  STATUS                     STARTED Compute clustering
-## 2020-06-24 15:09:28    36.1  STATUS                     COMPLETED Compute clustering
-## 2020-06-24 15:09:28    36.1  STATUS                 COMPLETED Compute correlation blocks
-## 2020-06-24 15:09:29    36.1  STATUS                 STARTED Compute methQTL per correlation block
-## 2020-06-24 15:09:29    36.1  STATUS                     STARTED Setting up Multicore
-## 2020-06-24 15:09:29    36.1    INFO                         Using 1 cores
-## 2020-06-24 15:09:29    36.1  STATUS                     COMPLETED Setting up Multicore
-## 2020-06-24 16:28:32    10.8  STATUS                 COMPLETED Compute methQTL per correlation block
-## 2020-06-24 16:28:32    10.8  STATUS             COMPLETED Compute correlation blocks
-## 2020-06-24 16:28:32    10.8  STATUS             STARTED Computing methQTL for chromosome chr3
-## 2020-06-24 16:28:32    10.8  STATUS                 STARTED Compute correlation blocks
-## 2020-06-24 16:28:32    10.8  STATUS                     STARTED Compute correlation matrix
-## 2020-06-24 16:29:20    34.5  STATUS                     COMPLETED Compute correlation matrix
-## 2020-06-24 16:44:55    22.7  STATUS                     STARTED Compute pairwise distances
-## 2020-06-24 16:45:25    18.8  STATUS                     COMPLETED Compute pairwise distances
-## 2020-06-24 16:46:32    14.1  STATUS                     STARTED Weight distances
-## 2020-06-24 16:54:56    39.2  STATUS                     COMPLETED Weight distances
-## 2020-06-24 16:54:58    25.9  STATUS                     STARTED Compute graph
-## 2020-06-24 16:58:36    49.6  STATUS                     COMPLETED Compute graph
-## 2020-06-24 16:58:36    49.6  STATUS                     STARTED Compute clustering
-## 2020-06-24 16:58:37    49.6  STATUS                     COMPLETED Compute clustering
-## 2020-06-24 16:58:37    49.6  STATUS                 COMPLETED Compute correlation blocks
-## 2020-06-24 16:58:38    49.6  STATUS                 STARTED Compute methQTL per correlation block
-## 2020-06-24 16:58:38    49.6  STATUS                     STARTED Setting up Multicore
-## 2020-06-24 16:58:38    49.6    INFO                         Using 1 cores
-## 2020-06-24 16:58:38    49.6  STATUS                     COMPLETED Setting up Multicore
-## 2020-06-24 18:00:13    10.9  STATUS                 COMPLETED Compute methQTL per correlation block
-## 2020-06-24 18:00:13    10.9  STATUS             COMPLETED Computing methQTL for chromosome chr3
-## 2020-06-24 18:00:13    10.9  STATUS             STARTED Computing methQTL for chromosome chr4
-## 2020-06-24 18:00:13    10.9  STATUS                 STARTED Compute correlation blocks
-## 2020-06-24 18:00:13    10.9  STATUS                     STARTED Compute correlation matrix
-## 2020-06-24 18:00:38    23.4  STATUS                     COMPLETED Compute correlation matrix
-## 2020-06-24 18:08:52    10.8  STATUS                     STARTED Compute pairwise distances
-## 2020-06-24 18:09:10    17.9  STATUS                     COMPLETED Compute pairwise distances
-## 2020-06-24 18:09:44    10.8  STATUS                     STARTED Weight distances
-## 2020-06-24 18:14:09    24.8  STATUS                     COMPLETED Weight distances
-## 2020-06-24 18:14:11    17.1  STATUS                     STARTED Compute graph
-## 2020-06-24 18:14:45    44.2  STATUS                     COMPLETED Compute graph
-## 2020-06-24 18:14:45    44.2  STATUS                     STARTED Compute clustering
-## 2020-06-24 18:14:46    44.2  STATUS                     COMPLETED Compute clustering
-## 2020-06-24 18:14:46    44.2  STATUS                 COMPLETED Compute correlation blocks
-## 2020-06-24 18:14:47    44.2  STATUS                 STARTED Compute methQTL per correlation block
-## 2020-06-24 18:14:47    44.2  STATUS                     STARTED Setting up Multicore
-## 2020-06-24 18:14:47    44.2    INFO                         Using 1 cores
-## 2020-06-24 18:14:47    44.2  STATUS                     COMPLETED Setting up Multicore
-## 2020-06-24 19:04:08    10.8  STATUS                 COMPLETED Compute methQTL per correlation block
-## 2020-06-24 19:04:08    10.8  STATUS             COMPLETED Computing methQTL for chromosome chr4
-## 2020-06-24 19:04:08    10.8  STATUS             STARTED Computing methQTL for chromosome chr5
-## 2020-06-24 19:04:08    10.8  STATUS                 STARTED Compute correlation blocks
-## 2020-06-24 19:04:08    10.8  STATUS                     STARTED Compute correlation matrix
-## 2020-06-24 19:04:43    30.0  STATUS                     COMPLETED Compute correlation matrix
-## 2020-06-24 19:17:14    30.0  STATUS                     STARTED Compute pairwise distances
-## 2020-06-24 19:17:40    18.0  STATUS                     COMPLETED Compute pairwise distances
-## 2020-06-24 19:18:34    11.8  STATUS                     STARTED Weight distances
-## 2020-06-24 19:25:22    28.5  STATUS                     COMPLETED Weight distances
-## 2020-06-24 19:25:23    21.4  STATUS                     STARTED Compute graph
-## 2020-06-24 19:26:24    40.6  STATUS                     COMPLETED Compute graph
-## 2020-06-24 19:26:24    40.6  STATUS                     STARTED Compute clustering
-## 2020-06-24 19:26:25    40.6  STATUS                     COMPLETED Compute clustering
-## 2020-06-24 19:26:25    40.6  STATUS                 COMPLETED Compute correlation blocks
-## 2020-06-24 19:26:26    40.6  STATUS                 STARTED Compute methQTL per correlation block
-## 2020-06-24 19:26:26    40.6  STATUS                     STARTED Setting up Multicore
-## 2020-06-24 19:26:26    40.6    INFO                         Using 1 cores
-## 2020-06-24 19:26:26    40.6  STATUS                     COMPLETED Setting up Multicore
-## 2020-06-24 19:46:13    10.9    INFO                     No SNP closer than 500000
-## 2020-06-24 19:46:13    10.9    INFO                     No SNP closer than 500000
-## 2020-06-24 20:20:40    10.9  STATUS                 COMPLETED Compute methQTL per correlation block
-## 2020-06-24 20:20:40    10.9  STATUS             COMPLETED Computing methQTL for chromosome chr5
-## 2020-06-24 20:20:40    10.9  STATUS             STARTED Computing methQTL for chromosome chr6
-## 2020-06-24 20:20:40    10.9  STATUS                 STARTED Compute correlation blocks
-## 2020-06-24 20:20:40    10.9    INFO                     Split workload, since facing 41991 CpGs (Maximum is 40000 )
-## 2020-06-24 20:20:40    10.9  STATUS                     STARTED Compute correlation blocks
-## 2020-06-24 20:20:40    10.9  STATUS                         STARTED Compute correlation matrix
-## 2020-06-24 20:20:51    14.2  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-24 20:24:54    22.9  STATUS                         STARTED Compute pairwise distances
-## 2020-06-24 20:25:03    10.9  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-24 20:25:23    10.8  STATUS                         STARTED Weight distances
-## 2020-06-24 20:27:39    12.4  STATUS                         COMPLETED Weight distances
-## 2020-06-24 20:27:41    12.4  STATUS                         STARTED Compute graph
-## 2020-06-24 20:28:01    25.5  STATUS                         COMPLETED Compute graph
-## 2020-06-24 20:28:01    25.5  STATUS                         STARTED Compute clustering
-## 2020-06-24 20:28:03    25.5  STATUS                         COMPLETED Compute clustering
-## 2020-06-24 20:28:03    25.5  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-24 20:28:03    25.5  STATUS                     STARTED Compute correlation blocks
-## 2020-06-24 20:28:03    25.5  STATUS                         STARTED Compute correlation matrix
-## 2020-06-24 20:28:16    28.8  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-24 20:32:24    14.1  STATUS                         STARTED Compute pairwise distances
-## 2020-06-24 20:32:34    10.8  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-24 20:32:53    10.8  STATUS                         STARTED Weight distances
-## 2020-06-24 20:35:23    14.0  STATUS                         COMPLETED Weight distances
-## 2020-06-24 20:35:24    12.4  STATUS                         STARTED Compute graph
-## 2020-06-24 20:35:45    25.5  STATUS                         COMPLETED Compute graph
-## 2020-06-24 20:35:45    25.5  STATUS                         STARTED Compute clustering
-## 2020-06-24 20:35:46    25.5  STATUS                         COMPLETED Compute clustering
-## 2020-06-24 20:35:46    25.5  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-24 20:35:46    25.5  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-24 20:35:46    25.5  STATUS                         STARTED Setting up Multicore
-## 2020-06-24 20:35:46    25.5    INFO                             Using 1 cores
-## 2020-06-24 20:35:46    25.5  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-24 21:37:16    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-24 21:37:16    10.8  STATUS                 COMPLETED Compute correlation blocks
-## 2020-06-24 21:37:16    10.8  STATUS                 STARTED Computing methQTL for chromosome chr7
-## 2020-06-24 21:37:16    10.8  STATUS                     STARTED Compute correlation blocks
-## 2020-06-24 21:37:16    10.8  STATUS                         STARTED Compute correlation matrix
-## 2020-06-24 21:37:56    30.9  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-24 21:51:24    20.9  STATUS                         STARTED Compute pairwise distances
-## 2020-06-24 21:51:50    16.3  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-24 21:53:01    12.3  STATUS                         STARTED Weight distances
-## 2020-06-24 22:00:27    30.6  STATUS                         COMPLETED Weight distances
-## 2020-06-24 22:00:29    22.3  STATUS                         STARTED Compute graph
-## 2020-06-24 22:04:16    42.4  STATUS                         COMPLETED Compute graph
-## 2020-06-24 22:04:16    42.4  STATUS                         STARTED Compute clustering
-## 2020-06-24 22:04:18    42.4  STATUS                         COMPLETED Compute clustering
-## 2020-06-24 22:04:18    42.4  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-24 22:04:18    42.4  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-24 22:04:18    42.4  STATUS                         STARTED Setting up Multicore
-## 2020-06-24 22:04:18    42.4    INFO                             Using 1 cores
-## 2020-06-24 22:04:18    42.4  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-24 22:53:27    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-24 22:53:27    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr7
-## 2020-06-24 22:53:27    10.9  STATUS                 STARTED Computing methQTL for chromosome chr8
-## 2020-06-24 22:53:27    10.9  STATUS                     STARTED Compute correlation blocks
-## 2020-06-24 22:53:27    10.9  STATUS                         STARTED Compute correlation matrix
-## 2020-06-24 22:53:52    24.6  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-24 23:02:59    11.3  STATUS                         STARTED Compute pairwise distances
-## 2020-06-24 23:03:19    19.5  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-24 23:03:57    10.8  STATUS                         STARTED Weight distances
-## 2020-06-24 23:10:09    23.3  STATUS                         COMPLETED Weight distances
-## 2020-06-24 23:10:10    17.6  STATUS                         STARTED Compute graph
-## 2020-06-24 23:10:56    31.4  STATUS                         COMPLETED Compute graph
-## 2020-06-24 23:10:56    31.4  STATUS                         STARTED Compute clustering
-## 2020-06-24 23:10:57    31.4  STATUS                         COMPLETED Compute clustering
-## 2020-06-24 23:10:57    31.4  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-24 23:10:58    31.4  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-24 23:10:58    31.4  STATUS                         STARTED Setting up Multicore
-## 2020-06-24 23:10:58    31.4    INFO                             Using 1 cores
-## 2020-06-24 23:10:58    31.4  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-24 23:58:15    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-24 23:58:15    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr8
-## 2020-06-24 23:58:15    10.8  STATUS                 STARTED Computing methQTL for chromosome chr9
-## 2020-06-24 23:58:15    10.8  STATUS                     STARTED Compute correlation blocks
-## 2020-06-24 23:58:15    10.8  STATUS                         STARTED Compute correlation matrix
-## 2020-06-24 23:58:27    14.1  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 00:02:35    10.9  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 00:02:45    10.8  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 00:03:04    10.8  STATUS                         STARTED Weight distances
-## 2020-06-25 00:05:21    16.3  STATUS                         COMPLETED Weight distances
-## 2020-06-25 00:05:22    14.0  STATUS                         STARTED Compute graph
-## 2020-06-25 00:05:42    27.0  STATUS                         COMPLETED Compute graph
-## 2020-06-25 00:05:42    27.0  STATUS                         STARTED Compute clustering
-## 2020-06-25 00:05:42    27.0  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 00:05:42    27.0  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 00:05:43    27.0  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 00:05:43    27.0  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 00:05:43    27.0    INFO                             Using 1 cores
-## 2020-06-25 00:05:43    27.0  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 00:17:26    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:26    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:27    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:27    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:27    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:28    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:29    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:30    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:30    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:30    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:31    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:31    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:31    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:32    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:32    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:32    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:36    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:37    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:17:37    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 00:45:06    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 00:45:06    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr9
-## 2020-06-25 00:45:06    10.8  STATUS                 STARTED Computing methQTL for chromosome chr10
-## 2020-06-25 00:45:06    10.8  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 00:45:06    10.8  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 00:45:35    27.5  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 00:57:42    19.2  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 00:58:05    14.2  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 00:58:54    10.9  STATUS                         STARTED Weight distances
-## 2020-06-25 01:05:00    30.6  STATUS                         COMPLETED Weight distances
-## 2020-06-25 01:05:02    19.2  STATUS                         STARTED Compute graph
-## 2020-06-25 01:06:12    35.9  STATUS                         COMPLETED Compute graph
-## 2020-06-25 01:06:12    35.9  STATUS                         STARTED Compute clustering
-## 2020-06-25 01:06:13    35.9  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 01:06:13    35.9  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 01:06:13    35.9  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 01:06:13    35.9  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 01:06:13    35.9    INFO                             Using 1 cores
-## 2020-06-25 01:06:13    35.9  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 01:55:42    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 01:55:42    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr10
-## 2020-06-25 01:55:42    10.9  STATUS                 STARTED Computing methQTL for chromosome chr11
-## 2020-06-25 01:55:42    10.9  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 01:55:42    10.9  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 01:56:27    34.3  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 02:11:46    34.5  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 02:12:17    21.7  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 02:13:21    14.0  STATUS                         STARTED Weight distances
-## 2020-06-25 02:21:43    42.8  STATUS                         COMPLETED Weight distances
-## 2020-06-25 02:21:45    25.7  STATUS                         STARTED Compute graph
-## 2020-06-25 02:28:53    49.1  STATUS                         COMPLETED Compute graph
-## 2020-06-25 02:28:53    49.1  STATUS                         STARTED Compute clustering
-## 2020-06-25 02:28:55    49.1  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 02:28:55    49.1  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 02:28:56    49.1  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 02:28:56    49.1  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 02:28:56    49.1    INFO                             Using 1 cores
-## 2020-06-25 02:28:56    49.1  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 03:15:44    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 03:15:44    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr11
-## 2020-06-25 03:15:44    10.9  STATUS                 STARTED Computing methQTL for chromosome chr12
-## 2020-06-25 03:15:44    10.9  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 03:15:44    10.9  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 03:16:18    30.4  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 03:29:17    14.9  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 03:29:45    26.7  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 03:30:37    12.1  STATUS                         STARTED Weight distances
-## 2020-06-25 03:37:35    30.0  STATUS                         COMPLETED Weight distances
-## 2020-06-25 03:37:37    21.8  STATUS                         STARTED Compute graph
-## 2020-06-25 03:38:39    41.3  STATUS                         COMPLETED Compute graph
-## 2020-06-25 03:38:39    41.3  STATUS                         STARTED Compute clustering
-## 2020-06-25 03:38:40    41.3  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 03:38:40    41.3  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 03:38:41    41.3  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 03:38:41    41.3  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 03:38:41    41.3    INFO                             Using 1 cores
-## 2020-06-25 03:38:41    41.3  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 04:26:03    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 04:26:03    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr12
-## 2020-06-25 04:26:03    10.9  STATUS                 STARTED Computing methQTL for chromosome chr13
-## 2020-06-25 04:26:03    10.9  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 04:26:03    10.9  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 04:26:11    12.9  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 04:28:44    15.6  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 04:28:51    10.9  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 04:29:05    10.9  STATUS                         STARTED Weight distances
-## 2020-06-25 04:30:29    14.5  STATUS                         COMPLETED Weight distances
-## 2020-06-25 04:30:31    12.1  STATUS                         STARTED Compute graph
-## 2020-06-25 04:30:39    19.2  STATUS                         COMPLETED Compute graph
-## 2020-06-25 04:30:39    19.2  STATUS                         STARTED Compute clustering
-## 2020-06-25 04:30:40    19.2  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 04:30:40    19.2  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 04:30:40    19.2  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 04:30:40    19.2  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 04:30:40    19.2    INFO                             Using 1 cores
-## 2020-06-25 04:30:40    19.2  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 05:02:03    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 05:02:03    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr13
-## 2020-06-25 05:02:03    10.9  STATUS                 STARTED Computing methQTL for chromosome chr14
-## 2020-06-25 05:02:03    10.9  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 05:02:03    10.9  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 05:02:19    19.2  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 05:07:37    19.2  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 05:07:50    10.9  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 05:08:17    10.9  STATUS                         STARTED Weight distances
-## 2020-06-25 05:11:16    15.6  STATUS                         COMPLETED Weight distances
-## 2020-06-25 05:11:18    15.0  STATUS                         STARTED Compute graph
-## 2020-06-25 05:11:42    31.6  STATUS                         COMPLETED Compute graph
-## 2020-06-25 05:11:42    31.6  STATUS                         STARTED Compute clustering
-## 2020-06-25 05:11:43    31.6  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 05:11:43    31.6  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 05:11:44    31.6  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 05:11:44    31.6  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 05:11:44    31.6    INFO                             Using 1 cores
-## 2020-06-25 05:11:44    31.6  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 05:41:57    10.9    INFO                         No SNP closer than 500000
-## 2020-06-25 05:42:11    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 05:42:11    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr14
-## 2020-06-25 05:42:11    10.9  STATUS                 STARTED Computing methQTL for chromosome chr15
-## 2020-06-25 05:42:11    10.9  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 05:42:11    10.9  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 05:42:24    14.7  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 05:47:10    10.9  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 05:47:21    11.9  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 05:47:43    10.8  STATUS                         STARTED Weight distances
-## 2020-06-25 05:50:25    16.1  STATUS                         COMPLETED Weight distances
-## 2020-06-25 05:50:26    14.2  STATUS                         STARTED Compute graph
-## 2020-06-25 05:50:50    29.5  STATUS                         COMPLETED Compute graph
-## 2020-06-25 05:50:50    29.5  STATUS                         STARTED Compute clustering
-## 2020-06-25 05:50:50    29.5  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 05:50:50    29.5  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 05:50:51    29.5  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 05:50:51    29.5  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 05:50:51    29.5    INFO                             Using 1 cores
-## 2020-06-25 05:50:51    29.5  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 05:50:53    29.5    INFO                         No SNP closer than 500000
-## 2020-06-25 05:50:53    29.5    INFO                         No SNP closer than 500000
-## 2020-06-25 05:50:54    29.5    INFO                         No SNP closer than 500000
-## 2020-06-25 05:50:54    29.5    INFO                         No SNP closer than 500000
-## 2020-06-25 05:50:54    29.5    INFO                         No SNP closer than 500000
-## 2020-06-25 05:50:55    29.5    INFO                         No SNP closer than 500000
-## 2020-06-25 05:50:55    29.5    INFO                         No SNP closer than 500000
-## 2020-06-25 05:50:55    29.5    INFO                         No SNP closer than 500000
-## 2020-06-25 05:50:56    29.5    INFO                         No SNP closer than 500000
-## 2020-06-25 06:21:27    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 06:21:27    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr15
-## 2020-06-25 06:21:27    10.8  STATUS                 STARTED Computing methQTL for chromosome chr16
-## 2020-06-25 06:21:27    10.8  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 06:21:27    10.8  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 06:21:51    23.8  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 06:30:21    10.8  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 06:30:39    12.2  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 06:31:18    10.8  STATUS                         STARTED Weight distances
-## 2020-06-25 06:35:56    21.4  STATUS                         COMPLETED Weight distances
-## 2020-06-25 06:35:58    17.3  STATUS                         STARTED Compute graph
-## 2020-06-25 06:36:34    45.3  STATUS                         COMPLETED Compute graph
-## 2020-06-25 06:36:34    45.3  STATUS                         STARTED Compute clustering
-## 2020-06-25 06:36:35    45.3  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 06:36:35    45.3  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 06:36:36    45.3  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 06:36:36    45.3  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 06:36:36    45.3    INFO                             Using 1 cores
-## 2020-06-25 06:36:36    45.3  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 06:47:40    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 06:47:41    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 06:47:41    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 06:47:41    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 06:47:42    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 06:47:42    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 06:47:42    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 06:47:43    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 07:04:16    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 07:04:16    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr16
-## 2020-06-25 07:04:16    10.8  STATUS                 STARTED Computing methQTL for chromosome chr17
-## 2020-06-25 07:04:16    10.8  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 07:04:16    10.8  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 07:04:51    29.7  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 07:17:12    20.4  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 07:17:40    23.6  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 07:18:29    11.7  STATUS                         STARTED Weight distances
-## 2020-06-25 07:25:14    30.4  STATUS                         COMPLETED Weight distances
-## 2020-06-25 07:25:16    21.1  STATUS                         STARTED Compute graph
-## 2020-06-25 07:28:32    40.0  STATUS                         COMPLETED Compute graph
-## 2020-06-25 07:28:32    40.0  STATUS                         STARTED Compute clustering
-## 2020-06-25 07:28:34    40.0  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 07:28:34    40.0  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 07:28:35    40.0  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 07:28:35    40.0  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 07:28:35    40.0    INFO                             Using 1 cores
-## 2020-06-25 07:28:35    40.0  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 07:56:18    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 07:56:18    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr17
-## 2020-06-25 07:56:18    10.9  STATUS                 STARTED Computing methQTL for chromosome chr18
-## 2020-06-25 07:56:18    10.9  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 07:56:18    10.9  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 07:56:22    11.9  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 07:57:42    11.9  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 07:57:47    10.9  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 07:57:54    10.9  STATUS                         STARTED Weight distances
-## 2020-06-25 07:58:37    14.0  STATUS                         COMPLETED Weight distances
-## 2020-06-25 07:58:39    11.9  STATUS                         STARTED Compute graph
-## 2020-06-25 07:58:42    11.9  STATUS                         COMPLETED Compute graph
-## 2020-06-25 07:58:42    11.9  STATUS                         STARTED Compute clustering
-## 2020-06-25 07:58:43    11.9  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 07:58:43    11.9  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 07:58:43    11.9  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 07:58:43    11.9  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 07:58:43    11.9    INFO                             Using 1 cores
-## 2020-06-25 07:58:43    11.9  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 08:20:22    10.9  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 08:20:22    10.9  STATUS                 COMPLETED Computing methQTL for chromosome chr18
-## 2020-06-25 08:20:22    10.9  STATUS                 STARTED Computing methQTL for chromosome chr19
-## 2020-06-25 08:20:22    10.9  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 08:20:22    10.9  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 08:20:49    24.6  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 08:30:11    24.6  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 08:30:30    12.9  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 08:31:11    10.8  STATUS                         STARTED Weight distances
-## 2020-06-25 08:36:11    22.2  STATUS                         COMPLETED Weight distances
-## 2020-06-25 08:36:12    17.6  STATUS                         STARTED Compute graph
-## 2020-06-25 08:36:57    31.4  STATUS                         COMPLETED Compute graph
-## 2020-06-25 08:36:57    31.4  STATUS                         STARTED Compute clustering
-## 2020-06-25 08:36:59    31.4  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 08:36:59    31.4  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 08:36:59    31.4  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 08:36:59    31.4  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 08:36:59    31.4    INFO                             Using 1 cores
-## 2020-06-25 08:36:59    31.4  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 08:55:20    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 08:55:20    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr19
-## 2020-06-25 08:55:20    10.8  STATUS                 STARTED Computing methQTL for chromosome chr20
-## 2020-06-25 08:55:20    10.8  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 08:55:20    10.8  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 08:55:30    13.5  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 08:58:47    17.9  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 08:58:55    10.8  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 08:59:12    10.8  STATUS                         STARTED Weight distances
-## 2020-06-25 09:01:02    17.7  STATUS                         COMPLETED Weight distances
-## 2020-06-25 09:01:04    13.5  STATUS                         STARTED Compute graph
-## 2020-06-25 09:01:16    18.7  STATUS                         COMPLETED Compute graph
-## 2020-06-25 09:01:16    18.7  STATUS                         STARTED Compute clustering
-## 2020-06-25 09:01:17    18.7  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 09:01:17    18.7  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 09:01:17    18.7  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 09:01:17    18.7  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 09:01:17    18.7    INFO                             Using 1 cores
-## 2020-06-25 09:01:17    18.7  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 09:22:49    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 09:22:49    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr20
-## 2020-06-25 09:22:49    10.8  STATUS                 STARTED Computing methQTL for chromosome chr21
-## 2020-06-25 09:22:49    10.8  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 09:22:49    10.8  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 09:22:51    11.3  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 09:23:30    11.3  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 09:23:33    10.8  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 09:23:38    10.8  STATUS                         STARTED Weight distances
-## 2020-06-25 09:23:51    10.8  STATUS                         COMPLETED Weight distances
-## 2020-06-25 09:23:52    10.8  STATUS                         STARTED Compute graph
-## 2020-06-25 09:23:53    10.8  STATUS                         COMPLETED Compute graph
-## 2020-06-25 09:23:53    10.8  STATUS                         STARTED Compute clustering
-## 2020-06-25 09:23:53    10.8  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 09:23:53    10.8  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 09:23:54    10.8  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 09:23:54    10.8  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 09:23:54    10.8    INFO                             Using 1 cores
-## 2020-06-25 09:23:54    10.8  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 09:23:54    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 09:23:54    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 09:23:54    10.8    INFO                         No SNP closer than 500000
-## 2020-06-25 09:34:58    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 09:34:58    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr21
-## 2020-06-25 09:34:58    10.8  STATUS                 STARTED Computing methQTL for chromosome chr22
-## 2020-06-25 09:34:58    10.8  STATUS                     STARTED Compute correlation blocks
-## 2020-06-25 09:34:58    10.8  STATUS                         STARTED Compute correlation matrix
-## 2020-06-25 09:35:03    12.4  STATUS                         COMPLETED Compute correlation matrix
-## 2020-06-25 09:37:16    10.8  STATUS                         STARTED Compute pairwise distances
-## 2020-06-25 09:37:22    10.8  STATUS                         COMPLETED Compute pairwise distances
-## 2020-06-25 09:37:34    10.8  STATUS                         STARTED Weight distances
-## 2020-06-25 09:38:43    10.8  STATUS                         COMPLETED Weight distances
-## 2020-06-25 09:38:45    10.8  STATUS                         STARTED Compute graph
-## 2020-06-25 09:38:55    15.4  STATUS                         COMPLETED Compute graph
-## 2020-06-25 09:38:55    15.4  STATUS                         STARTED Compute clustering
-## 2020-06-25 09:38:55    15.4  STATUS                         COMPLETED Compute clustering
-## 2020-06-25 09:38:55    15.4  STATUS                     COMPLETED Compute correlation blocks
-## 2020-06-25 09:38:56    15.4  STATUS                     STARTED Compute methQTL per correlation block
-## 2020-06-25 09:38:56    15.4  STATUS                         STARTED Setting up Multicore
-## 2020-06-25 09:38:56    15.4    INFO                             Using 1 cores
-## 2020-06-25 09:38:56    15.4  STATUS                         COMPLETED Setting up Multicore
-## 2020-06-25 09:52:52    10.8  STATUS                     COMPLETED Compute methQTL per correlation block
-## 2020-06-25 09:52:52    10.8  STATUS                 COMPLETED Computing methQTL for chromosome chr22
-## 2020-06-25 09:53:00    10.8  STATUS             COMPLETED Computing methQTL for chromosome chr6</code></pre>
+<p>Although <em>MAGAR</em> conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input <code>methQTLInput</code> object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter, or as global parameters using <code>?qtlSetOption</code>.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="kw">qtlSetOption</span>(<span class="dt">standard.deviation.gauss=</span><span class="dv">100</span>,</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">    <span class="dt">cluster.cor.threshold=</span><span class="fl">0.75</span>)</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3">meth.qtl.res &lt;-<span class="st"> </span><span class="kw">doMethQTL</span>(imp.data,<span class="dt">default.options=</span>F,<span class="dt">p.val.cutoff=</span><span class="fl">1e-3</span>)</a></code></pre></div>
 <p>We will now present the two steps of the methQTL calling procedure in more detail.</p>
 <h2 id="compute-cpg-correlation-blocks">Compute CpG correlation blocks</h2>
 <p>Since neighboring CpGs are often highly correlated, using each CpG independently as a potential methQTL candidate leads to many redundant results. We thus aimed to approximate <em>DNA methylation haplotypes</em> by determining highly correlated CpGs in close vicinity. The procedure itself is split into six steps, and is performed for each chromosome independently:</p>
@@ -692,7 +100,7 @@
 <li><strong>RRBS/WGBS:</strong> <code>cluster.cor.threshold</code>=0.2, <code>standard.deviation.gauss</code>=250, <code>absolute.distance.cutoff</code>=500,000</li>
 </ul>
 <h2 id="call-methqtl-per-correlation-block">Call methQTL per correlation block</h2>
-<p>From the list of correlation blocks, <em>methQTL</em> computes methQTL interactions with all SNPs on the same chromosome. The process is split into three steps:</p>
+<p>From the list of correlation blocks, <em>MAGAR</em> computes methQTL interactions with all SNPs on the same chromosome. The process is split into three steps:</p>
 <ol type="1">
 <li>Compute a representative CpG (tag-CpG) per correlation block, as specified with the option <code>representative.cpg.computation</code> (default: <em>row.medians</em>).</li>
 <li>Discard all SNPs that are further than <code>absolute.distance.cutoff</code> (default: 1,000,000) away from the representative CpG</li>
@@ -704,93 +112,38 @@
 <li><em>twoVSall</em>: A CpG can both positively and negatively be influenced by two independent SNPs. The package will output those fulfilling the p-value cutoff.</li>
 <li><em>allVSall</em>: For each CpG, all SNPs showing a p-value lower than the p-value cutoff will be returned.</li>
 </ol>
-<p>In the latest stage, potential covariates can be specified using the option <em>sel.covariates</em>. We recommend to include at least <em>age</em> and <em>sex</em> as covariates, as they have a strong influence on the DNA methylation pattern.</p>
+<p>In the methQTL calling process, potential covariates can be specified using the option <em>sel.covariates</em>. We recommend to include at least <em>age</em> and <em>sex</em> as covariates, as they have a strong influence on the DNA methylation pattern.</p>
 <h1 id="downstream-analysis-and-interpretation">Downstream analysis and interpretation</h1>
 <h2 id="how-to-use-methqtlresult">How to use <em>methQTLResult</em></h2>
-<p>The above procedure will create an object of class <code>methQTLResult</code>, which contains the methQTL that are called in the previous step. To get a table of all the methQTL, you need to extract the information from the object. In the majority of the function calls below, there is the option <code>type</code>, which takes on the values: * ‘SNP’: To characterize the SNPs that influence any DNA methylation state * ‘CpG’: To characterize the representative CpGs per correlation block that are influences by any genotype * ‘cor.block’: To characterize all CpGs, which are part of a correlation block, whose representative CpG is influenced by any genotype</p>
+<p>The above procedure will create an object of class <code>methQTLResult</code>, which contains the methQTL that are called in the previous step. To get a table of all the methQTL, you need to extract the information from the object. In the majority of the function calls below, there is the option <code>type</code>, which takes on the values: * ‘SNP’: To characterize the SNPs that influence any DNA methylation state * ‘CpG’: To characterize the representative CpGs per correlation block that are influences by any SNP genotype * ‘cor.block’: To characterize all CpGs, which are part of a correlation block, whose representative CpG is influenced by any genotype</p>
 <p>Furthermore, you can obtain genomic annotations for both the CpGs and the SNPs involved in the methQTL interactions:</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">result.table &lt;-<span class="st"> </span><span class="kw">getResult</span>(meth.qtl.res)</a>
-<a class="sourceLine" id="cb11-2" data-line-number="2"><span class="kw">head</span>(result.table)</a></code></pre></div>
-<pre><code>##           CpG       SNP       Beta     SE.Beta      P.value Chromosome
-## 59 cg00090105  rs185580 -0.1662472 0.009373958 2.064279e-06       chr1
-## 80 cg00102184 rs6685121  0.1838105 0.012800985 7.142140e-06       chr1
-## 76 cg00207189 rs4847021 -0.2098301 0.008611342 3.140927e-07       chr1
-## 75 cg00553601 rs2176600 -0.3349320 0.018777130 1.995429e-06       chr1
-## 62 cg00972755  rs185580 -0.2248021 0.015113092 5.809094e-06       chr1
-## 26 cg01023592  rs863087 -0.1164647 0.007975658 6.472797e-06       chr1
-##    Position.CpG Position.SNP Distance p.val.adj.fdr
-## 59    182538701    182519861    18840             1
-## 80    240194783    239774670   420113             1
-## 76    231244795    230959298   285497             1
-## 75    224268136    224395782  -127646             1
-## 62    182859418    182519861   339557             1
-## 26     64435362     64525961   -90599             1</code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">anno.meth &lt;-<span class="st"> </span><span class="kw">getAnno</span>(meth.qtl.res,<span class="st">&quot;meth&quot;</span>)</a>
-<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="kw">head</span>(anno.meth)</a></code></pre></div>
-<pre><code>##            Chromosome  Start    End Strand Strand.1 AddressA AddressB Design
-## cg26928153       chr1  10848  10849      -        - 91693541 47784201      I
-## cg16269199       chr1  10850  10851      -        - 82663207  3701821      I
-## cg24669183       chr1 534242 534243      -        - 12706847       NA     II
-## cg15560884       chr1 710097 710098      +        + 66790119       NA     II
-## cg01014490       chr1 714177 714178      -        -  1645492 53610280      I
-## cg10692041       chr1 716245 716246      +        + 80722913       NA     II
-##            Color Context Random HumanMethylation27 HumanMethylation450
-## cg26928153   Grn      CG  FALSE              FALSE                  NA
-## cg16269199   Grn      CG  FALSE              FALSE                  NA
-## cg24669183  Both      CG  FALSE              FALSE                TRUE
-## cg15560884  Both      CG  FALSE              FALSE                TRUE
-## cg01014490   Red      CG  FALSE              FALSE                TRUE
-## cg10692041  Both      CG  FALSE              FALSE                  NA
-##            Mismatches.A Mismatches.B CGI.Relation CpG GC SNPs.3 SNPs.5
-## cg26928153            0            0     Open Sea  15 74      0      0
-## cg16269199            0            0     Open Sea  15 74      0      0
-## cg24669183            0            0  South Shore   2 49      0      0
-## cg15560884            0            0  North Shelf   2 28      0      0
-## cg01014490            0            0       Island   9 67      0      0
-## cg10692041            0            0  South Shore   2 47      0      0
-##            SNPs.Full Cross.reactive
-## cg26928153         0              0
-## cg16269199         0              0
-## cg24669183         0              0
-## cg15560884         0              0
-## cg01014490         0              0
-## cg10692041         0              0</code></pre>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">anno.geno &lt;-<span class="st"> </span><span class="kw">getAnno</span>(meth.qtl.res,<span class="st">&quot;geno&quot;</span>)</a>
-<a class="sourceLine" id="cb15-2" data-line-number="2"><span class="kw">head</span>(anno.geno)</a></code></pre></div>
-<pre><code>##            Chromosome  Start cM Allele.1 Allele.2 Allele.1.Freq Allele.2.Freq
-## rs3094315        chr1 752566 NA        A        G        0.7500        0.2500
-## rs3131972        chr1 752721 NA        G        A        0.7500        0.2500
-## rs12124819       chr1 776546 NA        A        G        0.7500        0.2500
-## rs11240777       chr1 798959 NA        G        A        0.7500        0.2500
-## rs4970383        chr1 838555 NA        C        A        0.5625        0.4375
-## rs4475691        chr1 846808 NA        C        T        0.6875        0.3125</code></pre>
-<p>For more detailed information about the output, also see the function <code>getResults.GWASMap</code>.</p>
+<a class="sourceLine" id="cb11-2" data-line-number="2"><span class="kw">head</span>(result.table)</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3">anno.meth &lt;-<span class="st"> </span><span class="kw">getAnno</span>(meth.qtl.res,<span class="st">&quot;meth&quot;</span>)</a>
+<a class="sourceLine" id="cb11-4" data-line-number="4"><span class="kw">head</span>(anno.meth)</a>
+<a class="sourceLine" id="cb11-5" data-line-number="5">anno.geno &lt;-<span class="st"> </span><span class="kw">getAnno</span>(meth.qtl.res,<span class="st">&quot;geno&quot;</span>)</a>
+<a class="sourceLine" id="cb11-6" data-line-number="6"><span class="kw">head</span>(anno.geno)</a></code></pre></div>
+<p>For more detailed information about the output, also see the function <code>getResultsGWASMap</code>.</p>
 <h2 id="plots">Plots</h2>
-<p>To visualize methQTL, the package provides some plotting functions. All functions return an object of type <code>ggplot</code>, which can be subsequently stored or viewed. Either all methQTL can be simultaneously visualized in a single plot, or a specific methQTL can be visualized:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">result.table &lt;-<span class="st"> </span>result.table[<span class="kw">order</span>(result.table<span class="op">$</span>P.value,<span class="dt">decreasing=</span>F),]</a>
-<a class="sourceLine" id="cb17-2" data-line-number="2"><span class="kw">qtl.plot.SNP.CpG.interaction</span>(imp.data,result.table<span class="op">$</span>CpG[<span class="dv">1</span>],result.table<span class="op">$</span>SNP[<span class="dv">1</span>])</a></code></pre></div>
-<figure>
-<img src="figure/plots-1.png" alt="plot of chunk plots" /><figcaption>plot of chunk plots</figcaption>
-</figure>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1"><span class="kw">qtl.distance.scatterplot</span>(meth.qtl.res)</a></code></pre></div>
-<figure>
-<img src="figure/plots-2.png" alt="plot of chunk plots" /><figcaption>plot of chunk plots</figcaption>
-</figure>
+<p>To visualize methQTL, <em>MAGAR</em> provides some plotting functions. Most functions return an object of type <code>ggplot</code>, which can be subsequently stored or viewed. Either all methQTL can be simultaneously visualized in a single plot, or a specific methQTL can be visualized:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">result.table &lt;-<span class="st"> </span>result.table[<span class="kw">order</span>(result.table<span class="op">$</span>P.value,<span class="dt">decreasing=</span>F),]</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2"><span class="kw">qtlPlotSNPCpGInteraction</span>(imp.data,result.table<span class="op">$</span>CpG[<span class="dv">1</span>],result.table<span class="op">$</span>SNP[<span class="dv">1</span>])</a>
+<a class="sourceLine" id="cb12-3" data-line-number="3"><span class="kw">qtlDistanceScatterplot</span>(meth.qtl.res)</a></code></pre></div>
 <h2 id="interpretation-functions">Interpretation functions</h2>
-<p>The package provides a bunch of interpretation functions to characterize the detected methQTLs. This includes LOLA enrichment analysis<span class="citation" data-cites="LOLA">[@LOLA]</span> (<code>qtl.lola.enrichment</code>), genomic annotation enrichment based on putative regulatory elements defined by the Ensembl Regulatory Build<span class="citation" data-cites="Zerbino2015">[@Zerbino2015]</span> (<code>qtl.annotation.enrichment</code>), enrichment analysis of different base substitutions in SNPs (<code>qtl.base.substitution.enrichment</code>), or TFBS motif enrichment using <a href="http://bioconductor.org/packages/release/bioc/html/TFBSTools.html">TFBSTools</a>. Enrichment is compared for the methQTLs that are available in the provided <code>methQTLResult</code> (for a single input), or to the overlapping QTLs for a list of <code>methQTLResult</code>. The background of the enrichment is defined as all the SNPs/CpGs that have been used as input to the methQTL calling.</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1">res &lt;-<span class="st"> </span><span class="kw">qtl.base.substitution.enrichment</span>(meth.qtl.res)</a></code></pre></div>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1"><span class="kw">qtl.plot.base.substitution</span>(meth.qtl.res,<span class="dt">merge=</span><span class="ot">TRUE</span>)</a></code></pre></div>
+<p>The package provides a bunch of interpretation functions to characterize the detected methQTLs. This includes LOLA enrichment analysis<span class="citation" data-cites="LOLA">[@LOLA]</span> (<code>qtlLOLAEnrichment</code>), genomic annotation enrichment based on putative regulatory elements defined by the Ensembl Regulatory Build<span class="citation" data-cites="Zerbino2015">[@Zerbino2015]</span> (<code>qtlAnnotationEnrichment</code>), enrichment analysis of different base substitutions in SNPs (<code>qtlBaseSubstitutionEnrichment</code>), or TFBS motif enrichment using <a href="http://bioconductor.org/packages/release/bioc/html/TFBSTools.html">TFBSTools</a>. Enrichment is compared for the methQTLs that are available in the provided <code>methQTLResult</code> (for a single input), or to the overlapping QTLs for a list of <code>methQTLResult</code>. The background of the enrichment is defined as all the SNPs/CpGs that have been used as input to the methQTL calling.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">res &lt;-<span class="st"> </span><span class="kw">qtlBaseSubstitutionEnrichment</span>(meth.qtl.res)</a>
+<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="kw">qtlPlotBaseSubstitution</span>(meth.qtl.res,<span class="dt">merge=</span><span class="ot">TRUE</span>)</a></code></pre></div>
 <h2 id="lists-of-methqtl-results">Lists of methQTL results</h2>
 <p>Most of the functions discussed above either support a single <code>methQTLResult</code> as input, or a list of such objects. In case a list is specified, the functions will typically overlap the methQTLs found and compare those with all SNPs/CpGs that have been used for methQTL calling. Additionally, there are functions that particularly work on a list of <code>methQTLResult</code> objects and that perform overlapping, or determine the methQTLs specific to a dataset.</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">meth.qtl.list &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">First=</span>meth.qtl.res<span class="fl">.1</span>,<span class="dt">Second=</span>meth.qtl.res<span class="fl">.2</span>,<span class="dt">Third=</span>meth.qtl.res<span class="fl">.3</span>)</a>
-<a class="sourceLine" id="cb21-2" data-line-number="2"><span class="kw">qtl.venn.plot</span>(meth.qtl.list)</a>
-<a class="sourceLine" id="cb21-3" data-line-number="3"><span class="kw">qtl.upset.plot</span>(meth.qtl.list,<span class="dt">type =</span> <span class="st">&quot;cor.block&quot;</span>)</a>
-<a class="sourceLine" id="cb21-4" data-line-number="4">spec.first &lt;-<span class="st"> </span><span class="kw">get.specific.qtl</span>(meth.qtl.list<span class="op">$</span>First,meth.qtl.list[<span class="op">-</span><span class="dv">1</span>])</a></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">meth.qtl.list &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">First=</span>meth.qtl.res<span class="fl">.1</span>,<span class="dt">Second=</span>meth.qtl.res<span class="fl">.2</span>,<span class="dt">Third=</span>meth.qtl.res<span class="fl">.3</span>)</a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="kw">qtlVennPlot</span>(meth.qtl.list)</a>
+<a class="sourceLine" id="cb14-3" data-line-number="3"><span class="kw">qtlUpsetPlot</span>(meth.qtl.list,<span class="dt">type =</span> <span class="st">&quot;cor.block&quot;</span>)</a>
+<a class="sourceLine" id="cb14-4" data-line-number="4">spec.first &lt;-<span class="st"> </span><span class="kw">getSpecificQTL</span>(meth.qtl.list<span class="op">$</span>First,meth.qtl.list[<span class="op">-</span><span class="dv">1</span>])</a></code></pre></div>
 <h1 id="advanced-configuration">Advanced configuration</h1>
-<h2 id="employ-methqtl-on-a-scientific-compute-cluster">Employ methQTL on a scientific compute cluster</h2>
-<p><em>methQTL</em> can automatically distribute jobs across a high performance compute cluster, which has been setup using the Sun Grid Engine (SGE) technology. You can pass the option <code>cluster.submit</code> to <code>do.methQTL</code> and thus activate the cluster submission. Note that you’ll also have to specify a path to an executable <em>Rscript</em> and potentially specify resource requirements using the option setting <code>cluster.config</code>.</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1"><span class="kw">qtl.setOption</span>(<span class="dt">cluster.config =</span> <span class="kw">c</span>(<span class="dt">h_vmem=</span><span class="st">&quot;60G&quot;</span>,<span class="dt">mem_free=</span><span class="st">&quot;20G&quot;</span>))</a>
-<a class="sourceLine" id="cb22-2" data-line-number="2"><span class="kw">qtl.setOption</span>(<span class="dt">rscript.path =</span> <span class="st">&quot;/usr/bin/Rscript&quot;</span>)</a>
-<a class="sourceLine" id="cb22-3" data-line-number="3">meth.qtl.res &lt;-<span class="st"> </span><span class="kw">do.methQTL</span>(<span class="dt">meth.qtl =</span> imp.data,</a>
-<a class="sourceLine" id="cb22-4" data-line-number="4">                          <span class="dt">cluster.submit =</span> T)</a></code></pre></div>
+<h2 id="employ-magar-on-a-scientific-compute-cluster">Employ <em>MAGAR</em> on a scientific compute cluster</h2>
+<p><em>MAGAR</em> can automatically distribute jobs across a high performance compute cluster, which has been setup using the Sun Grid Engine (SGE) technology. You can pass the option <code>cluster.submit</code> to <code>doMethQTL</code> and thus activate the cluster submission. Note that you’ll also have to specify a path to an executable <em>Rscript</em> and potentially specify resource requirements using the option setting <code>cluster.config</code>.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="kw">qtlSetOption</span>(<span class="dt">cluster.config =</span> <span class="kw">c</span>(<span class="dt">h_vmem=</span><span class="st">&quot;60G&quot;</span>,<span class="dt">mem_free=</span><span class="st">&quot;20G&quot;</span>))</a>
+<a class="sourceLine" id="cb15-2" data-line-number="2"><span class="kw">qtlSetOption</span>(<span class="dt">rscript.path =</span> <span class="st">&quot;/usr/bin/Rscript&quot;</span>)</a>
+<a class="sourceLine" id="cb15-3" data-line-number="3">meth.qtl.res &lt;-<span class="st"> </span><span class="kw">doMethQTL</span>(<span class="dt">meth.qtl =</span> imp.data,</a>
+<a class="sourceLine" id="cb15-4" data-line-number="4">                          <span class="dt">cluster.submit =</span> T)</a></code></pre></div>
 <h1 id="references">References</h1>
