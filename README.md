@@ -24,5 +24,8 @@ devtools::install_github("MPIIComputationalEpigenetics/MAGAR")
 ## Documentation
 You can find a detailed information for *MAGAR* [here](vignettes/MAGAR.md)
 
+## Citation
+A manuscript presentin *MAGAR* is currently in preparation.
+
 ## Contact
 You can contact [Michael Scherer](mailto:mscherer@mpi-inf.mpg.de) for reporting bugs, feature requests or questions.
