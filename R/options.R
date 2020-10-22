@@ -113,6 +113,7 @@ assign("CLUSTER.ARCHITECTURE","sge",QTL.OPTIONS)
 #' @param max.cpgs Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
 #'             default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
 #'             for larger ones.
+#' @param cluster.architecture The type of HPC cluster architecture present. Currently supported are \code{'sge'} and \code{'slurm'}
 #' @param cluster.config Resource parameters needed to setup an SGE cluster job. Includes \code{h_vmem} and \code{mem_free}
 #' @param rscript.path Path to an executable version of Rscript needed for submitting batch jobs to a cluster
 #' @param n.permutations The number of permutations used to correct the p-values for multiple testing. See
@@ -187,6 +188,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
                        meth.qtl.type="oneVSall",
                        max.cpgs=40000,
                        rscript.path="/usr/bin/Rscript",
+		       cluster.architecture='sge',
                        cluster.config=c(h_vmem="5G",mem_free="5G"),
                        n.permutations=1000,
                        p.value.correction="uncorrected.fdr",
@@ -379,6 +381,12 @@ qtlSetOption <- function(rnbeads.options=NULL,
     tryCatch(o <- system(paste(rscript.path,"--version"),intern = T),error=function(e){
       logger.error("Invalid value for rscript.path. Needs to be a path to an executable version of Rscript")})
     QTL.OPTIONS[['RSCRIPT.PATH']] <- rscript.path
+  }
+  if(!missing(cluster.architecture)){
+	if(!is.character(cluster.architecture) || !(cluster.architecture%in%c('sge','slurm'))){
+		stop("Invalid value for cluster.architecture, needs to be 'sge' or 'slurm'")
+	}
+	QTL.OPTIONS[['CLUSTER.ARCHITECTURE']] <- cluster.architecture
   }
   if(!missing(cluster.config)){
     cluster.config <- unlist(cluster.config)
@@ -595,6 +603,9 @@ qtlGetOption <- function(names){
   }
   if('rscript.path'%in%names){
     ret <- c(ret,rscript.path=QTL.OPTIONS[['RSCRIPT.PATH']])
+  }
+  if('cluster.architecture'%in%names){
+    ret <- c(ret,cluster.architecture=QTL.OPTIONS[['CLUSTER.ARCHITECTURE']])
   }
   if('cluster.config'%in%names){
     ret <- c(ret,cluster.config=list(QTL.OPTIONS[['CLUSTER.CONFIG']]))
