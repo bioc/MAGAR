@@ -16,6 +16,7 @@ assign('ALL',c('rnbeads.options','meth.data.type','geno.data.type','rnbeads.repo
                	'n.permutations','p.value.correction','compute.cor.blocks',
                	'use.segmentation','use.functional.annotation',
 		           'functional.annotation.weight','impute.geno.data',"vcftools.path",
+		'cluster.architecture'
 		           "imputation.user.token","imputation.reference.panel","imputation.phasing.method","imputation.population"),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',NULL,QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
@@ -56,6 +57,7 @@ assign("IMPUTATION.USER.TOKEN",NULL,QTL.OPTIONS)
 assign("IMPUTATION.REFERENCE.PANEL","apps@hrc-r1.1",QTL.OPTIONS)
 assign("IMPUTATION.PHASING.METHOD","shapeit",QTL.OPTIONS)
 assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
+assign("CLUSTER.ARCHITECTURE","sge",QTL.OPTIONS)
 
 #' qtlSetOption
 #'
