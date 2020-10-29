@@ -100,6 +100,7 @@ qtlAnnotationEnrichment <- function(meth.qtl.res,
 #'   with an \code{A}. Enrichment is computed using Fisher's exact test, using all SNP that have been used
 #'   as input as the background.
 #' @author Michael Scherer
+#' @import plyr
 #' @export
 qtlBaseSubstitutionEnrichment <- function(meth.qtl.res,
 					merge=F){

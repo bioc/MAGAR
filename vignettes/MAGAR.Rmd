@@ -15,7 +15,8 @@ output:
     toc: true  
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-   %\VignetteEncoding{UTF-8}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{MAGAR: Methylation-Aware Genotype Association in R}
 bibliography: biblio.bib  
 ---
 
@@ -141,7 +142,7 @@ The ```doImport``` function requires the paths to the respective genotyping and 
 
 Please note that we provide an accompanying R-package ([methQTL.data](https://github.com/MPIIComputationalEpigenetics/methQTL.data)) comprising additional information including microarray annotations and test data sets for this vignette. Furthermore, we provide a patched version of CRLMM that supports the newer Illumina genotyping microarrays (Illumina OmniExome and Illumina OmniExpress) from [GitHub](https://github.com/MPIIComputationalEpigenetics/crlmm).
 
-```{r import,eval=TRUE}
+```{r import,eval=FALSE}
 if(!requireNamespace("methQTL.data")){
   devtools::install_github("MPIIComputationalEpigenetics/methQTL.data")
 }
