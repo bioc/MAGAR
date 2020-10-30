@@ -32,6 +32,7 @@
 #'            \item{4}{For each of the CpG correlation blocks, we report the p-value of the representative CpG.}
 #'          }
 #' @seealso doMethQTLChromosome
+#' @import methods
 #' @author Michael Scherer
 #' @export
 doMethQTL <- function(meth.qtl,
@@ -62,17 +63,17 @@ doMethQTL <- function(meth.qtl,
   res.all <- list()
   logger.start("Computing methQTLs")
   if(!cluster.submit){
-    if(ncores>1){
-      parallel.setup(ncores)
-      res.all <- foreach(chrom=all.chroms,.combine="c") %dopar%{
-        doMethQTLChromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff)
-      }
-    }else{
+#    if(ncores>1){
+#      parallel.setup(ncores)
+#      res.all <- foreach(chrom=all.chroms,.combine="c") %dopar%{
+#        doMethQTLChromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff)
+#      }
+#    }else{
       for(chrom in all.chroms){
-        res.chrom <- doMethQTLChromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir)
+        res.chrom <- doMethQTLChromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir,ncores=ncores)
         res.all[[chrom]] <- res.chrom
       }
-    }
+#    }
     res.all <- joinMethQTLResult(res.all)
   }else{
     res.all <- submitClusterJobs(meth.qtl,sel.covariates,p.val.cutoff,out.dir,ncores = ncores)

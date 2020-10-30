@@ -11,20 +11,16 @@ Description: "Methylation-Aware Genotype Association in R" (MAGAR) computes meth
 License: GPL-3
 Imports: doParallel,
          igraph,
-         psych,
-         rtracklayer,
          bigstatsr,
          rjson,
-         Matrix,
-         knitr,
          plyr,
-	 BiocGenerics,
-	 ff,
 	 data.table,
-	 methods,
 	 UpSetR,
 	 reshape2,
-	 jsonlite
+	 jsonlite,
+	 methQTL.data,
+	 methods,
+	 ff
 Depends: R (>= 3.5),
    HDF5Array,
 	 RnBeads,
@@ -40,7 +36,10 @@ Suggests: gridExtra,
          motifRG,
 	 JASPAR2018,
 	 TFBSTools,
-	 seqLogo
+	 seqLogo,
+         knitr,
+	 epicPMDdetect,
+	 devtools
 Encoding: UTF-8
 RoxygenNote: 7.1.0
 VignetteBuilder: knitr

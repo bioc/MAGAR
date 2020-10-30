@@ -7,7 +7,7 @@
 qtlUpSetPlotTagCpGs(meth.qtl.res.list, ...)
 }
 \arguments{
-\item{meth.qtl.res.list}{A list of \code{\link{methQTLResult}} objects, for which correlation blocks are to be overlapped}
+\item{meth.qtl.res.list}{A list of \code{\link{methQTLResult-class}} objects, for which correlation blocks are to be overlapped}
 
 \item{...}{Further argument passed to \code{\link[UpSetR]{upset}}}
 }

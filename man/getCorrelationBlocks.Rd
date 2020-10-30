@@ -3,6 +3,7 @@
 \docType{methods}
 \name{getCorrelationBlocks,methQTLResult-method}
 \alias{getCorrelationBlocks,methQTLResult-method}
+\alias{getCorrelationBlocks}
 \title{getCorrelationBlocks}
 \usage{
 \S4method{getCorrelationBlocks}{methQTLResult}(object)

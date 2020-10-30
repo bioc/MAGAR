@@ -245,6 +245,7 @@ doMethImport <- function(data.location,assembly="hg19",s.anno,s.id.col,tab.sep="
 #' @author Michael Scherer
 #' @export
 #' @import data.table
+#' @import snpStats
 doGenoImport <- function(data.location,s.anno,s.id.col,out.folder,...){
   logger.start("Processing genotyping data")
   snp.loc <- data.location[["geno.dir"]]
@@ -511,6 +512,8 @@ match.assemblies <- function(meth.qtl){
 #' @export
 #' @import crlmm
 #' @import data.table
+#' @import methQTL.data
+#' @import ff
 doGenoImportIDAT <- function(idat.files,
                                    s.anno,
                                    s.id.col,
