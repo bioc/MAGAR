@@ -33,12 +33,10 @@ Suggests: gridExtra,
          RUnit,
          rmutil,
          rmarkdown,
-         motifRG,
 	 JASPAR2018,
 	 TFBSTools,
 	 seqLogo,
          knitr,
-	 epicPMDdetect,
 	 devtools
 Encoding: UTF-8
 RoxygenNote: 7.1.0
