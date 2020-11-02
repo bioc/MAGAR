@@ -6,6 +6,7 @@ addons:
   apt:
     packages:
     - perl
+    - libgsl-dev  
 warnings_are_errors: false
 notifications:
   slack:
