@@ -231,5 +231,5 @@ qtlTFBSMotifEnrichment <- function(meth.qtl.res,
 #      dev.off()
 #    }
     return(NULL)
-  }
+#  }
 }
