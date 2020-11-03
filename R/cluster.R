@@ -131,7 +131,7 @@ submitClusterJobsSLURM <- function(methQTL.input,
 	stop("Only 'clock.limit' and 'mem.size' currently supported for SLURM")
   }
   dep.tok <- paste(dep.tok,ifelse(is.null(req.res["clock.limit"]),"",paste("-t",req.res["clock.limit"])),
-	ifelse(is.null(req.res["mem.size"]),"",paste0("-mem=",req.res["mem.size"])))
+	ifelse(is.null(req.res["mem.size"]),"",paste0("--mem=",req.res["mem.size"])))
   job.names <- sapply(all.chroms,function(chr){
     cmd.tok <- paste("sbatch --export=ALL",
                      paste0("--job-name=","methQTL_",id,"_",chr),
