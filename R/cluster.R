@@ -34,6 +34,28 @@ submitClusterJobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncor
     saveMethQTL(methQTL.input,methQTL.file)
   }
   logger.completed()
+  if(qtlGetOption("cluster.architecture")=='sge'){
+    methQTL.result <- submitClusterJobsSGE(methQTL.input,out.dir,json.path,p.val.cutoff,ncores,covariates,cov.files)
+  }else if(qtlGetOption("cluster.architecture")=='slurm'){
+submitClusterJobsSLURM(methQTL.input,out.dir,json.path,p.val.cutoff,ncores,covariates,cov.files)
+  }else{
+	stop("You weren't supposed to be here...")
+  }
+
+  logger.completed()
+  return(methQTL.result)
+}
+
+#' submitClusterJobsSGE
+#' Implementation of submitClusterJobs for Sun Grid Engine
+#' @noRd
+submitClusterJobsSGE <- function(methQTL.input,
+				out.dir,
+				json.path,
+				p.val.cutoff,
+				ncores,
+				covariates,
+				cov.file){
   all.chroms <- unique(getAnno(methQTL.input)$Chromosome)
   set.seed(Sys.time())
   id <- sample(1:10000,1)
@@ -85,6 +107,67 @@ submitClusterJobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncor
     }
   }
   methQTL.result <- loadMethQTLResult(file.path(out.dir,"methQTLResult"))
-  logger.completed()
+  return(methQTL.result)
+}
+
+#' submitClusterJobsSLURM
+#' Implementation of submitClusterJobs for SLURM
+#' @noRd
+submitClusterJobsSLURM <- function(methQTL.input,
+				out.dir,
+				json.path,
+				p.val.cutoff,
+				ncores,
+				covariates,
+				cov.file){
+  all.chroms <- unique(getAnno(methQTL.input)$Chromosome)
+  set.seed(Sys.time())
+  id <- sample(1:10000,1)
+  dep.tok <- ""
+  req.res <- qtlGetOption("cluster.config")$cluster.config
+  if(any(!(names(req.res)%in%c("clock.limit","mem.size")))){
+	stop("Only 'clock.limit' and 'mem.size' currently supported for SLURM")
+  }
+  dep.tok <- paste(dep.tok,ifelse(req.res["clock.limit"]==NULL,"",paste(,"-t",req.res["clock.limit"])),
+	ifelse(req.res["mem.size"]==NULL,"",paste(,"-mem=",req.res["mem.size"])))
+  job.names <- sapply(all.chroms,function(chr){
+    cmd.tok <- paste("sbatch --export=ALL",
+                     "--job-name=",paste0("methQTL_",id,"_",chr),
+                     "-o",file.path(out.dir,paste0("methQTL_",id,"_",chr,".log")),
+                     dep.tok,
+                     paste0("--wrap=='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_chromosome_job.R",package="methQTL")),
+                     "-m",methQTL.file,
+                     "-j",json.path,
+                     "-c",chr,
+                     "-p",p.val.cutoff,
+                     "-o",paste0(out.dir,"'"),
+                     "-n",ncores
+                     )
+    if(!is.null(covariates)){
+      cmd.tok <- paste(cmd.tok,"-u",cov.file)
+    }
+    system(cmd.tok)
+    paste0("methQTL_",id,"_",chr)
+  })
+  cmd.tok <- paste("sbatch --export=ALL",
+                   "--job_name",paste0("methQTL_",id,"_summary"),
+                   "-o",file.path(out.dir,paste0("methQTL_",id,"_summary.log")),
+                   dep.tok,
+                   "--depend=",paste0(job.names,collapse = ","),
+                   paste0("--wrap='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="methQTL")),
+                   paste0("-o ",out.dir,"'")
+                  )
+  system(cmd.tok)
+  logger.start("Waiting for jobs to finish")
+  finished <- F
+  while(!finished){
+    Sys.sleep(100)
+    qstat.res <- system(paste("squeue --name",paste0("methQTL_",id,"_summary")),ignore.stdout = T, ignore.stderr = T)
+    # 0 for running, 1 for finished
+    if(qstat.res == 1){
+      finished <- T
+    }
+  }
+  methQTL.result <- loadMethQTLResult(file.path(out.dir,"methQTLResult"))
   return(methQTL.result)
 }
