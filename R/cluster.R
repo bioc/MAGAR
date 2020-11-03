@@ -134,7 +134,7 @@ submitClusterJobsSLURM <- function(methQTL.input,
 	ifelse(is.null(req.res["mem.size"]),"",paste0("-mem=",req.res["mem.size"])))
   job.names <- sapply(all.chroms,function(chr){
     cmd.tok <- paste("sbatch --export=ALL",
-                     "--job-name=",paste0("methQTL_",id,"_",chr),
+                     paste0("--job-name=","methQTL_",id,"_",chr),
                      "-o",file.path(out.dir,paste0("methQTL_",id,"_",chr,".log")),
                      dep.tok,
                      paste0("--wrap='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_chromosome_job.R",package="MAGAR")),
@@ -153,7 +153,7 @@ submitClusterJobsSLURM <- function(methQTL.input,
     #paste0("methQTL_",id,"_",chr)
   })
   cmd.tok <- paste("sbatch --export=ALL",
-                   "--job-name",paste0("methQTL_",id,"_summary"),
+                   paste0("--job-name=","methQTL_",id,"_summary"),
                    "-o",file.path(out.dir,paste0("methQTL_",id,"_summary.log")),
                    dep.tok,
                    "--depend=",paste0(job.names,collapse = ","),
