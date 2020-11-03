@@ -71,9 +71,15 @@ doMethQTL <- function(meth.qtl,
 #    }else{
       for(chrom in all.chroms){
         res.chrom <- doMethQTLChromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir,ncores=ncores)
-        res.all[[chrom]] <- res.chrom
+        #res.all[[chrom]] <- res.chrom
+	meth.qtl.path <- file.path(out.dir,paste0("methQTLResult_",chrom))
+	saveMethQTLResult(res.chrom,meth.qtl.path)
+	rm(res.chrom)
+	gc()
+	res.all[[chrom]] <- meth.qtl.path
       }
 #    }
+    res.all <- lapply(res.all,loadMethQTLResult)
     res.all <- joinMethQTLResult(res.all)
   }else{
     res.all <- submitClusterJobs(meth.qtl,sel.covariates,p.val.cutoff,out.dir,ncores = ncores)

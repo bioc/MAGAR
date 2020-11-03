@@ -1,3 +1,10 @@
+MAGAR version 0.3.7
+---------------------
+ * Renamed the package to MAGAR (Methylation-Aware Genotype Association in R)
+ * Implemented support for the SLURM HPC architecture
+ * Improvements for memory usage of multi-core processing
+ * Multiple bugfixes
+
 methQTL version 0.3.6
 ---------------------
  * methQTL now supports IDAT files generated using the Illumina OmniExpress12 v1.0 BeadChip
