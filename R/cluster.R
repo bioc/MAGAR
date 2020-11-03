@@ -35,9 +35,9 @@ submitClusterJobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncor
   }
   logger.completed()
   if(qtlGetOption("cluster.architecture")=='sge'){
-    methQTL.result <- submitClusterJobsSGE(methQTL.input,out.dir,json.path,p.val.cutoff,ncores,covariates,cov.files)
+    methQTL.result <- submitClusterJobsSGE(methQTL.input,out.dir,json.path,p.val.cutoff,ncores,covariates,cov.file,methQTL.file)
   }else if(qtlGetOption("cluster.architecture")=='slurm'){
-submitClusterJobsSLURM(methQTL.input,out.dir,json.path,p.val.cutoff,ncores,covariates,cov.files)
+submitClusterJobsSLURM(methQTL.input,out.dir,json.path,p.val.cutoff,ncores,covariates,cov.file,methQTL.file)
   }else{
 	stop("You weren't supposed to be here...")
   }
@@ -55,7 +55,8 @@ submitClusterJobsSGE <- function(methQTL.input,
 				p.val.cutoff,
 				ncores,
 				covariates,
-				cov.file){
+				cov.file,
+				methQTL.file){
   all.chroms <- unique(getAnno(methQTL.input)$Chromosome)
   set.seed(Sys.time())
   id <- sample(1:10000,1)
@@ -71,7 +72,7 @@ submitClusterJobsSGE <- function(methQTL.input,
                      dep.tok,
                      "-j y",
                      "-b y",
-                     paste0("'",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_chromosome_job.R",package="methQTL")),
+                     paste0("'",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_chromosome_job.R",package="MAGAR")),
                      "-m",methQTL.file,
                      "-j",json.path,
                      "-c",chr,
@@ -92,7 +93,7 @@ submitClusterJobsSGE <- function(methQTL.input,
                    "-j y",
                    "-hold_jid",paste0(job.names,collapse = ","),
                    "-b y",
-                   paste0("'",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="methQTL")),
+                   paste0("'",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="MAGAR")),
                    paste0("-o ",out.dir,"'")
                   )
   system(cmd.tok)
@@ -119,7 +120,8 @@ submitClusterJobsSLURM <- function(methQTL.input,
 				p.val.cutoff,
 				ncores,
 				covariates,
-				cov.file){
+				cov.file,
+				methQTL.file){
   all.chroms <- unique(getAnno(methQTL.input)$Chromosome)
   set.seed(Sys.time())
   id <- sample(1:10000,1)
@@ -135,7 +137,7 @@ submitClusterJobsSLURM <- function(methQTL.input,
                      "--job-name=",paste0("methQTL_",id,"_",chr),
                      "-o",file.path(out.dir,paste0("methQTL_",id,"_",chr,".log")),
                      dep.tok,
-                     paste0("--wrap=='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_chromosome_job.R",package="methQTL")),
+                     paste0("--wrap=='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_chromosome_job.R",package="MAGAR")),
                      "-m",methQTL.file,
                      "-j",json.path,
                      "-c",chr,
@@ -154,7 +156,7 @@ submitClusterJobsSLURM <- function(methQTL.input,
                    "-o",file.path(out.dir,paste0("methQTL_",id,"_summary.log")),
                    dep.tok,
                    "--depend=",paste0(job.names,collapse = ","),
-                   paste0("--wrap='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="methQTL")),
+                   paste0("--wrap='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="MAGAR")),
                    paste0("-o ",out.dir,"'")
                   )
   system(cmd.tok)
