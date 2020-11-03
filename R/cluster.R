@@ -148,17 +148,19 @@ submitClusterJobsSLURM <- function(methQTL.input,
     if(!is.null(covariates)){
       cmd.tok <- paste(cmd.tok,"-u",cov.file)
     }
+    print(cmd.tok)
     system(cmd.tok)
     paste0("methQTL_",id,"_",chr)
   })
   cmd.tok <- paste("sbatch --export=ALL",
-                   "--job_name",paste0("methQTL_",id,"_summary"),
+                   "--job-name",paste0("methQTL_",id,"_summary"),
                    "-o",file.path(out.dir,paste0("methQTL_",id,"_summary.log")),
                    dep.tok,
                    "--depend=",paste0(job.names,collapse = ","),
                    paste0("--wrap='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="MAGAR")),
                    paste0("-o ",out.dir,"'")
                   )
+  print(cmd.tok)
   system(cmd.tok)
   logger.start("Waiting for jobs to finish")
   finished <- F
