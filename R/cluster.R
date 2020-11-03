@@ -156,7 +156,7 @@ submitClusterJobsSLURM <- function(methQTL.input,
                    paste0("--job-name=","methQTL_",id,"_summary"),
                    "-o",file.path(out.dir,paste0("methQTL_",id,"_summary.log")),
                    dep.tok,
-                   paste0("--depend=",job.names,collapse = ","),
+                   paste0("--depend=",paste0(job.names,collapse = ",")),
                    paste0("--wrap='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="MAGAR")),
                    paste0("-o ",out.dir,"'")
                   )
