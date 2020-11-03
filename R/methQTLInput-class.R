@@ -82,7 +82,7 @@ setClass("methQTLInput",
            platform="probesEPIC",
 	   segmentation=NULL
          ),
-         package="methQTL")
+         package="MAGAR")
 
 # CONSTRUCTOR
 setMethod("initialize","methQTLInput",

@@ -54,7 +54,7 @@ setClass("methQTLResult",
            rep.type="row.medians",
            chr=NULL
          ),
-         package="methQTL")
+         package="MAGAR")
 
 # CONSTRUCTOR
 setMethod("initialize","methQTLResult",

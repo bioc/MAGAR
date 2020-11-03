@@ -208,7 +208,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
   if(!missing(rnbeads.options)){
     if(is.null(rnbeads.options)){
       logger.info("Loading system default for option 'rnbeads.options'")
-      rnbeads.options=system.file("extdata/rnbeads_options.xml",package="methQTL")
+      rnbeads.options=system.file("extdata/rnbeads_options.xml",package="MAGAR")
     }
     if(!grepl(".xml",rnbeads.options)){
       stop("Invalid value for rnbeads.options: needs to be a path to a XML configuration file")
@@ -493,7 +493,7 @@ qtlGetOption <- function(names){
   if('rnbeads.options'%in%names){
     if(is.null(QTL.OPTIONS[['RNBEADS.OPTIONS']])){
       logger.info("Loading system default for option 'rnbeads.options'")
-      qtlSetOption('rnbeads.options'=system.file("extdata/rnbeads_options.xml",package="methQTL"))
+      qtlSetOption('rnbeads.options'=system.file("extdata/rnbeads_options.xml",package="MAGAR"))
     }
     ret <- c(ret,rnbeads.options=QTL.OPTIONS[['RNBEADS.OPTIONS']])
   }
@@ -534,7 +534,7 @@ qtlGetOption <- function(names){
     fast.qtl.path <- QTL.OPTIONS[['FAST.QTL.PATH']]
     if(is.null(fast.qtl.path)){
       logger.info("Loading system default for option 'fast.qtl.path'")
-      fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL")
+      fast.qtl.path=system.file("bin/fastQTL.static",package="MAGAR")
       er <- tryCatch(system(fast.qtl.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of fastQTL, please install it manually and specify it with 'fast.qtl.path'")
@@ -549,7 +549,7 @@ qtlGetOption <- function(names){
     plink.path <- QTL.OPTIONS[['PLINK.PATH']]
     if(is.null(plink.path)){
       logger.info("Loading system default for option 'plink.path'")
-      plink.path=system.file("bin/plink",package="methQTL")
+      plink.path=system.file("bin/plink",package="MAGAR")
       er <- tryCatch(system(plink.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of plink, please install it manually and specify it with 'plink.path'")
@@ -561,7 +561,7 @@ qtlGetOption <- function(names){
     bgzip.path <- QTL.OPTIONS[['BGZIP.PATH']]
     if(is.null(bgzip.path)){
       logger.info("Loading system default for option 'bgzip.path'")
-      tabix.path=system.file("bin/bgzip",package="methQTL")
+      tabix.path=system.file("bin/bgzip",package="MAGAR")
       er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of bgzip, please install it manually and specify it with 'bgzip.path'")
@@ -573,7 +573,7 @@ qtlGetOption <- function(names){
     tabix.path <- QTL.OPTIONS[['TABIX.PATH']]
     if(is.null(tabix.path)){
       logger.info("Loading system default for option 'tabix.path'")
-      tabix.path=system.file("bin/tabix",package="methQTL")
+      tabix.path=system.file("bin/tabix",package="MAGAR")
       er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of tabix, please install it manually and specify it with 'tabix.path'")
