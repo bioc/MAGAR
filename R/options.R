@@ -16,7 +16,7 @@ assign('ALL',c('rnbeads.options','meth.data.type','geno.data.type','rnbeads.repo
                	'n.permutations','p.value.correction','compute.cor.blocks',
                	'use.segmentation','use.functional.annotation',
 		           'functional.annotation.weight','impute.geno.data',"vcftools.path",
-		'cluster.architecture'
+		'cluster.architecture',
 		           "imputation.user.token","imputation.reference.panel","imputation.phasing.method","imputation.population"),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',NULL,QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
@@ -114,10 +114,10 @@ assign("CLUSTER.ARCHITECTURE","sge",QTL.OPTIONS)
 #'             default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
 #'             for larger ones.
 #' @param cluster.architecture The type of HPC cluster architecture present. Currently supported are \code{'sge'} and \code{'slurm'}
-#' @param cluster.config Resource parameters needed to setup an SGE cluster job. Includes \code{h_vmem} and \code{mem_free}
+#' @param cluster.config Resource parameters needed to setup an SGE or SLURM cluster job. Includes \code{h_vmem} and \code{mem_free} for SGE and \code{clock.limit} and \code{mem.size} for SLURM
 #' @param rscript.path Path to an executable version of Rscript needed for submitting batch jobs to a cluster
 #' @param n.permutations The number of permutations used to correct the p-values for multiple testing. See
-#'              (http://fastqtl.sourceforge.net/) for furthe information.
+#'              (http://fastqtl.sourceforge.net/) for further information.
 #' @param p.value.correction The p-value correction method for multiple testing correction. Can be one of
 #'              \code{"uncorrected.fdr"} or \code{"corrected.fdr}. \code{"uncorrected.fdr"} uses nominal p-values
 #'              per correlation block as a lenient filtering and then uses FDR with the number of tests performed.
