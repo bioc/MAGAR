@@ -390,8 +390,12 @@ qtlSetOption <- function(rnbeads.options=NULL,
   }
   if(!missing(cluster.config)){
     cluster.config <- unlist(cluster.config)
-    if(!is.character(cluster.config) || any(!(c("h_vmem","mem_free") %in% names(cluster.config)))){
+    if(!is.character(cluster.config)){
       stop("Invalid value for cluster.config, needs to be character")
+    }else if(qtlGetOption("cluster.architecture")=="sge" && any(!(c("h_vmem","mem_free") %in% names(cluster.config)))){
+		stop("h_vmem and mem_free required for cluster.architecture='sge'")
+    }else if(qtlGetOption("cluster.architecture")=="slurm" && any(!(c("clock.limit","mem.size") %in% names(cluster.config)))){
+		stop("clock.limit and mem.size required for cluster.architecture='slurm'")
     }
     QTL.OPTIONS[['CLUSTER.CONFIG']] <- cluster.config
   }
