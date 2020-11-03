@@ -130,27 +130,27 @@ submitClusterJobsSLURM <- function(methQTL.input,
   if(any(!(names(req.res)%in%c("clock.limit","mem.size")))){
 	stop("Only 'clock.limit' and 'mem.size' currently supported for SLURM")
   }
-  dep.tok <- paste(dep.tok,ifelse(req.res["clock.limit"]==NULL,"",paste(,"-t",req.res["clock.limit"])),
-	ifelse(req.res["mem.size"]==NULL,"",paste(,"-mem=",req.res["mem.size"])))
+  dep.tok <- paste(dep.tok,ifelse(is.null(req.res["clock.limit"]),"",paste("-t",req.res["clock.limit"])),
+	ifelse(is.null(req.res["mem.size"]),"",paste0("-mem=",req.res["mem.size"])))
   job.names <- sapply(all.chroms,function(chr){
     cmd.tok <- paste("sbatch --export=ALL",
                      "--job-name=",paste0("methQTL_",id,"_",chr),
                      "-o",file.path(out.dir,paste0("methQTL_",id,"_",chr,".log")),
                      dep.tok,
-                     paste0("--wrap=='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_chromosome_job.R",package="MAGAR")),
+                     paste0("--wrap='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_chromosome_job.R",package="MAGAR")),
                      "-m",methQTL.file,
                      "-j",json.path,
                      "-c",chr,
                      "-p",p.val.cutoff,
+                     "-n",ncores,
                      "-o",paste0(out.dir,"'"),
-                     "-n",ncores
                      )
     if(!is.null(covariates)){
       cmd.tok <- paste(cmd.tok,"-u",cov.file)
     }
     print(cmd.tok)
-    system(cmd.tok)
-    paste0("methQTL_",id,"_",chr)
+    as.numeric(gsub("Submitted batch job ","",system(cmd.tok,intern=T)))
+    #paste0("methQTL_",id,"_",chr)
   })
   cmd.tok <- paste("sbatch --export=ALL",
                    "--job-name",paste0("methQTL_",id,"_summary"),
