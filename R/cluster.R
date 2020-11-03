@@ -143,7 +143,7 @@ submitClusterJobsSLURM <- function(methQTL.input,
                      "-c",chr,
                      "-p",p.val.cutoff,
                      "-n",ncores,
-                     "-o",paste0(out.dir,"'"),
+                     "-o",paste0(out.dir,"'")
                      )
     if(!is.null(covariates)){
       cmd.tok <- paste(cmd.tok,"-u",cov.file)
