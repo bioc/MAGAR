@@ -16,6 +16,7 @@ assign('ALL',c('rnbeads.options','meth.data.type','geno.data.type','rnbeads.repo
                	'n.permutations','p.value.correction','compute.cor.blocks',
                	'use.segmentation','use.functional.annotation',
 		           'functional.annotation.weight','impute.geno.data',"vcftools.path",
+		'cluster.architecture',
 		           "imputation.user.token","imputation.reference.panel","imputation.phasing.method","imputation.population"),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',NULL,QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
@@ -56,6 +57,7 @@ assign("IMPUTATION.USER.TOKEN",NULL,QTL.OPTIONS)
 assign("IMPUTATION.REFERENCE.PANEL","apps@hrc-r1.1",QTL.OPTIONS)
 assign("IMPUTATION.PHASING.METHOD","shapeit",QTL.OPTIONS)
 assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
+assign("CLUSTER.ARCHITECTURE","sge",QTL.OPTIONS)
 
 #' qtlSetOption
 #'
@@ -111,10 +113,12 @@ assign("IMPUTATION.POPULATION","eur",QTL.OPTIONS)
 #' @param max.cpgs Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
 #'             default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
 #'             for larger ones.
-#' @param cluster.config Resource parameters needed to setup an SGE cluster job. Includes \code{h_vmem} and \code{mem_free}
+#' @param cluster.architecture The type of HPC cluster architecture present. Currently supported are \code{'sge'} and \code{'slurm'}
+#' @param cluster.config Resource parameters needed to setup an SGE or SLURM cluster job. Includes \code{h_vmem} and \code{mem_free} for SGE and \code{clock.limit} and \code{mem.size} for SLURM.
+#' An example configuration for SLURM would be \code{c("clock.limit"="1-0","mem.size"="10G")} for 1 day of running time (format days:hours) and 10 GB of maximum memory usage.
 #' @param rscript.path Path to an executable version of Rscript needed for submitting batch jobs to a cluster
 #' @param n.permutations The number of permutations used to correct the p-values for multiple testing. See
-#'              (http://fastqtl.sourceforge.net/) for furthe information.
+#'              (http://fastqtl.sourceforge.net/) for further information.
 #' @param p.value.correction The p-value correction method for multiple testing correction. Can be one of
 #'              \code{"uncorrected.fdr"} or \code{"corrected.fdr}. \code{"uncorrected.fdr"} uses nominal p-values
 #'              per correlation block as a lenient filtering and then uses FDR with the number of tests performed.
@@ -185,6 +189,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
                        meth.qtl.type="oneVSall",
                        max.cpgs=40000,
                        rscript.path="/usr/bin/Rscript",
+		       cluster.architecture='sge',
                        cluster.config=c(h_vmem="5G",mem_free="5G"),
                        n.permutations=1000,
                        p.value.correction="uncorrected.fdr",
@@ -204,7 +209,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
   if(!missing(rnbeads.options)){
     if(is.null(rnbeads.options)){
       logger.info("Loading system default for option 'rnbeads.options'")
-      rnbeads.options=system.file("extdata/rnbeads_options.xml",package="methQTL")
+      rnbeads.options=system.file("extdata/rnbeads_options.xml",package="MAGAR")
     }
     if(!grepl(".xml",rnbeads.options)){
       stop("Invalid value for rnbeads.options: needs to be a path to a XML configuration file")
@@ -378,10 +383,20 @@ qtlSetOption <- function(rnbeads.options=NULL,
       logger.error("Invalid value for rscript.path. Needs to be a path to an executable version of Rscript")})
     QTL.OPTIONS[['RSCRIPT.PATH']] <- rscript.path
   }
+  if(!missing(cluster.architecture)){
+	if(!is.character(cluster.architecture) || !(cluster.architecture%in%c('sge','slurm'))){
+		stop("Invalid value for cluster.architecture, needs to be 'sge' or 'slurm'")
+	}
+	QTL.OPTIONS[['CLUSTER.ARCHITECTURE']] <- cluster.architecture
+  }
   if(!missing(cluster.config)){
     cluster.config <- unlist(cluster.config)
-    if(!is.character(cluster.config) || any(!(c("h_vmem","mem_free") %in% names(cluster.config)))){
+    if(!is.character(cluster.config)){
       stop("Invalid value for cluster.config, needs to be character")
+    }else if(qtlGetOption("cluster.architecture")=="sge" && any(!(c("h_vmem","mem_free") %in% names(cluster.config)))){
+		stop("h_vmem and mem_free required for cluster.architecture='sge'")
+    }else if(qtlGetOption("cluster.architecture")=="slurm" && any(!(c("clock.limit","mem.size") %in% names(cluster.config)))){
+		stop("clock.limit and mem.size required for cluster.architecture='slurm'")
     }
     QTL.OPTIONS[['CLUSTER.CONFIG']] <- cluster.config
   }
@@ -479,7 +494,7 @@ qtlGetOption <- function(names){
   if('rnbeads.options'%in%names){
     if(is.null(QTL.OPTIONS[['RNBEADS.OPTIONS']])){
       logger.info("Loading system default for option 'rnbeads.options'")
-      qtlSetOption('rnbeads.options'=system.file("extdata/rnbeads_options.xml",package="methQTL"))
+      qtlSetOption('rnbeads.options'=system.file("extdata/rnbeads_options.xml",package="MAGAR"))
     }
     ret <- c(ret,rnbeads.options=QTL.OPTIONS[['RNBEADS.OPTIONS']])
   }
@@ -520,7 +535,7 @@ qtlGetOption <- function(names){
     fast.qtl.path <- QTL.OPTIONS[['FAST.QTL.PATH']]
     if(is.null(fast.qtl.path)){
       logger.info("Loading system default for option 'fast.qtl.path'")
-      fast.qtl.path=system.file("bin/fastQTL.static",package="methQTL")
+      fast.qtl.path=system.file("bin/fastQTL.static",package="MAGAR")
       er <- tryCatch(system(fast.qtl.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of fastQTL, please install it manually and specify it with 'fast.qtl.path'")
@@ -535,7 +550,7 @@ qtlGetOption <- function(names){
     plink.path <- QTL.OPTIONS[['PLINK.PATH']]
     if(is.null(plink.path)){
       logger.info("Loading system default for option 'plink.path'")
-      plink.path=system.file("bin/plink",package="methQTL")
+      plink.path=system.file("bin/plink",package="MAGAR")
       er <- tryCatch(system(plink.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of plink, please install it manually and specify it with 'plink.path'")
@@ -547,7 +562,7 @@ qtlGetOption <- function(names){
     bgzip.path <- QTL.OPTIONS[['BGZIP.PATH']]
     if(is.null(bgzip.path)){
       logger.info("Loading system default for option 'bgzip.path'")
-      tabix.path=system.file("bin/bgzip",package="methQTL")
+      tabix.path=system.file("bin/bgzip",package="MAGAR")
       er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of bgzip, please install it manually and specify it with 'bgzip.path'")
@@ -559,7 +574,7 @@ qtlGetOption <- function(names){
     tabix.path <- QTL.OPTIONS[['TABIX.PATH']]
     if(is.null(tabix.path)){
       logger.info("Loading system default for option 'tabix.path'")
-      tabix.path=system.file("bin/tabix",package="methQTL")
+      tabix.path=system.file("bin/tabix",package="MAGAR")
       er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of tabix, please install it manually and specify it with 'tabix.path'")
@@ -593,6 +608,9 @@ qtlGetOption <- function(names){
   }
   if('rscript.path'%in%names){
     ret <- c(ret,rscript.path=QTL.OPTIONS[['RSCRIPT.PATH']])
+  }
+  if('cluster.architecture'%in%names){
+    ret <- c(ret,cluster.architecture=QTL.OPTIONS[['CLUSTER.ARCHITECTURE']])
   }
   if('cluster.config'%in%names){
     ret <- c(ret,cluster.config=list(QTL.OPTIONS[['CLUSTER.CONFIG']]))

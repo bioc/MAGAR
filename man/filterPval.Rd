@@ -3,6 +3,7 @@
 \docType{methods}
 \name{filterPval,methQTLResult-method}
 \alias{filterPval,methQTLResult-method}
+\alias{filterPval}
 \title{filterPval}
 \usage{
 \S4method{filterPval}{methQTLResult}(object, p.val.cutoff = 0.01)

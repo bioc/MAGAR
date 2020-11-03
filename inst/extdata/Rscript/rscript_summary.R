@@ -1,5 +1,5 @@
 suppressPackageStartupMessages(library(argparse))
-suppressPackageStartupMessages(library(methQTL))
+suppressPackageStartupMessages(library(MAGAR))
 
 ap <- ArgumentParser()
 ap$add_argument("-o","--output",action="store",help="Output directory")

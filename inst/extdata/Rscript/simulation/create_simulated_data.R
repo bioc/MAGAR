@@ -166,7 +166,7 @@ to.plot$Type <- c(rep("CpG",2),rep("SNP",2))
 plot <- ggplot(to.plot,aes(x=Type,y=Stat,fill=Mean))+geom_tile()+
   geom_text(aes(label=paste0(round(Mean,3),"\u00B1",round(StandardError,3))))+
   theme_bw()+theme(text=element_text(size=15,color="black"))
-ggsave("/TL/deep/projects/work/mscherer/projects/methQTL/simulation/sensiticity_specificity.pdf")
+ggsave("sensiticity_specificity.pdf")
 # to.plot <- melt(snp.matrix)
 # hist(to.plot$value)
 

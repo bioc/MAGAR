@@ -31,6 +31,7 @@ qtlSetOption(
   meth.qtl.type = "oneVSall",
   max.cpgs = 40000,
   rscript.path = "/usr/bin/Rscript",
+  cluster.architecture = "sge",
   cluster.config = c(h_vmem = "5G", mem_free = "5G"),
   n.permutations = 1000,
   p.value.correction = "uncorrected.fdr",
@@ -124,10 +125,12 @@ for larger ones.}
 
 \item{rscript.path}{Path to an executable version of Rscript needed for submitting batch jobs to a cluster}
 
-\item{cluster.config}{Resource parameters needed to setup an SGE cluster job. Includes \code{h_vmem} and \code{mem_free}}
+\item{cluster.architecture}{The type of HPC cluster architecture present. Currently supported are \code{'sge'} and \code{'slurm'}}
+
+\item{cluster.config}{Resource parameters needed to setup an SGE or SLURM cluster job. Includes \code{h_vmem} and \code{mem_free} for SGE and \code{clock.limit} and \code{mem.size} for SLURM}
 
 \item{n.permutations}{The number of permutations used to correct the p-values for multiple testing. See
-(http://fastqtl.sourceforge.net/) for furthe information.}
+(http://fastqtl.sourceforge.net/) for further information.}
 
 \item{p.value.correction}{The p-value correction method for multiple testing correction. Can be one of
 \code{"uncorrected.fdr"} or \code{"corrected.fdr}. \code{"uncorrected.fdr"} uses nominal p-values

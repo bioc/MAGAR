@@ -4,6 +4,7 @@
 \name{saveMethQTL,methQTLInput-method}
 \alias{saveMethQTL,methQTLInput-method}
 \alias{saveMethQTL,methQTL-method}
+\alias{saveMethQTL}
 \title{saveMethQTL}
 \usage{
 \S4method{saveMethQTL}{methQTLInput}(object, path)

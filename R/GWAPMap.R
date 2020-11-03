@@ -12,6 +12,7 @@
 #' 
 #' @param file The path to the GWASMap CSV file
 #' @param sep The table separator
+#' @param dec The decimal point separator
 #' @return A list object with each element being the first line of the GWASMap output file.
 #'      Each of the distinct elements in the first column is used as a category and the associated
 #'      table is parsed separately as a table.

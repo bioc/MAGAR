@@ -1,8 +1,8 @@
 Package: MAGAR
 Type: Package
 Title: MAGAR: R-package to compute methylation Quantitative Trait Loci (methQTL) from DNA methylation and genotyping data
-Version: 0.3.6
-Date: 2020-10-09
+Version: 0.3.7
+Date: 2020-11-03
 Authors@R: c(
 	person("Scherer", "Michael", email="mscherer@mpi-inf.mpg.de", role=c("cre", "aut"), comment = c(ORCID = "0000-0001-7990-6179"))
 	)
@@ -11,20 +11,16 @@ Description: "Methylation-Aware Genotype Association in R" (MAGAR) computes meth
 License: GPL-3
 Imports: doParallel,
          igraph,
-         psych,
-         rtracklayer,
          bigstatsr,
          rjson,
-         Matrix,
-         knitr,
          plyr,
-	 BiocGenerics,
-	 ff,
 	 data.table,
-	 methods,
 	 UpSetR,
 	 reshape2,
-	 jsonlite
+	 jsonlite,
+	 methQTL.data,
+	 methods,
+	 ff
 Depends: R (>= 3.5),
    HDF5Array,
 	 RnBeads,
@@ -37,10 +33,11 @@ Suggests: gridExtra,
          RUnit,
          rmutil,
          rmarkdown,
-         motifRG,
 	 JASPAR2018,
 	 TFBSTools,
-	 seqLogo
+	 seqLogo,
+         knitr,
+	 devtools
 Encoding: UTF-8
 RoxygenNote: 7.1.0
 VignetteBuilder: knitr

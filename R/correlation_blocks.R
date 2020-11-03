@@ -37,7 +37,7 @@
 #'
 #' @author Michael Scherer
 #' @export
-#' @import igraph
+#' @importFrom igraph graph.adjacency cluster_louvain groups
 #' @import bigstatsr
 computeCorrelationBlocks <- function(meth.data,
                                        annotation,

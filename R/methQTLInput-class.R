@@ -82,7 +82,7 @@ setClass("methQTLInput",
            platform="probesEPIC",
 	   segmentation=NULL
          ),
-         package="methQTL")
+         package="MAGAR")
 
 # CONSTRUCTOR
 setMethod("initialize","methQTLInput",
@@ -328,6 +328,7 @@ if(!isGeneric("saveMethQTL")) setGeneric("saveMethQTL", function(object,...)stan
 #' @rdname saveMethQTL
 #' @docType methods
 #' @aliases saveMethQTL,methQTL-method
+#' @aliases saveMethQTL
 #' @author Michael Scherer
 #' @export
 setMethod("saveMethQTL","methQTLInput",

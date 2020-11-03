@@ -54,7 +54,7 @@ setClass("methQTLResult",
            rep.type="row.medians",
            chr=NULL
          ),
-         package="methQTL")
+         package="MAGAR")
 
 # CONSTRUCTOR
 setMethod("initialize","methQTLResult",
@@ -196,6 +196,7 @@ if(!isGeneric("getCorrelationBlocks")) setGeneric("getCorrelationBlocks",functio
 #' @rdname getCorrelationBlocks
 #' @docType methods
 #' @aliases getCorrelationBlocks,methQTLResult-method
+#' @aliases getCorrelationBlocks
 #' @return
 #' @export
 setMethod("getCorrelationBlocks",signature(object="methQTLResult"),
@@ -262,9 +263,10 @@ if(!isGeneric("filterPval")) setGeneric("filterPval", function(object,...)standa
 #' @param object The \code{\link{methQTLResult-class}} object to be filtered
 #' @param p.val.cutoff The p-value cutoff to be employed
 #' @return The filtered \code{\link{methQTLResult-class}} object
-#' @rdname filter.pval
+#' @rdname filterPval
 #' @docType methods
 #' @aliases filterPval,methQTLResult-method
+#' @aliases filterPval
 #' @author Michael Scherer
 #' @export
 setMethod("filterPval","methQTLResult",
@@ -288,6 +290,7 @@ if(!isGeneric("saveMethQTLResult")) setGeneric("saveMethQTLResult", function(obj
 #' @rdname saveMethQTLResult
 #' @docType methods
 #' @aliases saveMethQTLResult,methQTL-method
+#' @aliases saveMethQTLResult
 #' @author Michael Scherer
 #' @export
 setMethod("saveMethQTLResult","methQTLResult",

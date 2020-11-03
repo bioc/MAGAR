@@ -4,6 +4,7 @@
 \name{saveMethQTLResult,methQTLResult-method}
 \alias{saveMethQTLResult,methQTLResult-method}
 \alias{saveMethQTLResult,methQTL-method}
+\alias{saveMethQTLResult}
 \title{saveMethQTLResult}
 \usage{
 \S4method{saveMethQTLResult}{methQTLResult}(object, path)

@@ -4,14 +4,14 @@ test.meth.qtl.functions <- function(){
   sel.chr <- paste0("chr",sample(1:23,1))
 
   # Generate methylation matrix
-  sel.cpgs <- sort(sample(1:1e6,1000))
-  anno.cpg <- data.frame(Chromosome=rep(sel.chr,1000),Start=sel.cpgs,End=sel.cpgs+1)
+  sel.cpgs <- sort(sample(1:1e6,100))
+  anno.cpg <- data.frame(Chromosome=rep(sel.chr,100),Start=sel.cpgs,End=sel.cpgs+1)
 
   if(requireNamespace("rmutil")){
-    meth.values.cpgs <- rmutil::rbetabinom(1000,100,0.4,0.1)
+    meth.values.cpgs <- rmutil::rbetabinom(100,100,0.4,0.1)
   }
-  num.clusters <- sample(200:500,1)
-  is.changed <- rep(FALSE,length(100))
+  num.clusters <- sample(20:50,1)
+  is.changed <- rep(FALSE,100)
   for(i in 1:num.clusters){
     if(all(is.changed)) break
     clust.size <- sample(0:9,1)
@@ -19,15 +19,15 @@ test.meth.qtl.functions <- function(){
     meth.values.cpgs[clust.location:(clust.location+clust.size)] <- meth.values.cpgs[clust.location]
     is.changed[clust.location:(clust.location+clust.size)] <- TRUE
   }
-  meth.matrix <- matrix(rep(meth.values.cpgs,100),nrow = 1000,ncol = 100)/100
+  meth.matrix <- matrix(rep(meth.values.cpgs,100),nrow = 100,ncol = 100)/100
   meth.matrix <- apply(meth.matrix,c(1,2),function(cpg){
     cpg <- cpg+rnorm(1,sd=0.05)
     ifelse(cpg>1,1,ifelse(cpg<0,0,cpg))
   })
 
   # Generate genotype matrix
-  sel.snps <- sort(sample(1:1e6,1000))
-  anno.snps <- data.frame(Chromosome=rep(sel.chr,1000),Start=sel.snps,End=sel.snps)
+  sel.snps <- sort(sample(1:1e6,100))
+  anno.snps <- data.frame(Chromosome=rep(sel.chr,100),Start=sel.snps,End=sel.snps)
   snp.matrix <- matrix(0,nrow = nrow(anno.snps),ncol = 100)
   for(i in 1:length(sel.snps)){
     maf <- rnbinom(1,5,0.4)/20
@@ -43,8 +43,8 @@ test.meth.qtl.functions <- function(){
     }
   }
 
-  num.methQTL <- 100
-  is.methQTL.CpG <- rep(FALSE,1000)
+  num.methQTL <- 10
+  is.methQTL.CpG <- rep(FALSE,100)
   map.cpg.snp <- list()
   is.methQTL.SNP <- rep(FALSE,nrow(snp.matrix))
   mafs <- c()
@@ -120,3 +120,5 @@ test.meth.qtl.functions <- function(){
   checkTrue(passed)
   logger.completed()
 }
+
+test.meth.qtl.functions()

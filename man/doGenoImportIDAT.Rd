@@ -27,7 +27,7 @@ doGenoImportIDAT(
 \item{idat.platform}{The array platform to be used. Check those available using the crlmm function \code{\link{validCdfNames}}.
 Additionally, for the Illumina OmniExpress 12 v1.0, and Infinium Omni2.5-8 v1.4 we
 provide two custom annotations, which can be used using the 'OmniExpress' and
-'OmniExome' options, respectively.}
+'Omni2-5' options, respectively.}
 
 \item{call.method}{The genotype calling method passed to \code{\link{genotype.Illumina}}}
 

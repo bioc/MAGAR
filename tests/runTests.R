@@ -1,1 +1,1 @@
-BiocGenerics:::testPackage("methQTL")
+BiocGenerics:::testPackage("MAGAR")

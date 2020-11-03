@@ -446,7 +446,7 @@ qtlPlotBaseSubstitution <- function(meth.qtl.res,...){
 #'
 #' This function overlaps correlation blocks for a list of methQTL results
 #'
-#' @param meth.qtl.res.list A list of \code{\link{methQTLResult}} objects, for which correlation blocks are to be overlapped
+#' @param meth.qtl.res.list A list of \code{\link{methQTLResult-class}} objects, for which correlation blocks are to be overlapped
 #' @param ... Further argument passed to \code{\link[UpSetR]{upset}}
 #' @details This function draws an UpSetPlot for the overlaps directly from to the open graphics device
 #' @export
@@ -475,7 +475,7 @@ qtlUpSetPlotCorBlocks <- function(meth.qtl.res.list,...){
 #'
 #' This function overlaps the tagCpGs for a list of methQTL results
 #'
-#' @param meth.qtl.res.list A list of \code{\link{methQTLResult}} objects, for which correlation blocks are to be overlapped
+#' @param meth.qtl.res.list A list of \code{\link{methQTLResult-class}} objects, for which correlation blocks are to be overlapped
 #' @param ... Further argument passed to \code{\link[UpSetR]{upset}}
 #' @details This function draws an UpSetPlot for the overlaps directly from to the open graphics device
 #' @export

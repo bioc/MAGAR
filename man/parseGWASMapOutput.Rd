@@ -10,6 +10,8 @@ parseGWASMapOutput(file, sep = ",", dec = ".")
 \item{file}{The path to the GWASMap CSV file}
 
 \item{sep}{The table separator}
+
+\item{dec}{The decimal point separator}
 }
 \value{
 A list object with each element being the first line of the GWASMap output file.
