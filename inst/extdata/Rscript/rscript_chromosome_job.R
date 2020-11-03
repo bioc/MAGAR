@@ -1,5 +1,5 @@
 suppressPackageStartupMessages(library(argparse))
-suppressPackageStartupMessages(library(methQTL))
+suppressPackageStartupMessages(library(MAGAR))
 
 ap <- ArgumentParser()
 ap$add_argument("-m","--methQTL",action="store",help="methQTL object to be used")
