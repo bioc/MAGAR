@@ -42,5 +42,5 @@ Encoding: UTF-8
 RoxygenNote: 7.1.0
 VignetteBuilder: knitr
 biocViews: Regression, Epigenetics, QuantitativeTraitLocus, DNA methylation, SNP
-BugReports: https://github.com/MPIIComputationalEpigenetics/methQTL-package/issues
-URL: https://github.com/MPIIComputationalEpigenetics/methQTL-package
+BugReports: https://github.com/MPIIComputationalEpigenetics/MAGAR/issues
+URL: https://github.com/MPIIComputationalEpigenetics/MAGAR

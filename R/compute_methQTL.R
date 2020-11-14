@@ -114,7 +114,7 @@ doMethQTL <- function(meth.qtl,
 #' @author Michael Scherer
 #' @export
 #' @import doParallel
-doMethQTLChromosome <- function(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir=NULL,ncores=1){
+doMethQTLChromosome <- function(meth.qtl,chrom,sel.covariates=NULL,p.val.cutoff=1e-5,out.dir=NULL,ncores=1){
   logger.start(paste("Computing methQTL for chromosome",chrom))
   anno <- getAnno(meth.qtl,"meth")
   sel.meth <- which(anno$Chromosome %in% chrom)
