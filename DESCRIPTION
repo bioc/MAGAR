@@ -20,7 +20,8 @@ Imports: doParallel,
 	 jsonlite,
 	 methQTL.data,
 	 methods,
-	 ff
+	 ff,
+	 argparse
 Depends: R (>= 3.5),
    HDF5Array,
 	 RnBeads,

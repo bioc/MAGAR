@@ -7,8 +7,8 @@
 doMethQTLChromosome(
   meth.qtl,
   chrom,
-  sel.covariates,
-  p.val.cutoff,
+  sel.covariates = NULL,
+  p.val.cutoff = 1e-05,
   out.dir = NULL,
   ncores = 1
 )

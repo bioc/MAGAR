@@ -127,7 +127,8 @@ for larger ones.}
 
 \item{cluster.architecture}{The type of HPC cluster architecture present. Currently supported are \code{'sge'} and \code{'slurm'}}
 
-\item{cluster.config}{Resource parameters needed to setup an SGE or SLURM cluster job. Includes \code{h_vmem} and \code{mem_free} for SGE and \code{clock.limit} and \code{mem.size} for SLURM}
+\item{cluster.config}{Resource parameters needed to setup an SGE or SLURM cluster job. Includes \code{h_vmem} and \code{mem_free} for SGE and \code{clock.limit} and \code{mem.size} for SLURM.
+An example configuration for SLURM would be \code{c("clock.limit"="1-0","mem.size"="10G")} for 1 day of running time (format days:hours) and 10 GB of maximum memory usage.}
 
 \item{n.permutations}{The number of permutations used to correct the p-values for multiple testing. See
 (http://fastqtl.sourceforge.net/) for further information.}

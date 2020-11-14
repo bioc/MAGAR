@@ -19,6 +19,7 @@
 #' @return A list containing \code{\link{methQTLResult-class}} objects for each chromosome
 #' @details The function was specifically created for a Sun Grid Engine (SGE) cluster, but can be extendend, to
 #'  e.g. a SLURM architecture.
+#' @import argparse
 #' @author Michael Scherer
 #' @noRd
 submitClusterJobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncores=1){
@@ -148,7 +149,6 @@ submitClusterJobsSLURM <- function(methQTL.input,
     if(!is.null(covariates)){
       cmd.tok <- paste(cmd.tok,"-u",cov.file)
     }
-    print(cmd.tok)
     as.numeric(gsub("Submitted batch job ","",system(cmd.tok,intern=T)))
     #paste0("methQTL_",id,"_",chr)
   })
@@ -160,7 +160,6 @@ submitClusterJobsSLURM <- function(methQTL.input,
                    paste0("--wrap='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="MAGAR")),
                    paste0("-o ",out.dir,"'")
                   )
-  print(cmd.tok)
   system(cmd.tok)
   logger.start("Waiting for jobs to finish")
   finished <- F
