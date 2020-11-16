@@ -157,6 +157,7 @@ submitClusterJobsSLURM <- function(methQTL.input,
     if(!is.null(covariates)){
       cmd.tok <- paste(cmd.tok,"-u",cov.file)
     }
+    print(cmd.tok)
     as.numeric(gsub("Submitted batch job ","",system(cmd.tok,intern=T)))
     #paste0("methQTL_",id,"_",chr)
   })
