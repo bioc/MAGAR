@@ -66,6 +66,8 @@ submitClusterJobsSGE <- function(methQTL.input,
   for(i in 1:length(names(req.res))){
     dep.tok <- paste(dep.tok,"-l",paste0(names(req.res)[i],"=",req.res[i]))
   }
+  hdf.dir <- getHDF5DumpDir()
+  ff.dir <- getOption("fftempdir")
   job.names <- sapply(all.chroms,function(chr){
     cmd.tok <- paste("qsub -V",
                      "-N",paste0("methQTL_",id,"_",chr),
@@ -79,7 +81,9 @@ submitClusterJobsSGE <- function(methQTL.input,
                      "-c",chr,
                      "-p",p.val.cutoff,
                      "-o",paste0(out.dir,"'"),
-                     "-n",ncores
+                     "-n",ncores,
+		     "-h",hdf.dir,
+		     "-f",ff.dir
                      )
     if(!is.null(covariates)){
       cmd.tok <- paste(cmd.tok,"-u",cov.file)
@@ -131,6 +135,8 @@ submitClusterJobsSLURM <- function(methQTL.input,
   if(any(!(names(req.res)%in%c("clock.limit","mem.size")))){
 	stop("Only 'clock.limit' and 'mem.size' currently supported for SLURM")
   }
+  hdf.dir <- getHDF5DumpDir()
+  ff.dir <- getOption("fftempdir")
   dep.tok <- paste(dep.tok,ifelse(is.null(req.res["clock.limit"]),"",paste("-t",req.res["clock.limit"])),
 	ifelse(is.null(req.res["mem.size"]),"",paste0("--mem=",req.res["mem.size"])))
   job.names <- sapply(all.chroms,function(chr){
@@ -144,7 +150,9 @@ submitClusterJobsSLURM <- function(methQTL.input,
                      "-c",chr,
                      "-p",p.val.cutoff,
                      "-n",ncores,
-                     "-o",paste0(out.dir,"'")
+                     "-o",paste0(out.dir,"'"),
+		     "-h",hdf.dir,
+		     "-f",ff.dir
                      )
     if(!is.null(covariates)){
       cmd.tok <- paste(cmd.tok,"-u",cov.file)

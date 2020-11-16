@@ -9,6 +9,8 @@ ap$add_argument("-u","--covariates",action="store",default=NULL,help="covariates
 ap$add_argument("-p","--p.val",action="store",default=1e-5,help="p-value cutoff")
 ap$add_argument("-o","--output",action="store",help="Output directory")
 ap$add_argument("-n","--ncores",action="store",default=1,help="Number of cores to be used")
+ap$add_argument("-h","--hdf5dir",action="store",help="The HDF5 dump directory")
+ap$add_argument("-f","--ffdir",action="store",help="The ff dump directory")
 cmd.args <- ap$parse_args()
 
 logger.start(paste("Running on:",Sys.info()["nodename"]))
@@ -20,6 +22,9 @@ logger.completed()
 logger.start("Loading methQTL object")
 meth.qtl <- loadMethQTL(cmd.args$methQTL)
 logger.completed()
+
+setHDF5DumpDir(cmd.args$hdf5dir)
+options(fftempdir=cmd.args$ffdir)
 
 if(!is.null(cmd.args$covariates)){
   logger.start("Reading covariates")
