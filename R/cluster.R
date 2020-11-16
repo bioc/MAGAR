@@ -80,10 +80,10 @@ submitClusterJobsSGE <- function(methQTL.input,
                      "-j",json.path,
                      "-c",chr,
                      "-p",p.val.cutoff,
+		     "-d",hdf.dir,
+		     "-f",ff.dir,
                      "-o",paste0(out.dir,"'"),
-                     "-n",ncores,
-		     "-h",hdf.dir,
-		     "-f",ff.dir
+                     "-n",ncores
                      )
     if(!is.null(covariates)){
       cmd.tok <- paste(cmd.tok,"-u",cov.file)
@@ -150,9 +150,9 @@ submitClusterJobsSLURM <- function(methQTL.input,
                      "-c",chr,
                      "-p",p.val.cutoff,
                      "-n",ncores,
-                     "-o",paste0(out.dir,"'"),
-		     "-h",hdf.dir,
-		     "-f",ff.dir
+		     "-d",hdf.dir,
+		     "-f",ff.dir,
+                     "-o",paste0(out.dir,"'")
                      )
     if(!is.null(covariates)){
       cmd.tok <- paste(cmd.tok,"-u",cov.file)
