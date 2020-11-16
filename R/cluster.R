@@ -132,8 +132,8 @@ submitClusterJobsSLURM <- function(methQTL.input,
   id <- sample(1:10000,1)
   dep.tok <- ""
   req.res <- qtlGetOption("cluster.config")$cluster.config
-  if(any(!(names(req.res)%in%c("clock.limit","mem.size")))){
-	stop("Only 'clock.limit' and 'mem.size' currently supported for SLURM")
+  if(any(!(names(req.res)%in%c("clock.limit","mem.size","n.cpus")))){
+	stop("Only 'clock.limit', 'mem.size', and 'n.cpus' currently supported for SLURM")
   }
   hdf.dir <- getHDF5DumpDir()
   ff.dir <- getOption("fftempdir")
