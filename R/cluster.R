@@ -169,17 +169,18 @@ submitClusterJobsSLURM <- function(methQTL.input,
                    paste0("--wrap='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="MAGAR")),
                    paste0("-o ",out.dir,"'")
                   )
-  system(cmd.tok)
-  logger.start("Waiting for jobs to finish")
-  finished <- F
-  while(!finished){
-    Sys.sleep(100)
-    qstat.res <- system(paste("squeue --name",paste0("methQTL_",id,"_summary")),ignore.stdout = T, ignore.stderr = T)
-    # 0 for running, 1 for finished
-    if(qstat.res == 1){
-      finished <- T
-    }
-  }
-  methQTL.result <- loadMethQTLResult(file.path(out.dir,"methQTLResult"))
-  return(methQTL.result)
+  final.id <- as.numeric(gsub("Submitted batch job ","",system(cmd.tok,intern=T)))
+  logger.start("All jobs submitted, check jobs states using 'squeue'")
+#  finished <- F
+#  while(!finished){
+#    Sys.sleep(100)
+#    qstat.res <- system(paste("sacct -n",final.id,ignore.stdout = T, ignore.stderr = T)
+#    # 0 for running, 1 for finished
+#    if(qstat.res == 1){
+#      finished <- T
+#    }
+#  }
+#  methQTL.result <- loadMethQTLResult(file.path(out.dir,"methQTLResult"))
+#  return(methQTL.result)
+  return(NULL)
 }

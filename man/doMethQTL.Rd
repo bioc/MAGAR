@@ -49,6 +49,10 @@ The process is split into 4 steps:
              as input are computed.}
            \item{4}{For each of the CpG correlation blocks, we report the p-value of the representative CpG.}
          }
+      Currently, if \code{qtlGetOption('cluster.architecture')=='sge'} the function does not return
+      a \code{methQTLResult} object, but \code{NULL}, since monitoring finished jobs is hard 
+      through SLURM. After the jobs are finished (checked using \code{squeue}), the results can
+      can be loaded from \code{out.dir} using \code{\link{loadMethQTLResult}}.
 }
 \seealso{
 doMethQTLChromosome
