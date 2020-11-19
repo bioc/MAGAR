@@ -82,7 +82,7 @@ Sample_3,45,m,209054857842_R03C01
 
 For further details on the import process, we refer to the [RnBeads vignette](http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf). Most importantly, analysis options need to be specified for the import and preprocessing modules of *RnBeads*. *MAGAR* provides a default setting, which is available in *extdata/rnbeads_options.xml*. You can use this file as a template for your own setting and then specify it to the package:
 
-```{r options, eval=FALSE}
+```{r options, eval=TRUE}
 opts <- rnb.xml2options(system.file("extdata/rnbeads_options.xml",package="methQTL"))
 rnb.options(identifiers.column="geo_accession",
 	import.idat.platform="probes450")
@@ -127,7 +127,7 @@ Sample_3,45,m,209054857842_R03C01,9742011016_R04C01
 
 Since Illumina SNP BeadArray data is typically imputed before further analysis, the package integrates a imputation functionality through the [Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html#!). Using the option setting described below, the package will automatically submit imputation jobs to the server and process the resulting files. In order to be able to perform computation on the server, an account is required. After the account is created, one has to request an API token in the user settings and specify it to *MAGAR* using the option ```imputation.user.token```. During the imputation process, the package will stall for a while and wait for the job to finish. After the job is completed, the package will prompt for entering the password send via e-mail to the user account. The imputation process has to be split according to chromosomes, which is why multiple e-mails will be send to the account, and the imputation process can take up to several days. However, after imputation, the imputed data will be available as PLINK files, such that the imputation has to be performed only once. For preprocessing the data for upload to the imputation server, the package requires the [bgzip](http://www.htslib.org/doc/bgzip.html) and [tabix](http://www.htslib.org/doc/tabix.html) tools from the [htslib](http://www.htslib.org/) package. Also see further options to configure the imputation jobs at the Michigan Imputation Server [documentation](https://imputationserver.readthedocs.io/en/latest/):
 
-```{r imputation options, eval=FALSE}
+```{r imputation options, eval=TRUE}
 qtlSetOption(
   impute.geno.data=TRUE,
   imputation.reference.panel="apps@hrc-r1.1",
@@ -139,28 +139,6 @@ qtlSetOption(
 ## Perform data import
 
 The ```doImport``` function requires the paths to the respective genotyping and DNA methylation data, as well as a sample annotation sheet as discussed earlier. In this vignette, we will describe the import of DNA methylation data in *IDAT* format and genotyping data as *PLINK* files. First, you'll have to specify the paths to the corresponding *IDAT* and *plink* files. Additionally, you have to specify the sample identifier column in the sample annotation sheet that determines the samples in both the genotyping and DNA methylation data. For larger files, we recommend to activate the option to store large matrices on disk rather than in main memory (```hdf5dump```).
-
-Please note that we provide an accompanying R-package ([methQTL.data](https://github.com/MPIIComputationalEpigenetics/methQTL.data)) comprising additional information including microarray annotations and test data sets for this vignette. Furthermore, we provide a patched version of CRLMM that supports the newer Illumina genotyping microarrays (Illumina OmniExome and Illumina OmniExpress) from [GitHub](https://github.com/MPIIComputationalEpigenetics/crlmm).
-
-```{r import,eval=FALSE}
-if(!requireNamespace("methQTL.data")){
-  devtools::install_github("MPIIComputationalEpigenetics/methQTL.data")
-}
-library(methQTL.data)
-idat.geno <- system.file("extdata",package="methQTL.data")
-meth.mat <- system.file("extdata/meth_matrix.tsv.gz",package="methQTL.data")
-anno.sheet <-  system.file("extdata/sample_annotation.tsv",package="methQTL.data")
-qtlSetOption(hdf5dump=TRUE,
-	meth.data.type="data.files",
-	geno.data.type="idat")
-options(fftempdir="tmp/")
-imp.data <- doImport(data.location = c(idat.dir=meth.mat,geno.dir=idat.geno),
-                      s.anno = anno.sheet,
-                      s.id.col = "geo_accession",
-		      out.folder = getwd(),
-                      tab.sep = "\t",
-		      idat.platform="humanomni258v1p1b")
-```
 
 For imputed data, no further processing is performed on the genotyping data and the dosage values are used as they are:
 

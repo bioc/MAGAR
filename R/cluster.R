@@ -22,7 +22,11 @@
 #' @import argparse
 #' @author Michael Scherer
 #' @noRd
-submitClusterJobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncores=1){
+submitClusterJobs <- function(methQTL.input,
+                              covariates,
+                              p.val.cutoff,
+                              out.dir,
+                              ncores=1){
   logger.start("Prepare cluster submission")
   json.path <- file.path(out.dir,"methQTL_configuration.json")
   qtlOptions2JSON(json.path)
@@ -36,11 +40,24 @@ submitClusterJobs <- function(methQTL.input,covariates,p.val.cutoff,out.dir,ncor
   }
   logger.completed()
   if(qtlGetOption("cluster.architecture")=='sge'){
-    methQTL.result <- submitClusterJobsSGE(methQTL.input,out.dir,json.path,p.val.cutoff,ncores,covariates,cov.file,methQTL.file)
+    methQTL.result <- submitClusterJobsSGE(methQTL.input,
+                                           out.dir,
+                                           json.path,
+                                           p.val.cutoff,
+                                           ncores,
+                                           covariates,
+                                           cov.file,
+                                           methQTL.file)
   }else if(qtlGetOption("cluster.architecture")=='slurm'){
-submitClusterJobsSLURM(methQTL.input,out.dir,json.path,p.val.cutoff,ncores,covariates,cov.file,methQTL.file)
+    methQTL.result <- submitClusterJobsSLURM(methQTL.input,
+                           out.dir,
+                           json.path,
+                           p.val.cutoff,
+                           ncores,
+                           covariates,cov.file,
+                           methQTL.file)
   }else{
-	stop("You weren't supposed to be here...")
+	  stop("You weren't supposed to be here...")
   }
 
   logger.completed()
@@ -75,7 +92,10 @@ submitClusterJobsSGE <- function(methQTL.input,
                      dep.tok,
                      "-j y",
                      "-b y",
-                     paste0("'",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_chromosome_job.R",package="MAGAR")),
+                     paste0("'",
+                            qtlGetOption("rscript.path"),
+                            " ",
+                            system.file("extdata/Rscript/rscript_chromosome_job.R",package="MAGAR")),
                      "-m",methQTL.file,
                      "-j",json.path,
                      "-c",chr,
@@ -98,7 +118,10 @@ submitClusterJobsSGE <- function(methQTL.input,
                    "-j y",
                    "-hold_jid",paste0(job.names,collapse = ","),
                    "-b y",
-                   paste0("'",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="MAGAR")),
+                   paste0("'",
+                          qtlGetOption("rscript.path"),
+                          " ",
+                          system.file("extdata/Rscript/rscript_summary.R",package="MAGAR")),
                    paste0("-o ",out.dir,"'")
                   )
   system(cmd.tok)
@@ -106,7 +129,10 @@ submitClusterJobsSGE <- function(methQTL.input,
   finished <- F
   while(!finished){
     Sys.sleep(100)
-    qstat.res <- system(paste("qstat -j",paste0("methQTL_",id,"_summary")),ignore.stdout = T, ignore.stderr = T)
+    qstat.res <- system(paste("qstat -j",
+                              paste0("methQTL_",id,"_summary")),
+                        ignore.stdout = TRUE,
+                        ignore.stderr = TRUE)
     # 0 for running, 1 for finished
     if(qstat.res == 1){
       finished <- T
@@ -137,7 +163,8 @@ submitClusterJobsSLURM <- function(methQTL.input,
   }
   hdf.dir <- getHDF5DumpDir()
   ff.dir <- getOption("fftempdir")
-  dep.tok <- paste(dep.tok,ifelse(is.null(req.res["clock.limit"]),"",paste("-t",req.res["clock.limit"])),
+  dep.tok <- paste(dep.tok,
+                   ifelse(is.null(req.res["clock.limit"]),"",paste("-t",req.res["clock.limit"])),
 	ifelse(is.null(req.res["mem.size"]),"",paste0("--mem=",req.res["mem.size"])),
 	ifelse(is.null(req.res["n.cpus"]),"",paste0("--cpus-per-task=",req.res["n.cpus"])))
   job.names <- sapply(all.chroms,function(chr){
@@ -145,7 +172,10 @@ submitClusterJobsSLURM <- function(methQTL.input,
                      paste0("--job-name=","methQTL_",id,"_",chr),
                      "-o",file.path(out.dir,paste0("methQTL_",id,"_",chr,".log")),
                      dep.tok,
-                     paste0("--wrap='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_chromosome_job.R",package="MAGAR")),
+                     paste0("--wrap='",
+                            qtlGetOption("rscript.path"),
+                            " ",
+                            system.file("extdata/Rscript/rscript_chromosome_job.R",package="MAGAR")),
                      "-m",methQTL.file,
                      "-j",json.path,
                      "-c",chr,
@@ -158,7 +188,7 @@ submitClusterJobsSLURM <- function(methQTL.input,
     if(!is.null(covariates)){
       cmd.tok <- paste(cmd.tok,"-u",cov.file)
     }
-    as.numeric(gsub("Submitted batch job ","",system(cmd.tok,intern=T)))
+    as.numeric(gsub("Submitted batch job ","",system(cmd.tok,intern=TRUE)))
     #paste0("methQTL_",id,"_",chr)
   })
   cmd.tok <- paste("sbatch --export=ALL",
@@ -166,15 +196,18 @@ submitClusterJobsSLURM <- function(methQTL.input,
                    "-o",file.path(out.dir,paste0("methQTL_",id,"_summary.log")),
                    dep.tok,
                    paste0("--depend=",paste0(job.names,collapse = ",")),
-                   paste0("--wrap='",qtlGetOption("rscript.path")," ",system.file("extdata/Rscript/rscript_summary.R",package="MAGAR")),
+                   paste0("--wrap='",
+                          qtlGetOption("rscript.path"),
+                          " ",
+                          system.file("extdata/Rscript/rscript_summary.R",package="MAGAR")),
                    paste0("-o ",out.dir,"'")
                   )
-  final.id <- as.numeric(gsub("Submitted batch job ","",system(cmd.tok,intern=T)))
+  final.id <- as.numeric(gsub("Submitted batch job ","",system(cmd.tok,intern=TRUE)))
   logger.start("All jobs submitted, check jobs states using 'squeue'")
 #  finished <- F
 #  while(!finished){
 #    Sys.sleep(100)
-#    qstat.res <- system(paste("sacct -n",final.id,ignore.stdout = T, ignore.stderr = T)
+#    qstat.res <- system(paste("sacct -n",final.id,ignore.stdout = TRUE, ignore.stderr = TRUE)
 #    # 0 for running, 1 for finished
 #    if(qstat.res == 1){
 #      finished <- T

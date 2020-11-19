@@ -111,7 +111,9 @@ overlapQTLs <- function(meth.qtl.result.list,type){
       logger.completed()
       res.class.vec <- c()
       for(j in 1:length(res.all.class)){
-        res.class.vec <- c(res.class.vec,paste(names(res.all.class)[j],paste(res.all.class[[j]],collapse="_"),sep="_"))
+        res.class.vec <- c(res.class.vec,
+                           paste(names(res.all.class)[j],
+                                 paste(res.all.class[[j]],collapse="_"),sep="_"))
       }
       res.all[[i]] <- res.class.vec
     }
@@ -141,7 +143,9 @@ overlapInputs <- function(meth.qtl.list,type){
   all.input <- getAnno(meth.qtl.list[[1]],type)
   for(i in 2:length(meth.qtl.list)){
     anno <- getAnno(meth.qtl.list[[i]],type)
-    all.input <- rbind(all.input[,intersect(colnames(anno),colnames(all.input))],anno[!(row.names(anno)%in%row.names(all.input)),intersect(colnames(anno),colnames(all.input))])
+    all.input <- rbind(all.input[,intersect(colnames(anno),colnames(all.input))],
+                       anno[!(row.names(anno)%in%row.names(all.input)),
+                            intersect(colnames(anno),colnames(all.input))])
   }
   all.input <- as.data.frame(all.input)
 #  if(type%in%"SNP"){
@@ -189,7 +193,8 @@ getOverlapUniverse <- function(meth.qtl.res,type){
     if(type%in%"cor.block"){
       cor.blocks <- getCorrelationBlocks(meth.qtl.res)
       all.qtl <- apply(getResult(meth.qtl.res,cor.blocks),1,function(ro){
-        paste(ro["SNP"],paste(ro["CorrelationBlock"][[1]],collapse = "_"),sep="_")
+        paste(ro["SNP"],
+              paste(ro["CorrelationBlock"][[1]],collapse = "_"),sep="_")
       })
     }else{
       all.qtl <- unique(as.character(getResult(meth.qtl.res)[,type]))
@@ -231,7 +236,9 @@ getOverlapUniverse <- function(meth.qtl.res,type){
 #' @return A \code{data.frame} of methQTL interactions sorted by the effect size.
 #' @author Michael Scherer
 #' @export
-getSpecificQTL <- function(meth.qtl.res,meth.qtl.background,type="SNP"){
+getSpecificQTL <- function(meth.qtl.res,
+                           meth.qtl.background,
+                           type="SNP"){
   if(!inherits(meth.qtl.res,"methQTLResult")){
     stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
   }
@@ -277,7 +284,7 @@ getSpecificQTL <- function(meth.qtl.res,meth.qtl.background,type="SNP"){
   }else{
     res <- res[res[,type]%in%spec.qtls,]
   }
-  return(res[order(abs(res$P.value),decreasing=F),])
+  return(res[order(abs(res$P.value),decreasing=FALSE),])
 }
 
 #' getOverlappingQTL
@@ -335,7 +342,11 @@ getOverlappingQTL <- function(meth.qtl.list,type="SNP"){
 #'           \item{\code{phenotypes:}}{The path to the DNA methylation data file}
 #'           \item{\code{covariates:}}{The path to the covariates file}
 #' }
-generateFastQTLInput <- function(meth.qtl,chrom,correlation.block,sel.covariates,out.dir){
+generateFastQTLInput <- function(meth.qtl,
+                                 chrom,
+                                 correlation.block,
+                                 sel.covariates,
+                                 out.dir){
   geno.data <- getGeno(meth.qtl)
   anno.geno <- getAnno(meth.qtl,"geno")
   geno.data <- geno.data[anno.geno$Chromosome%in%chrom,]
@@ -351,11 +362,20 @@ generateFastQTLInput <- function(meth.qtl,chrom,correlation.block,sel.covariates
 			  FORMAT=rep("DS",nrow(anno.geno)),
                           geno.data)
   f.name <- file.path(out.dir,paste0("genotypes_",chrom,".vcf"))
-  write.table(vcf.frame,f.name,sep="\t",row.names = F,col.names = F,quote=F)
+  write.table(vcf.frame,
+              f.name,
+              sep="\t",
+              row.names = FALSE,
+              col.names = FALSE,
+              quote=FALSE)
   system(paste("sed -i '1i#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT",
                paste(colnames(geno.data),collapse="\t"),"'",f.name))
   system(paste("sed -i '1i##fileformat=VCFv4.1'",f.name))
-  system(paste(qtlGetOption("bgzip.path"),f.name,"&&",qtlGetOption("tabix.path"),"-p vcf",paste0(f.name,".gz")))
+  system(paste(qtlGetOption("bgzip.path"),
+               f.name,"&&",
+               qtlGetOption("tabix.path"),
+               "-p vcf",
+               paste0(f.name,".gz")))
   meth.data <- getMethData(meth.qtl)
   anno.meth <- getAnno(meth.qtl)
   meth.data <- meth.data[anno.meth$Chromosome%in%chrom,]
@@ -368,12 +388,20 @@ generateFastQTLInput <- function(meth.qtl,chrom,correlation.block,sel.covariates
                             end=anno.meth$End,
                             ID=row.names(anno.meth),
                             meth.data)
-  pheno.frame <- pheno.frame[order(pheno.frame$start,decreasing=F),]
+  pheno.frame <- pheno.frame[order(pheno.frame$start,decreasing=FALSE),]
   f.name <- file.path(out.dir,paste0("phenotypes_",chrom,".bed"))
-  write.table(pheno.frame,f.name,sep="\t",row.names = F,col.names = F,quote=F)
+  write.table(pheno.frame,f.name,
+              sep="\t",
+              row.names = FALSE,
+              col.names = FALSE,
+              quote=FALSE)
   system(paste("sed -i '1i#Chr\tstart\tend\tID",
                paste(colnames(meth.data),collapse="\t"),"'",f.name))
-  system(paste(qtlGetOption("bgzip.path"),f.name,"&&",qtlGetOption("tabix.path"),"-p bed",paste0(f.name,".gz")))
+  system(paste(qtlGetOption("bgzip.path"),
+               f.name,"&&",
+               qtlGetOption("tabix.path"),
+               "-p bed",
+               paste0(f.name,".gz")))
   f.name <- file.path(out.dir,"covariates.txt")
   if(is.null(sel.covariates)){
 	cov.file <- NULL
@@ -381,7 +409,7 @@ generateFastQTLInput <- function(meth.qtl,chrom,correlation.block,sel.covariates
 	cov.file <- file.path(out.dir,"covariates.txt")
 	  cov.frame <- data.frame(id=meth.qtl@samples,
 		                  sel.covariates)
-	  write.table(t(cov.frame),f.name,sep="\t",row.names = T,col.names=F,quote = F)
+	  write.table(t(cov.frame),f.name,sep="\t",row.names = TRUE,col.names=FALSE,quote = FALSE)
   }
   return(c(genotypes=file.path(out.dir,paste0("genotypes_",chrom,".vcf.gz")),
            phenotypes=file.path(out.dir,paste0("phenotypes_",chrom,".bed.gz")),

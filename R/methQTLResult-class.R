@@ -136,7 +136,8 @@ setMethod("getResult",signature(object="methQTLResult"),
           }
 )
 
-if(!isGeneric("getResultGWASMap")) setGeneric("getResultGWASMap",function(object,...) standardGeneric("getResultGWASMap"))
+if(!isGeneric("getResultGWASMap")) setGeneric("getResultGWASMap",
+                                              function(object,...) standardGeneric("getResultGWASMap"))
 
 #' getResultGWASMap
 #'
@@ -165,7 +166,8 @@ setMethod("getResultGWASMap",signature(object="methQTLResult"),
           }
 )
 
-if(!isGeneric("getAnno")) setGeneric("getAnno",function(object,...) standardGeneric("getAnno"))
+if(!isGeneric("getAnno")) setGeneric("getAnno",
+                                     function(object,...) standardGeneric("getAnno"))
 
 #' getAnno
 #' @rdname getAnno
@@ -185,7 +187,8 @@ setMethod("getAnno",signature(object="methQTLResult"),
           }
 )
 
-if(!isGeneric("getCorrelationBlocks")) setGeneric("getCorrelationBlocks",function(object) standardGeneric("getCorrelationBlocks"))
+if(!isGeneric("getCorrelationBlocks")) setGeneric("getCorrelationBlocks",
+                                                  function(object) standardGeneric("getCorrelationBlocks"))
 
 #' getCorrelationBlocks
 #'
@@ -254,7 +257,8 @@ setMethod("show","methQTLResult",
           }
 )
 
-if(!isGeneric("filterPval")) setGeneric("filterPval", function(object,...)standardGeneric("filterPval"))
+if(!isGeneric("filterPval")) setGeneric("filterPval",
+                                        function(object,...)standardGeneric("filterPval"))
 
 #' filterPval
 #'
@@ -278,7 +282,8 @@ setMethod("filterPval","methQTLResult",
           }
 )
 
-if(!isGeneric("saveMethQTLResult")) setGeneric("saveMethQTLResult", function(object,...)standardGeneric("saveMethQTLResult"))
+if(!isGeneric("saveMethQTLResult")) setGeneric("saveMethQTLResult",
+                                               function(object,...)standardGeneric("saveMethQTLResult"))
 
 #' saveMethQTLResult
 #'

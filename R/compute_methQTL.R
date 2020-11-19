@@ -32,7 +32,7 @@
 #'            \item{4}{For each of the CpG correlation blocks, we report the p-value of the representative CpG.}
 #'          }
 #'       Currently, if \code{qtlGetOption('cluster.architecture')=='sge'} the function does not return
-#'       a \code{methQTLResult} object, but \code{NULL}, since monitoring finished jobs is hard 
+#'       a \code{methQTLResult} object, but \code{NULL}, since monitoring finished jobs is hard
 #'       through SLURM. After the jobs are finished (checked using \code{squeue}), the results can
 #'       can be loaded from \code{out.dir} using \code{\link{loadMethQTLResult}}.
 #' @seealso doMethQTLChromosome
@@ -43,7 +43,7 @@ doMethQTL <- function(meth.qtl,
                        sel.covariates=NULL,
                        p.val.cutoff=1e-5,
                        ncores=1,
-                       cluster.submit=F,
+                       cluster.submit=FALSE,
                        out.dir=getwd(),
                        default.options=TRUE){
   if(!inherits(meth.qtl,"methQTLInput")){
@@ -57,7 +57,8 @@ doMethQTL <- function(meth.qtl,
       if(meth.qtl@platform %in% "probes27"){
         stop("This package does not support Illumina Infinium 27k arrays.")
       }
-      qtlJSON2options(file.path(system.file("extdata/",package="MAGAR"),paste0("qtl_options_",meth.qtl@platform,".json")))
+      qtlJSON2options(file.path(system.file("extdata/",package="MAGAR"),
+                                paste0("qtl_options_",meth.qtl@platform,".json")))
     }
   }
   if(!meth.qtl@imputed){
@@ -74,7 +75,12 @@ doMethQTL <- function(meth.qtl,
 #      }
 #    }else{
       for(chrom in all.chroms){
-        res.chrom <- doMethQTLChromosome(meth.qtl,chrom,sel.covariates,p.val.cutoff,out.dir,ncores=ncores)
+        res.chrom <- doMethQTLChromosome(meth.qtl,
+                                         chrom,
+                                         sel.covariates,
+                                         p.val.cutoff,
+                                         out.dir,
+                                         ncores=ncores)
         #res.all[[chrom]] <- res.chrom
 	meth.qtl.path <- file.path(out.dir,paste0("methQTLResult_",chrom))
 	saveMethQTLResult(res.chrom,meth.qtl.path)
@@ -86,7 +92,11 @@ doMethQTL <- function(meth.qtl,
     res.all <- lapply(res.all,loadMethQTLResult)
     res.all <- joinMethQTLResult(res.all)
   }else{
-    res.all <- submitClusterJobs(meth.qtl,sel.covariates,p.val.cutoff,out.dir,ncores = ncores)
+    res.all <- submitClusterJobs(meth.qtl,
+                                 sel.covariates,
+                                 p.val.cutoff,
+                                 out.dir,
+                                 ncores = ncores)
   }
   logger.completed()
   return(res.all)
@@ -118,7 +128,12 @@ doMethQTL <- function(meth.qtl,
 #' @author Michael Scherer
 #' @export
 #' @import doParallel
-doMethQTLChromosome <- function(meth.qtl,chrom,sel.covariates=NULL,p.val.cutoff=1e-5,out.dir=NULL,ncores=1){
+doMethQTLChromosome <- function(meth.qtl,
+                                chrom,
+                                sel.covariates=NULL,
+                                p.val.cutoff=1e-5,
+                                out.dir=NULL,
+                                ncores=1){
   logger.start(paste("Computing methQTL for chromosome",chrom))
   anno <- getAnno(meth.qtl,"meth")
   sel.meth <- which(anno$Chromosome %in% chrom)
@@ -128,14 +143,23 @@ doMethQTLChromosome <- function(meth.qtl,chrom,sel.covariates=NULL,p.val.cutoff=
     sel.meth <- writeHDF5Array(sel.meth)
   }
   if(qtlGetOption('compute.cor.blocks')){
-    cor.blocks <- computeCorrelationBlocks(sel.meth,sel.anno,assembly=meth.qtl@assembly,chromosome=chrom,segmentation=meth.qtl@segmentation)
+    cor.blocks <- computeCorrelationBlocks(sel.meth,
+                                           sel.anno,
+                                           assembly=meth.qtl@assembly,
+                                           chromosome=chrom,
+                                           segmentation=meth.qtl@segmentation)
     cor.blocks <- lapply(cor.blocks,as.numeric)
     if(!is.null(out.dir)){
       to.plot <- data.frame(Size=lengths(cor.blocks))
-      plot <- ggplot(to.plot,aes(x=Size,y=..count..))+geom_histogram(binwidth = 1)+geom_vline(xintercept = mean(to.plot$Size,na.rm=T))+
-        theme_bw()+theme(panel.grid=element_blank(),text=element_text(size=18,color="black"),
-                                                                                         axis.ticks=element_line(color="black"),plot.title = element_text(size=18,color="black",hjust = .5),
-                                                                                         axis.text = element_text(size=15,color="black"))
+      plot <- ggplot(to.plot,aes(x=Size,y=..count..))+
+        geom_histogram(binwidth = 1)+
+        geom_vline(xintercept = mean(to.plot$Size,na.rm=TRUE))+
+        theme_bw()+
+        theme(panel.grid=element_blank(),
+              text=element_text(size=18,color="black"),
+              axis.ticks=element_line(color="black"),
+              plot.title = element_text(size=18,color="black",hjust = .5),
+              axis.text = element_text(size=15,color="black"))
       ggsave(file.path(out.dir,paste0("CpG_cluster_sizes_",chrom,".pdf")),plot)
     }
   }else{
@@ -171,7 +195,14 @@ doMethQTLChromosome <- function(meth.qtl,chrom,sel.covariates=NULL,p.val.cutoff=
   }else{
     logger.start("Compute methQTL per correlation block")
       parallel.setup(ncores)
-      res.chr.p.val <- mclapply(cor.blocks,callMethQTLBlock,sel.meth,sel.geno,ph.dat,sel.anno,sel.anno.geno,mc.cores = ncores)
+      res.chr.p.val <- mclapply(cor.blocks,
+                                callMethQTLBlock,
+                                sel.meth,
+                                sel.geno,
+                                ph.dat,
+                                sel.anno,
+                                sel.anno.geno,
+                                mc.cores = ncores)
       res.all <- c()
       for(i in 1:length(res.chr.p.val)){
         res.all <- rbind(res.all,res.chr.p.val[[i]])
@@ -255,9 +286,14 @@ doMethQTLChromosome <- function(meth.qtl,chrom,sel.covariates=NULL,p.val.cutoff=
 #'     p-value and return it.
 #' @author Michael Scherer
 #' @export
-callMethQTLBlock <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno.geno,
-                               model.type=qtlGetOption("linear.model.type"),
-                               n.permutations=qtlGetOption("n.permutations")){
+callMethQTLBlock <- function(cor.block,
+                             meth.data,
+                             geno.data,
+                             covs,
+                             anno.meth,
+                             anno.geno,
+                             model.type=qtlGetOption("linear.model.type"),
+                             n.permutations=qtlGetOption("n.permutations")){
   # computing CpG-wise medians across the samples
   # then order the CpGs by value and select the one in the middle
   reps <- computeRepresentativeCpG(cor.block,meth.data,anno.meth)
@@ -274,7 +310,14 @@ callMethQTLBlock <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno.g
                       as.character(sel.anno$Chromosome),
                       NA,
                       sel.anno$Start)
-    colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
+    colnames(ret) <- c("CpG",
+                       "SNP",
+                       "P.value",
+                       "Beta",
+                       "SE.Beta",
+                       "Chromosome",
+                       "Position_SNP",
+                       "Position_CpG")
     return(ret)
   }
   geno.data <- geno.data[distances<qtlGetOption("absolute.distance.cutoff"),,drop=FALSE]
@@ -288,7 +331,14 @@ callMethQTLBlock <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno.g
                       as.character(sel.anno$Chromosome),
                       NA,
                       sel.anno$Start)
-    colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
+    colnames(ret) <- c("CpG",
+                       "SNP",
+                       "P.value",
+                       "Beta",
+                       "SE.Beta",
+                       "Chromosome",
+                       "Position_SNP",
+                       "Position_CpG")
     return(ret)
   }else if(nrow(geno.data)==0){
     logger.error("Geno data contains no rows")
@@ -300,7 +350,14 @@ callMethQTLBlock <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno.g
                       as.character(sel.anno$Chromosome),
                       NA,
                       sel.anno$Start)
-    colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
+    colnames(ret) <- c("CpG",
+                       "SNP",
+                       "P.value",
+                       "Beta",
+                       "SE.Beta",
+                       "Chromosome",
+                       "Position_SNP",
+                       "Position_CpG")
     return(ret)
   }
   anno.geno <- anno.geno[distances<qtlGetOption("absolute.distance.cutoff"),,drop=FALSE]
@@ -387,7 +444,14 @@ callMethQTLBlock <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno.g
                       as.character(sel.anno$Chromosome),
                       NA,
                       sel.anno$Start)
-    colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
+    colnames(ret) <- c("CpG",
+                       "SNP",
+                       "P.value",
+                       "Beta",
+                       "SE.Beta",
+                       "Chromosome",
+                       "Position_SNP",
+                       "Position_CpG")
     return(ret)
   }
   min.p.val <- data.frame(as.character(row.names(sel.anno)),
@@ -398,7 +462,14 @@ callMethQTLBlock <- function(cor.block,meth.data,geno.data,covs,anno.meth,anno.g
                           as.character(sel.anno$Chromosome),
                           anno.geno$Start[is.min],
                           sel.anno$Start)
-  colnames(min.p.val) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
+  colnames(min.p.val) <- c("CpG",
+                           "SNP",
+                           "P.value",
+                           "Beta",
+                           "SE.Beta",
+                           "Chromosome",
+                           "Position_SNP",
+                           "Position_CpG")
   return(min.p.val)
 }
 
@@ -423,11 +494,11 @@ computeRepresentativeCpG <- function(cor.blocks,meth.data,annotation){
   if(is.list(cor.blocks)){
 	  for(i in 1:length(cor.blocks)){
 	    cor.block <- cor.blocks[[i]]
-	    sel.meth <- meth.data[cor.block,,drop=F]
-	    anno.meth <- annotation[cor.block,,drop=F]
+	    sel.meth <- meth.data[cor.block,,drop=FALSE]
+	    anno.meth <- annotation[cor.block,,drop=FALSE]
 	    if(repr.type == "row.medians"){
-	      reps <- apply(as.matrix(sel.meth),1,median,na.rm=T)
-	      order.reps <- order(reps,decreasing = T)
+	      reps <- apply(as.matrix(sel.meth),1,median,na.rm=TRUE)
+	      order.reps <- order(reps,decreasing = TRUE)
 	      n.cpgs <- length(order.reps)
 	      if(n.cpgs%%2 ==0){
 		sel.site <- sample(c(n.cpgs/2,n.cpgs/2 + 1),1)
@@ -437,8 +508,9 @@ computeRepresentativeCpG <- function(cor.blocks,meth.data,annotation){
 	      reps <- as.matrix(sel.meth)[sel.site,]
 	      sel.anno <- anno.meth[sel.site,]
 	    }else if(repr.type == "mean.center"){
-	      reps <- apply(as.matrix(sel.meth),2,mean,na.rm=T)
-	      sel.anno <- data.frame(Chromosome=unique(anno.meth$Chromosome),Start=mean(anno.meth$Start))
+	      reps <- apply(as.matrix(sel.meth),2,mean,na.rm=TRUE)
+	      sel.anno <- data.frame(Chromosome=unique(anno.meth$Chromosome),
+	                             Start=mean(anno.meth$Start))
 	      row.names(sel.anno) <- paste0("mean_of_",nrow(sel.meth))
 	    }else{
 	      sel.anno <- anno.meth
@@ -452,8 +524,8 @@ computeRepresentativeCpG <- function(cor.blocks,meth.data,annotation){
 	    sel.meth <- meth.data[cor.blocks,,drop=FALSE]
 	    anno.meth <- annotation[cor.blocks,,drop=FALSE]
 	    if(repr.type == "row.medians"){
-	      reps <- apply(as.matrix(sel.meth),1,median,na.rm=T)
-	      order.reps <- order(reps,decreasing = T)
+	      reps <- apply(as.matrix(sel.meth),1,median,na.rm=TRUE)
+	      order.reps <- order(reps,decreasing = TRUE)
 	      n.cpgs <- length(order.reps)
 	      if(n.cpgs%%2 ==0){
 		sel.site <- sample(c(n.cpgs/2,n.cpgs/2 + 1),1)
@@ -463,8 +535,9 @@ computeRepresentativeCpG <- function(cor.blocks,meth.data,annotation){
 	      reps <- as.matrix(sel.meth)[sel.site,]
 	      sel.anno <- anno.meth[sel.site,]
 	    }else if(repr.type == "mean.center"){
-	      reps <- apply(as.matrix(sel.meth),2,mean,na.rm=T)
-	      sel.anno <- data.frame(Chromosome=unique(anno.meth$Chromosome),Start=mean(anno.meth$Start))
+	      reps <- apply(as.matrix(sel.meth),2,mean,na.rm=TRUE)
+	      sel.anno <- data.frame(Chromosome=unique(anno.meth$Chromosome),
+	                             Start=mean(anno.meth$Start))
 	      row.names(sel.anno) <- paste0("mean_of_",nrow(sel.meth))
 	    }else{
 	      sel.anno <- anno.meth
@@ -504,7 +577,7 @@ runFastQTL <- function(prepared.input,
     cmd <- paste(cmd,"--cov",prepared.input["covariates"])
   }
   system(cmd)
-  res.frame <- read.table(res.file,header = F,sep=" ")
+  res.frame <- read.table(res.file,header = FALSE,sep=" ")
   pos.cpg <- getAnno(meth.qtl)[as.character(res.frame[,1]),"Start"]
   pos.snp <- getAnno(meth.qtl,"geno")[as.character(res.frame[,6]),"Start"]
   ret <- data.frame(as.character(res.frame[,1]),
@@ -515,6 +588,13 @@ runFastQTL <- function(prepared.input,
                     rep(chrom,nrow(res.frame)),
                     pos.snp,
                     pos.cpg)
-  colnames(ret) <- c("CpG","SNP","P.value","Beta","SE.Beta","Chromosome","Position_SNP","Position_CpG")
+  colnames(ret) <- c("CpG",
+                     "SNP",
+                     "P.value",
+                     "Beta",
+                     "SE.Beta",
+                     "Chromosome",
+                     "Position_SNP",
+                     "Position_CpG")
   return(ret)
 }

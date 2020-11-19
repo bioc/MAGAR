@@ -82,7 +82,7 @@ computeCorrelationBlocks <- function(meth.data,
   }
   rm(meth.data)
   logger.completed()
-  cor.all <- cor.all[,,drop=F]
+  cor.all <- cor.all[,,drop= FALSE]
   if(qtlGetOption("hdf5dump")){
     cor.all <- writeHDF5Array(cor.all)
   }
@@ -111,11 +111,13 @@ computeCorrelationBlocks <- function(meth.data,
     while(i < nrow(cor.all)){
       if((i + chunk.size)>nrow(cor.all)){
         do.work <- i:nrow(cor.all)
-        weighted.distances[do.work,] <- as.matrix(cor.all[do.work,])*dnorm(as.matrix(pairwise.distance[do.work,]),0,sd.gauss)
+        weighted.distances[do.work,] <- as.matrix(cor.all[do.work,])*
+          dnorm(as.matrix(pairwise.distance[do.work,]),0,sd.gauss)
         break
       }
       do.work <- i:(i+chunk.size)
-      weighted.distances[do.work,] <- as.matrix(cor.all[do.work,])*dnorm(as.matrix(pairwise.distance[do.work,]),0,sd.gauss)
+      weighted.distances[do.work,] <- as.matrix(cor.all[do.work,])*
+        dnorm(as.matrix(pairwise.distance[do.work,]),0,sd.gauss)
       i <- i+chunk.size+1
     }
   }else{
@@ -123,14 +125,16 @@ computeCorrelationBlocks <- function(meth.data,
   }
   logger.completed()
   weighted.distances <- weightSegmentation(weighted.distances,annotation,segmentation)
-  weighted.distances <- weightFunctionalAnnotation(weighted.distances,annotation,chromosome=chromosome)
+  weighted.distances <- weightFunctionalAnnotation(weighted.distances,
+                                                   annotation,
+                                                   chromosome=chromosome)
   colnames(weighted.distances) <- as.character(1:ncol(weighted.distances))
   rownames(weighted.distances) <- as.character(1:nrow(weighted.distances))
   rm(rep.vals)
   rm(cor.all)
   gc()
   logger.start("Compute graph")
-  graph.ad <- graph.adjacency(as.matrix(weighted.distances),weighted = T,mode = "undirected",diag=F)
+  graph.ad <- graph.adjacency(as.matrix(weighted.distances),weighted = TRUE,mode = "undirected",diag= FALSE)
   logger.completed()
   logger.start("Compute clustering")
   clust <- cluster_louvain(graph.ad)
@@ -168,7 +172,8 @@ weightFunctionalAnnotation <- function(input.matrix,
       }
       anno.ensembl <- rnb.get.annotation(ensembl.type,assembly = assembly)
       op <- findOverlaps(genomic.annotation,anno.ensembl)
-      input.matrix[queryHits(op),queryHits(op)] <- input.matrix[queryHits(op),queryHits(op)]*qtlGetOption("functional.annotation.weight")
+      input.matrix[queryHits(op),queryHits(op)] <- input.matrix[queryHits(op),queryHits(op)]*
+        qtlGetOption("functional.annotation.weight")
     }
     logger.completed()
   }
@@ -196,7 +201,8 @@ weightSegmentation <- function(input.matrix,
       }
       genomic.annotation <- makeGRangesFromDataFrame(genomic.annotation)
       op <- findOverlaps(genomic.annotation,segmentation)
-      input.matrix[queryHits(op),queryHits(op)] <- input.matrix[queryHits(op),queryHits(op)]*qtlGetOption("functional.annotation.weight")
+      input.matrix[queryHits(op),queryHits(op)] <- input.matrix[queryHits(op),queryHits(op)]*
+        qtlGetOption("functional.annotation.weight")
       logger.completed()
   }
   return(input.matrix)

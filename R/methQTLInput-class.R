@@ -77,8 +77,8 @@ setClass("methQTLInput",
            anno.geno=data.frame(),
            samples=c(),
            assembly="hg19",
-           disk.dump=F,
-           imputed=F,
+           disk.dump=FALSE,
+           imputed=FALSE,
            platform="probesEPIC",
 	   segmentation=NULL
          ),
@@ -94,12 +94,14 @@ setMethod("initialize","methQTLInput",
             anno.geno=data.frame(),
             samples=c(),
             assembly="hg19",
-            disk.dump=F,
-            imputed=F,
+            disk.dump=FALSE,
+            imputed=FALSE,
             platform="probesEPIC",
 	    segmentation=NULL
           ){
-            if(length(samples) != ncol(meth.data) | length(samples) != ncol(geno.data) | length(samples) != nrow(pheno.data)){
+            if(length(samples) != ncol(meth.data) |
+               length(samples) != ncol(geno.data) |
+               length(samples) != nrow(pheno.data)){
               stop("Samples do not match dimension of the matrices.")
             }
             .Object@meth.data <- meth.data
@@ -153,7 +155,8 @@ get.value <- function(mat,site=NULL,sample=NULL){
 # GETTERS
 ##########################################################################################
 
-if(!isGeneric("getMethData")) setGeneric("getMethData",function(object,...) standardGeneric("getMethData"))
+if(!isGeneric("getMethData")) setGeneric("getMethData",
+                                         function(object,...) standardGeneric("getMethData"))
 
 #' getMethData
 #'
@@ -179,7 +182,8 @@ setMethod("getMethData",signature(object="methQTLInput"),
   }
 )
 
-if(!isGeneric("getGeno")) setGeneric("getGeno",function(object,...) standardGeneric("getGeno"))
+if(!isGeneric("getGeno")) setGeneric("getGeno",
+                                     function(object,...) standardGeneric("getGeno"))
 
 #' getGeno
 #'
@@ -205,7 +209,8 @@ setMethod("getGeno",signature(object="methQTLInput"),
         }
 )
 
-if(!isGeneric("getPheno")) setGeneric("getPheno",function(object) standardGeneric("getPheno"))
+if(!isGeneric("getPheno")) setGeneric("getPheno",
+                                      function(object) standardGeneric("getPheno"))
 
 #' getPheno
 #'
@@ -225,7 +230,8 @@ setMethod("getPheno",signature(object="methQTLInput"),
           }
 )
 
-if(!isGeneric("getAnno")) setGeneric("getAnno",function(object,...) standardGeneric("getAnno"))
+if(!isGeneric("getAnno")) setGeneric("getAnno",
+                                     function(object,...) standardGeneric("getAnno"))
 
 #' getAnno
 #'
@@ -253,7 +259,8 @@ setMethod("getAnno",signature(object="methQTLInput"),
           }
 )
 
-if(!isGeneric("getSamples")) setGeneric("getSamples",function(object) standardGeneric("getSamples"))
+if(!isGeneric("getSamples")) setGeneric("getSamples",
+                                        function(object) standardGeneric("getSamples"))
 
 #' getSamples
 #'
@@ -273,7 +280,8 @@ setMethod("getSamples",signature(object="methQTLInput"),
           }
 )
 
-if(!isGeneric("imputeMeth")) setGeneric("imputeMeth",function(object) standardGeneric("imputeMeth"))
+if(!isGeneric("imputeMeth")) setGeneric("imputeMeth",
+                                        function(object) standardGeneric("imputeMeth"))
 
 #' imputeMeth
 #'
@@ -316,7 +324,8 @@ setMethod("show","methQTLInput",
   }
 )
 
-if(!isGeneric("saveMethQTL")) setGeneric("saveMethQTL", function(object,...)standardGeneric("saveMethQTL"))
+if(!isGeneric("saveMethQTL")) setGeneric("saveMethQTL",
+                                         function(object,...)standardGeneric("saveMethQTL"))
 
 #' saveMethQTL
 #'

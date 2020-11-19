@@ -20,8 +20,8 @@ doImport(
 \describe{
   \item{idat.dir}{Path to the idat-folder for raw DNA methylation data.}
   \item{geno.dir}{Path to the genotyping data file directory, either containing PLINK files
-   (i.e. with \code{bed}, \code{bim} and \code{fam} files), or imputed, dosage files (i.e. with
-   \code{dos} and \code{txt} files)}
+   (i.e. with \code{bed}, \code{bim} and \code{fam} files), imputed, (dosage) files (i.e. with
+   \code{dos} and \code{txt} files), or \code{idat} files}
 }}
 
 \item{s.anno}{Path to the sample annotation sheet. If \code{NULL}, the program searches for potential sample
@@ -58,8 +58,13 @@ Import of DNA methylation and genotyping data is done separately:
            the \code{\link{qtlSetOption}} documentation.}
          }
 
-         If \code{assembly.meth} and \code{assembly.geno} do not match, we use the liftOver function to match the
-         older assembly to the newer one and discard those sites, that are only covered by the newer version.
+    You can specify the import type using \code{\link{qtlSetOption}} through the options
+         \code{meth.data.type} and \code{geno.data.type}.
+
+         This function internally uses \code{\link{doMethImport}} and \code{\link{doGenoImport}}
+}
+\seealso{
+doMethImport, doGenoImport
 }
 \author{
 Michael Scherer

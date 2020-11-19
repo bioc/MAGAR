@@ -24,7 +24,10 @@
 #'  that have been tested.
 #' @author Michael Scherer
 #' @export
-qtlLOLAEnrichment <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19"){
+qtlLOLAEnrichment <- function(meth.qtl.res,
+                              type="SNP",
+                              lola.db=NULL,
+                              assembly="hg19"){
   if(requireNamespace("LOLA")){
     stats <- getOverlapUniverse(meth.qtl.res,type)
     all.input <- stats$all.input
@@ -103,7 +106,7 @@ qtlAnnotationEnrichment <- function(meth.qtl.res,
 #' @import plyr
 #' @export
 qtlBaseSubstitutionEnrichment <- function(meth.qtl.res,
-					merge=F){
+					merge=FALSE){
   stats <- getOverlapUniverse(meth.qtl.res,type="SNP")
   if(is.list(meth.qtl.res)){
     anno.cpgs <- overlapInputs(meth.qtl.res,type="SNP")
@@ -223,7 +226,7 @@ qtlTFBSMotifEnrichment <- function(meth.qtl.res,
 #         c(ID(x),name(x))
 #      })))
 #      info.mat <- data.frame(info.mat,similarity=pwm.mot.sim[info.mat[,1]])
-#      info.mat <- info.mat[order(info.mat$similarity,decreasing=T),]
+#      info.mat <- info.mat[order(info.mat$similarity,decreasing=TRUE),]
 #      pdf(file.path(out.dir,paste0(motif.name,".pdf")))
 #      plot.new()
 #      seqLogo::seqLogo(mot$model$prob)

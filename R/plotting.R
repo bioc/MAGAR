@@ -6,9 +6,11 @@
 # plotting functions
 ##########################################################################################
 
-my_theme <- theme_bw()+theme(panel.grid=element_blank(),text=element_text(size=18,color="black"),
-                  axis.ticks=element_line(color="black"),plot.title = element_text(size=18,color="black",hjust = .5),
-                  axis.text = element_text(size=15,color="black"))
+my_theme <- theme_bw()+theme(panel.grid=element_blank(),
+                             text=element_text(size=18,color="black"),
+                             axis.ticks=element_line(color="black"),
+                             plot.title = element_text(size=18,color="black",hjust = .5),
+                             axis.text = element_text(size=15,color="black"))
 
 
 #' qtlPlotSNPCpGInteraction
@@ -27,7 +29,12 @@ my_theme <- theme_bw()+theme(panel.grid=element_blank(),text=element_text(size=1
 #' @return An object of type \code{ggplot} comparing the CpG methylation states as boxplots across the different genotype states
 #' @author Michael Scherer
 #' @export
-qtlPlotSNPCpGInteraction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL,meth.qtl.res=NULL,out.name=NULL){
+qtlPlotSNPCpGInteraction <- function(meth.qtl,
+                                     cpg=NULL,
+                                     snp=NULL,
+                                     out.dir=NULL,
+                                     meth.qtl.res=NULL,
+                                     out.name=NULL){
   if(!is.null(meth.qtl.res)){
     if(meth.qtl.res@rep.type == "mean.center"){
       logger.error("Interaction plot not available for representative CpG computation 'mean.center'. Pseudo CpG was created.")
@@ -48,16 +55,28 @@ qtlPlotSNPCpGInteraction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL,met
   if(is.integer(sel.snp)){
     count.geno <- c(0,0,0)
     for(gen in c(0,1,2)){
-      count.geno[gen+1] <- sum(sel.snp == gen,na.rm=T)
+      count.geno[gen+1] <- sum(sel.snp == gen,na.rm=TRUE)
     }
-    to.plot <- data.frame(SNP=factor(ifelse(sel.snp==0,paste0("ref/ref (",count.geno[1],")"),ifelse(sel.snp=="1",paste0("ref/alt (",count.geno[2],")"),paste0("alt/alt (",count.geno[3],")"))),c(paste0("ref/ref (",count.geno[1],")"),paste0("ref/alt (",count.geno[2],")"),paste0("alt/alt (",count.geno[3],")"))),CpG=sel.cpg)
+    to.plot <- data.frame(SNP=factor(
+                            ifelse(sel.snp==0,
+                                   paste0("ref/ref (",count.geno[1],")"),
+                                   ifelse(sel.snp=="1",
+                                          paste0("ref/alt (",count.geno[2],")"),
+                                          paste0("alt/alt (",count.geno[3],")"))),
+                            c(paste0("ref/ref (",count.geno[1],")"),
+                              paste0("ref/alt (",count.geno[2],")"),
+                              paste0("alt/alt (",count.geno[3],")"))),
+                          CpG=sel.cpg)
     plot <- ggplot(to.plot,aes(x=SNP,y=CpG))+geom_boxplot()+theme_bw()+
       my_theme+
       ylab(paste(cpg,"methylation"))+xlab(paste(snp,"genotype"))
     if(!is.null(out.dir)){
       if(file.exists(out.dir)){
         if(is.null(out.name)){
-          ggsave(file.path(out.dir,paste0("SNP_CpG_interaction_",cpg,"_",snp,".pdf")),plot)
+          ggsave(file.path(out.dir,paste0("SNP_CpG_interaction_",
+                                          cpg,"_",
+                                          snp,
+                                          ".pdf")),plot)
         }else{
           ggsave(file.path(out.dir,out.name),plot)
         }
@@ -66,13 +85,18 @@ qtlPlotSNPCpGInteraction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL,met
     return(plot)
   }else{
     to.plot <- data.frame(SNPDosage=sel.snp,CpG=sel.cpg)
-    plot <- ggplot(to.plot,aes(x=SNPDosage,y=CpG))+geom_point()+geom_smooth(method="lm",se=F)+theme_bw()+
+    plot <- ggplot(to.plot,aes(x=SNPDosage,y=CpG))+
+      geom_point()+
+      geom_smooth(method="lm",se=FALSE)+
+      theme_bw()+
       my_theme+
       ylab(paste(cpg,"methylation"))+xlab(paste(snp,"dosage"))
     if(!is.null(out.dir)){
       if(file.exists(out.dir)){
         if(is.null(out.name)){
-          ggsave(file.path(out.dir,paste0("SNP_CpG_interaction_",cpg,"_",snp,".pdf")),plot)
+          ggsave(file.path(out.dir,paste0("SNP_CpG_interaction_",
+                                          cpg,"_",
+                                          snp,".pdf")),plot)
         }else{
           ggsave(file.path(out.dir,out.name),plot)
         }
@@ -96,7 +120,9 @@ qtlPlotSNPCpGInteraction <- function(meth.qtl,cpg=NULL,snp=NULL,out.dir=NULL,met
 #'    methylation state and the SNP dosage. Discrete genotypes are currently not supported.
 #' @export
 #' @author Michael Scherer
-qtlPlotSNPCorrelationBlock <- function(meth.qtl.res,meth.qtl,snp=NULL){
+qtlPlotSNPCorrelationBlock <- function(meth.qtl.res,
+                                       meth.qtl,
+                                       snp=NULL){
   if(!inherits(meth.qtl.res,"methQTLResult")){
     stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
   }
@@ -106,20 +132,22 @@ qtlPlotSNPCorrelationBlock <- function(meth.qtl.res,meth.qtl,snp=NULL){
   cor.blocks <- getCorrelationBlocks(meth.qtl.res)
   res <- getResult(meth.qtl.res,cor.blocks)
   if(is.null(snp)){
-    snp <- as.character(res[order(abs(res$Beta),decreasing = T),]$SNP[1])
+    snp <- as.character(res[order(abs(res$Beta),decreasing = TRUE),]$SNP[1])
   }
   if(!(snp%in%res$SNP)){
     stop("Specified SNP is not a valid methQTL")
   }
-  sel.row <- res[res$SNP%in%snp,,drop=F]
+  sel.row <- res[res$SNP%in%snp,,drop=FALSE]
   to.plot <- c()
   meth.data <- getMethData(meth.qtl)
   anno.meth <- getAnno(meth.qtl)
   anno.geno <- getAnno(meth.qtl,"geno")
-  snp.data <- as.numeric(getGeno(meth.qtl)[row.names(anno.geno)%in%snp,,drop=F])
+  snp.data <- as.numeric(getGeno(meth.qtl)[row.names(anno.geno)%in%snp,,drop=FALSE])
   for(i in 1:length(unlist(sel.row$CorrelationBlock))){
     cpg <- unlist(sel.row$CorrelationBlock)[i]
-    add.mat <- cbind(SNP=snp.data,CpG=as.numeric(meth.data[row.names(anno.meth)%in%as.character(cpg),,drop=F]),ID=rep(cpg,length(snp.data)))
+    add.mat <- cbind(SNP=snp.data,
+                     CpG=as.numeric(meth.data[row.names(anno.meth)%in%as.character(cpg),,drop=FALSE]),
+                     ID=rep(cpg,length(snp.data)))
     to.plot <- rbind(to.plot,add.mat)
   }
   to.plot <- as.data.frame(to.plot)
@@ -127,9 +155,12 @@ qtlPlotSNPCorrelationBlock <- function(meth.qtl.res,meth.qtl,snp=NULL){
   to.plot$SNP <- as.numeric(as.character(to.plot$SNP))
   to.plot$Representative <- rep("No",nrow(to.plot))
   to.plot$Representative[to.plot$ID%in%sel.row$CpG] <- "Yes"
-  plot <- ggplot(to.plot,aes(x=SNP,y=CpG))+geom_point(aes(color=Representative))+
-    geom_smooth(method="lm",aes(color=Representative))+facet_grid(ID~.)+
-    my_theme+theme(legend.position="none")+scale_color_manual(values=c("black","firebrick4"))
+  plot <- ggplot(to.plot,aes(x=SNP,y=CpG))+
+    geom_point(aes(color=Representative))+
+    geom_smooth(method="lm",aes(color=Representative))+
+    facet_grid(ID~.)+
+    my_theme+theme(legend.position="none")+
+    scale_color_manual(values=c("black","firebrick4"))
   return(plot)
 }
 
@@ -144,29 +175,45 @@ qtlPlotSNPCorrelationBlock <- function(meth.qtl.res,meth.qtl,snp=NULL){
 #'          SNP is downstream of the CpG.
 #' @author Michael Scherer
 #' @export
-qtlDistanceScatterplot <- function(meth.qtl.result,out.dir=NULL,out.name=NULL){
+qtlDistanceScatterplot <- function(meth.qtl.result,
+                                   out.dir=NULL,
+                                   out.name=NULL){
   if(!requireNamespace("gridExtra")){
     stop("Please install the 'gridExtra' package")
   }
   res <- getResult(meth.qtl.result)
   cori.pval <- round(cor(abs(res$Distance),res$P.value),2)
   cori.pval.pval <- round(cor.test(abs(res$Distance),res$P.value)$p.value,3)
-  g1 <- ggplot(res,aes(x=Distance,y=-log10(P.value)))+geom_point()+
+  g1 <- ggplot(res,aes(x=Distance,y=-log10(P.value)))+
+    geom_point()+
     ggtitle(paste("Correlation btw absolute distance and p-value:",cori.pval,"p-value:",cori.pval.pval))+
-    my_theme+xlab("Distance CpG - SNP")+ylab("-log10(methQTL p-value)")
+    my_theme+
+    xlab("Distance CpG - SNP")+
+    ylab("-log10(methQTL p-value)")
   if(meth.qtl.result@rep.type != "mean.center"){
     cori.beta <- round(cor(abs(res$Distance),abs(res$Beta)),2)
     cori.beta.pval <- round(cor.test(abs(res$Distance),abs(res$Beta))$p.value,3)
-    g2 <- ggplot(res,aes(x=Distance,y=abs(Beta),color=Beta))+geom_point()+
+    g2 <- ggplot(res,aes(x=Distance,y=abs(Beta),color=Beta))+
+      geom_point()+
       ggtitle(paste("Correlation btw absolute distance and absolute beta:",cori.beta,"p-value:",cori.beta.pval))+
-      my_theme+xlab("Distance CpG - SNP")+ylab("absolute beta")+labs(color="beta")+
+      my_theme+xlab("Distance CpG - SNP")+
+      ylab("absolute beta")+
+      labs(color="beta")+
       scale_color_gradient2(mid="#19547b",low = "#ffd89b",high = "chartreuse3")
-    g3 <- ggplot(res,aes(x=Distance,y=Beta,color=-log10(P.value)))+geom_point()+
-      my_theme+xlab("Distance CpG - SNP")+ylab("beta")+labs(color="-log10(p.val)")+
+    g3 <- ggplot(res,aes(x=Distance,y=Beta,color=-log10(P.value)))+
+      geom_point()+
+      my_theme+
+      xlab("Distance CpG - SNP")+
+      ylab("beta")+
+      labs(color="-log10(p.val)")+
       scale_color_continuous(low="#19547b",high = "#ffd89b")
   }else{
-    g2 <- ggplot()+my_theme+annotate("text",y=0,x=0,label="No beta available")
-    g3 <- ggplot()+my_theme+annotate("text",y=0,x=0,label="No beta available")
+    g2 <- ggplot()+
+      my_theme+
+      annotate("text",y=0,x=0,label="No beta available")
+    g3 <- ggplot()+
+      my_theme+
+      annotate("text",y=0,x=0,label="No beta available")
   }
   ret <- gridExtra::grid.arrange(g1,g2,g3,ncol=1)
   if(!is.null(out.dir)){
@@ -191,7 +238,9 @@ qtlDistanceScatterplot <- function(meth.qtl.result,out.dir=NULL,out.name=NULL){
 #' @details A plot is shown that contains chromosome-wise interactions.
 #' @author Michael Scherer
 #' @export
-qtlManhattanPlot <- function(meth.qtl.result,type="CpG",stat="p.val.adj.fdr"){
+qtlManhattanPlot <- function(meth.qtl.result,
+                             type="CpG",
+                             stat="p.val.adj.fdr"){
   if(!type %in% c("CpG","SNP")){
     stop("Invalid value for type, needs to be 'CpG' or 'SNP'")
   }
@@ -202,13 +251,18 @@ qtlManhattanPlot <- function(meth.qtl.result,type="CpG",stat="p.val.adj.fdr"){
     stop("Please install the 'qqman' package")
   }
   to.plot <- getResult(meth.qtl.result)
-  colnames(to.plot)[c(6,ifelse(type=="CpG",7,8),ifelse(stat=="P.value",4,ifelse(stat=="Beta",3,10)))] <- c("CHR","BP","P")
+  colnames(to.plot)[c(6,ifelse(type=="CpG",7,8),
+                      ifelse(stat=="P.value",
+                             4,
+                             ifelse(stat=="Beta",3,10)))] <- c("CHR","BP","P")
   to.plot$CHR <- as.numeric(gsub("chr","",to.plot$CHR))
   to.plot$P <- abs(to.plot$P)
   qqman::manhattan(to.plot,
             main=paste("Manhattan plot for",type,", statistic",stat),
-            suggestiveline = F, genomewideline = F,
-            ylab=ifelse(stat=="Beta","absolute beta",ifelse(stat=="P.value","-log10(P-value)","-log10(adjusted P-value)")),
+            suggestiveline = FALSE, genomewideline = FALSE,
+            ylab=ifelse(stat=="Beta",
+                        "absolute beta",
+                        ifelse(stat=="P.value","-log10(P-value)","-log10(adjusted P-value)")),
             logp=stat!="Beta")
 }
 
@@ -226,7 +280,11 @@ qtlManhattanPlot <- function(meth.qtl.result,type="CpG",stat="p.val.adj.fdr"){
 #' @details The plot can be stored on disk using \code{out.folder} and \code{out.name}
 #' @export
 #' @author Michael Scherer
-qtlVennPlot <- function(meth.qtl.result.list,out.folder,type="SNP",out.name=NULL,...){
+qtlVennPlot <- function(meth.qtl.result.list,
+                        out.folder,
+                        type="SNP",
+                        out.name=NULL,
+                        ...){
   if(length(meth.qtl.result.list)>4){
     stop("Venn plot only supports up to 4 results, consider using qtl.upset.plot")
   }
@@ -262,7 +320,9 @@ qtlVennPlot <- function(meth.qtl.result.list,out.folder,type="SNP",out.name=NULL
 #' @export
 #' @author Michael Scherer
 #' @import UpSetR
-qtlUpsetPlot <- function(meth.qtl.result.list,type="SNP",...){
+qtlUpsetPlot <- function(meth.qtl.result.list,
+                         type="SNP",
+                         ...){
   if(!requireNamespace("UpSetR")){
     stop("Please install the 'UpSetR' package")
   }
@@ -290,7 +350,9 @@ qtlUpsetPlot <- function(meth.qtl.result.list,type="SNP",...){
 #' @return A scatterplot and associated correlations as an objec to type \code{ggplot}
 #' @author Michael Scherer
 #' @export
-qtlCorrelateCorBlockStat <- function(meth.qtl.res,stat="p.val.adj.fdr",size.type='num.CpGs'){
+qtlCorrelateCorBlockStat <- function(meth.qtl.res,
+                                     stat="p.val.adj.fdr",
+                                     size.type='num.CpGs'){
   if(!inherits(meth.qtl.res,"methQTLResult")){
     stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
   }
@@ -330,7 +392,10 @@ qtlCorrelateCorBlockStat <- function(meth.qtl.res,stat="p.val.adj.fdr",size.type
   cori <- cor(res.frame$CorBlockSize,val)
   cori.pval <- cor.test(res.frame$CorBlockSize,val)$p.value
   res.frame$val <- val
-  plot <- ggplot(res.frame,aes_string(x="CorBlockSize",y=val))+geom_point()+geom_smooth(method="lm")+my_theme+
+  plot <- ggplot(res.frame,aes_string(x="CorBlockSize",y=val))+
+    geom_point()+
+    geom_smooth(method="lm")+
+    my_theme+
     ggtitle(paste("Correlation btw correlation block size and",stat,round(cori,3),"p-value:",round(cori.pval,3)))+
     ylab(paste0(ifelse(stat%in%c("P.value","p.val.adj.fdr"),"-log10(",ifelse(stat%in%"Beta","abs(","")),stat,
                 ifelse(stat%in%c("P.value","p.val.adj.fdr","Beta"),")","")))
@@ -350,9 +415,17 @@ qtlCorrelateCorBlockStat <- function(meth.qtl.res,stat="p.val.adj.fdr",size.type
 #' @return The LOLA enrichment bar plot as a \code{ggplot} object
 #' @author Michael Scherer
 #' @export
-qtlLOLAPlot <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19",pvalCut=0.01){
-  res <- qtlLOLAEnrichment(meth.qtl.res,type=type,assembly=assembly,lola.db=lola.db)
-  plot <- lolaBarPlot(lolaDb=res$lola.db,lolaRes=res$lola.res,pvalCut=pvalCut)+my_theme
+qtlLOLAPlot <- function(meth.qtl.res,
+                        type="SNP",
+                        lola.db=NULL,
+                        assembly="hg19",
+                        pvalCut=0.01){
+  res <- qtlLOLAEnrichment(meth.qtl.res,
+                           type=type,
+                           assembly=assembly,
+                           lola.db=lola.db)
+  plot <- lolaBarPlot(lolaDb=res$lola.db,lolaRes=res$lola.res,pvalCut=pvalCut)+
+    my_theme
   return(plot)
 }
 
@@ -367,14 +440,15 @@ qtlLOLAPlot <- function(meth.qtl.res,type="SNP",lola.db=NULL,assembly="hg19",pva
 #' @return An object of type ggplot containing the histogram as a plot
 #' @author Michael Scherer
 #' @export
-qtlPlotClusterSize <- function(meth.qtl.res,type="count"){
+qtlPlotClusterSize <- function(meth.qtl.res,
+                               type="count"){
 	if(!inherits(meth.qtl.res,"methQTLResult")){
 		stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
 	}
 	if(!(type%in%c("count","genomic"))){
 		stop("Invalid value for type, needs to be 'genomic' or 'count'")
 	}
-	cor.blocks <- unlist(getCorrelationBlocks(meth.qtl.res),recursive=F)
+	cor.blocks <- unlist(getCorrelationBlocks(meth.qtl.res),recursive=FALSE)
 	to.plot <- data.frame(CorrelationBlock=I(cor.blocks),Size=lengths(cor.blocks))
 	if(type%in%"genomic"){
 		anno.meth <- getAnno(meth.qtl.res,"meth")
@@ -387,7 +461,9 @@ qtlPlotClusterSize <- function(meth.qtl.res,type="count"){
 		}))
 		to.plot$Size <- sizes
 	}
-	plot <- ggplot(to.plot,aes(x=Size,y=..count..))+geom_histogram()+my_theme
+	plot <- ggplot(to.plot,aes(x=Size,y=..count..))+
+	  geom_histogram()+
+	  my_theme
 	return(plot)
 }
 
@@ -400,9 +476,18 @@ qtlPlotClusterSize <- function(meth.qtl.res,type="count"){
 #' @seealso qtlAnnotationEnrichment
 #' @export
 #' @author Michael Scherer
-qtlPlotAnnotationEnrichment <- function(meth.qtl.res,...){
+qtlPlotAnnotationEnrichment <- function(meth.qtl.res,
+                                        ...){
 	all.types <- c("SNP","CpG","cor.block")
-	all.annos <- c("cpgislands","promoters","genes","ctcf","distal","proximal","tfbs","dnase","tss")
+	all.annos <- c("cpgislands",
+	               "promoters",
+	               "genes",
+	               "ctcf",
+	               "distal",
+	               "proximal",
+	               "tfbs",
+	               "dnase",
+	               "tss")
 	enr.res <- lapply(all.types,function(type){
 			lapply(all.annos,function(anno){
 				qtlAnnotationEnrichment(meth.qtl.res,type,anno)
@@ -430,7 +515,8 @@ qtlPlotAnnotationEnrichment <- function(meth.qtl.res,...){
 #' @seealso qtlBaseSubstitutionEnrichment
 #' @export
 #' @author Michael Scherer
-qtlPlotBaseSubstitution <- function(meth.qtl.res,...){
+qtlPlotBaseSubstitution <- function(meth.qtl.res,
+                                    ...){
 	to.plot <- qtlBaseSubstitutionEnrichment(meth.qtl.res,...)
 	to.plot <- data.frame(Substitution=colnames(to.plot),
 			OddsRatio=to.plot["OddsRatio",],
@@ -452,12 +538,13 @@ qtlPlotBaseSubstitution <- function(meth.qtl.res,...){
 #' @export
 #' @author Michael Scherer
 #' @import UpSetR
-qtlUpSetPlotCorBlocks <- function(meth.qtl.res.list,...){
+qtlUpSetPlotCorBlocks <- function(meth.qtl.res.list,
+                                  ...){
   if(!requireNamespace("UpSetR")){
     stop("Please install the 'UpSetR' package")
   }
   cor.blocks <- lapply(meth.qtl.res.list,function(x){
-    lapply(unlist(getCorrelationBlocks(x),recursive = F),function(y){
+    lapply(unlist(getCorrelationBlocks(x),recursive = FALSE),function(y){
       paste(sort(y),collapse = "_")
     })
   })

@@ -7,17 +7,46 @@
 
 QTL.OPTIONS <- new.env()
 
-assign('ALL',c('rnbeads.options','meth.data.type','geno.data.type','rnbeads.report','rnbeads.qc','hdf5dump','hardy.weinberg.p',
-             	'db.snp.ref','minor.allele.frequency','missing.values.samples','plink.geno','plink.path',
-		'fast.qtl.path','bgzip.path','tabix.path',
-		'n.prin.comp','correlation.type','cluster.cor.threshold','standard.deviation.gauss','absolute.distance.cutoff',
-               	'linear.model.type','representative.cpg.computation','meth.qtl.type',
-               	'max.cpgs','rscript.path','cluster.config','recode.allele.frequencies',
-               	'n.permutations','p.value.correction','compute.cor.blocks',
-               	'use.segmentation','use.functional.annotation',
-		           'functional.annotation.weight','impute.geno.data',"vcftools.path",
-		'cluster.architecture',
-		           "imputation.user.token","imputation.reference.panel","imputation.phasing.method","imputation.population"),QTL.OPTIONS)
+assign('ALL',c('rnbeads.options',
+               'meth.data.type',
+               'geno.data.type',
+               'rnbeads.report',
+               'rnbeads.qc',
+               'hdf5dump',
+               'hardy.weinberg.p',
+             	 'db.snp.ref',
+               'minor.allele.frequency',
+               'missing.values.samples',
+               'plink.geno',
+               'plink.path',
+		           'fast.qtl.path',
+		           'bgzip.path',
+		           'tabix.path',
+		           'n.prin.comp',
+		           'correlation.type',
+		           'cluster.cor.threshold',
+		           'standard.deviation.gauss',
+		           'absolute.distance.cutoff',
+               'linear.model.type',
+		           'representative.cpg.computation',
+		           'meth.qtl.type',
+               'max.cpgs',
+		           'rscript.path',
+		           'cluster.config',
+		           'recode.allele.frequencies',
+               'n.permutations',
+		           'p.value.correction',
+		           'compute.cor.blocks',
+               'use.segmentation',
+		           'use.functional.annotation',
+		           'functional.annotation.weight',
+		           'impute.geno.data',
+		           'vcftools.path',
+		           'cluster.architecture',
+		           'imputation.user.token',
+		           'imputation.reference.panel',
+		           'imputation.phasing.method',
+		           'imputation.population'),QTL.OPTIONS)
 assign('RNBEADS.OPTIONS',NULL,QTL.OPTIONS)
 assign('METH.DATA.TYPE',"idat.dir",QTL.OPTIONS)
 assign('GENO.DATA.TYPE',"plink",QTL.OPTIONS)
@@ -149,7 +178,7 @@ assign("CLUSTER.ARCHITECTURE","sge",QTL.OPTIONS)
 #' @export
 #' @author Michael Scherer
 #' @examples
-#' \donttest{
+#' {
 #' qtlGetOption("rnbeads.report")
 #' qtlSetOption(rnbeads.report=getwd())
 #' qtlGetOption("rnbeads.report")
@@ -167,20 +196,20 @@ qtlSetOption <- function(rnbeads.options=NULL,
                        meth.data.type="idat.dir",
                        geno.data.type="plink",
                        rnbeads.report="temp",
-                       rnbeads.qc=F,
-                       hdf5dump=F,
+                       rnbeads.qc=FALSE,
+                       hdf5dump=FALSE,
                        hardy.weinberg.p=0.001,
-		       db.snp.ref=NULL,
+		                   db.snp.ref=NULL,
                        minor.allele.frequency=0.05,
                        missing.values.samples=0.05,
-		       plink.geno=0.1,
+		                   plink.geno=0.1,
                        impute.geno.data=FALSE,
-		       n.prin.comp=NULL,
+		                   n.prin.comp=NULL,
                        plink.path=NULL,
                        fast.qtl.path=NULL,
                        bgzip.path=NULL,
                        tabix.path=NULL,
-		       correlation.type="pearson",
+		                   correlation.type="pearson",
                        cluster.cor.threshold=0.25,
                        standard.deviation.gauss=250,
                        absolute.distance.cutoff=5e5,
@@ -189,7 +218,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
                        meth.qtl.type="oneVSall",
                        max.cpgs=40000,
                        rscript.path="/usr/bin/Rscript",
-		       cluster.architecture='sge',
+		                   cluster.architecture='sge',
                        cluster.config=c(h_vmem="5G",mem_free="5G"),
                        n.permutations=1000,
                        p.value.correction="uncorrected.fdr",
@@ -217,7 +246,12 @@ qtlSetOption <- function(rnbeads.options=NULL,
     QTL.OPTIONS[['RNBEADS.OPTIONS']] <- rnbeads.options
   }
   if(!missing(meth.data.type)){
-    if(!(meth.data.type %in% c("idat.dir","data.dir","data.files","GS.report","GEO","rnb.set"))){
+    if(!(meth.data.type %in% c("idat.dir",
+                               "data.dir",
+                               "data.files",
+                               "GS.report",
+                               "GEO",
+                               "rnb.set"))){
       stop("Invalid value for meth.data.type, see rnb.execute.import for options.")
     }
     QTL.OPTIONS[['METH.DATA.TYPE']] <- meth.data.type
@@ -290,7 +324,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
   }
   if(!missing(plink.path)){
     if(!is.null(plink.path)){
-      er <- tryCatch(system(plink.path,intern=T),error=function(x)x)
+      er <- tryCatch(system(plink.path,intern=TRUE),error=function(x)x)
       if(inherits(er,"error")){
         stop("Invalid value for plink.path, needs to be path to an executable")
       }
@@ -299,7 +333,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
   }
   if(!missing(fast.qtl.path)){
     if(!is.null(fast.qtl.path)){
-      er <- tryCatch(system(fast.qtl.path,intern=T),error=function(x)x)
+      er <- tryCatch(system(fast.qtl.path,intern=TRUE),error=function(x)x)
       if(inherits(er,"error")){
         stop("Invalid value for fast.qtl.path, needs to be path to an executable")
       }
@@ -308,7 +342,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
   }
   if(!missing(bgzip.path)){
     if(!is.null(bgzip.path)){
-      er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
+      er <- tryCatch(system(bgzip.path,timeout = 1, intern = TRUE),error=function(x)x)
       if(inherits(er,"error")){
         stop("Invalid value for bgzip.path, needs to be path to an executable")
       }
@@ -317,7 +351,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
   }
   if(!missing(tabix.path)){
     if(!is.null(tabix.path)){
-      er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
+      er <- tryCatch(system(tabix.path,timeout = 1, intern = TRUE),error=function(x)x)
       if(inherits(er,"error")){
         stop("Invalid value for tabix.path, needs to be path to an executable")
       }
@@ -349,19 +383,26 @@ qtlSetOption <- function(rnbeads.options=NULL,
     QTL.OPTIONS[['ABSOLUTE.DISTANCE.CUTOFF']] <- absolute.distance.cutoff
   }
   if(!missing(linear.model.type)){
-    if(!linear.model.type %in% c("classical.linear","categorical.anova","fastQTL")){
+    if(!linear.model.type %in% c("classical.linear",
+                                 "categorical.anova",
+                                 "fastQTL")){
       stop("Invalid value for linear.model.type. Needs to be classical linear or categorical.anova.")
     }
     QTL.OPTIONS[['LINEAR.MODEL.TYPE']] <- linear.model.type
   }
   if(!missing(representative.cpg.computation)){
-    if(!representative.cpg.computation %in% c("row.medians","mean.center","best.all")){
+    if(!representative.cpg.computation %in% c("row.medians",
+                                              "mean.center",
+                                              "best.all")){
       stop("Invalid value for representative.cpg.computation. Needs to be 'row.medians', 'mean.center' or 'best.all'.")
     }
     QTL.OPTIONS[['REPRESENTATIVE.CPG.COMPUTATION']] <- representative.cpg.computation
   }
   if(!missing(meth.qtl.type)){
-    if(!meth.qtl.type%in%c("oneVSall","allVSall","twoVSall","fastQTL")){
+    if(!meth.qtl.type%in%c("oneVSall",
+                           "allVSall",
+                           "twoVSall",
+                           "fastQTL")){
       stop("Invalid value for meth.qtl.type. Needs to be 'oneVSall', 'allVSall', 'twoVSall', or 'fastQTL'")
     }
     QTL.OPTIONS[['METH.QTL.TYPE']] <- meth.qtl.type
@@ -379,7 +420,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
     if(!is.character(rscript.path)){
       stop("Invalid value for rscript.path, needs to be character")
     }
-    tryCatch(o <- system(paste(rscript.path,"--version"),intern = T),error=function(e){
+    tryCatch(o <- system(paste(rscript.path,"--version"),intern = TRUE),error=function(e){
       logger.error("Invalid value for rscript.path. Needs to be a path to an executable version of Rscript")})
     QTL.OPTIONS[['RSCRIPT.PATH']] <- rscript.path
   }
@@ -486,6 +527,9 @@ qtlSetOption <- function(rnbeads.options=NULL,
 #' @return the option for the specified option
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#' qtlGetOption("cluster.cor.threshold")
+#' }
 qtlGetOption <- function(names){
   if(!all(names %in% QTL.OPTIONS[['ALL']])){
     stop(paste0('No option(s) available named: ',names[!(names%in%QTL.OPTIONS[['ALL']])]))
@@ -536,7 +580,7 @@ qtlGetOption <- function(names){
     if(is.null(fast.qtl.path)){
       logger.info("Loading system default for option 'fast.qtl.path'")
       fast.qtl.path=system.file("bin/fastQTL.static",package="MAGAR")
-      er <- tryCatch(system(fast.qtl.path,timeout = 1, intern = T),error=function(x)x)
+      er <- tryCatch(system(fast.qtl.path,timeout = 1, intern = TRUE),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of fastQTL, please install it manually and specify it with 'fast.qtl.path'")
       }
@@ -551,10 +595,10 @@ qtlGetOption <- function(names){
     if(is.null(plink.path)){
       logger.info("Loading system default for option 'plink.path'")
       plink.path=system.file("bin/plink",package="MAGAR")
-      er <- tryCatch(system(plink.path,timeout = 1, intern = T),error=function(x)x)
+      er <- tryCatch(system(plink.path,timeout = 1, intern = TRUE),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of plink, please install it manually and specify it with 'plink.path'")
-      }    
+      }
     }
     ret <- c(ret,plink.path=plink.path)
   }
@@ -563,7 +607,7 @@ qtlGetOption <- function(names){
     if(is.null(bgzip.path)){
       logger.info("Loading system default for option 'bgzip.path'")
       tabix.path=system.file("bin/bgzip",package="MAGAR")
-      er <- tryCatch(system(bgzip.path,timeout = 1, intern = T),error=function(x)x)
+      er <- tryCatch(system(bgzip.path,timeout = 1, intern = TRUE),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of bgzip, please install it manually and specify it with 'bgzip.path'")
       }
@@ -575,7 +619,7 @@ qtlGetOption <- function(names){
     if(is.null(tabix.path)){
       logger.info("Loading system default for option 'tabix.path'")
       tabix.path=system.file("bin/tabix",package="MAGAR")
-      er <- tryCatch(system(tabix.path,timeout = 1, intern = T),error=function(x)x)
+      er <- tryCatch(system(tabix.path,timeout = 1, intern = TRUE),error=function(x)x)
       if(inherits(er,"error")){
         stop("Non-functional default version of tabix, please install it manually and specify it with 'tabix.path'")
       }
@@ -683,13 +727,16 @@ qtlOptions2JSON <- function(path=file.path(getwd(),"methQTL_options.json")){
 #' @author Michael Scherer
 #' @export
 #' @import jsonlite
+#' @examples {
+#' qtlJSON2options(system.file("extdata/qtl_options_probesEPIC.json",package="MAGAR"))
+#' }
 qtlJSON2options <- function(path){
-  if(!file.exists(path) || !grepl(".json",path,ignore.case = T)){
+  if(!file.exists(path) || !grepl(".json",path,ignore.case = TRUE)){
     logger.error("Invalid value for path, needs to be a JSON file")
   }
   all.options <- fromJSON(path)
   all.options <- lapply(all.options,function(opt){
-  	if(class(opt)=="data.frame"){
+  	if(is(opt,"data.frame")){
              unlist(opt)
   	}else{
   	   opt

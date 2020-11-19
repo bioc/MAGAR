@@ -9,7 +9,7 @@
 #' parseGWASMapOutput
 #'
 #' This method takes as input a path to a CSV file containing the GWASMap output
-#' 
+#'
 #' @param file The path to the GWASMap CSV file
 #' @param sep The table separator
 #' @param dec The decimal point separator
@@ -35,7 +35,7 @@ parseGWASMapOutput <- function(file,
 		cols.to.read[i:n] <- NA
 		dat.table <- read.table(file,
 				sep=sep,
-				header=T,
+				header=TRUE,
 				skip=1,
 				colClasses=cols.to.read,
 				dec=dec)

@@ -29,6 +29,12 @@ A list of three elements:
 \description{
 This routine performs data import and processing of genotyping data using the \code{PLINK} program.
 }
+\details{
+This function should seldomly be called individually, but rather through \code{\link{doImport}}
+}
+\seealso{
+doImport
+}
 \author{
 Michael Scherer
 }
