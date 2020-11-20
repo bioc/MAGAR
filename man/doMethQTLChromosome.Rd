@@ -43,6 +43,12 @@ A data frame with seven columns:
 \description{
 This functions computes the methQTL interactions for a single chromosome
 }
+\examples{
+{
+meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+meth.qtl.res <- doMethQTLChromosome(meth.qtl,chrom="chr1",p.val.cutoff=0.01)
+}
+}
 \seealso{
 doMethQTL
 }

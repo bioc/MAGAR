@@ -39,6 +39,10 @@
 #' @import methods
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#' meth.qtl.res <- doMethQTL(meth.qtl,p.val.cutoff=0.01)
+#' }
 doMethQTL <- function(meth.qtl,
                        sel.covariates=NULL,
                        p.val.cutoff=1e-5,
@@ -128,6 +132,10 @@ doMethQTL <- function(meth.qtl,
 #' @author Michael Scherer
 #' @export
 #' @import doParallel
+#' @examples {
+#' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#' meth.qtl.res <- doMethQTLChromosome(meth.qtl,chrom="chr1",p.val.cutoff=0.01)
+#' }
 doMethQTLChromosome <- function(meth.qtl,
                                 chrom,
                                 sel.covariates=NULL,

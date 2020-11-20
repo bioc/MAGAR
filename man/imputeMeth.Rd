@@ -18,3 +18,9 @@ The object with imputed values.
 \description{
 Replaces missing values in the DNA methylation data matrix by imputed values
 }
+\examples{
+{
+meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+meth.qtl.imp <- imputeMeth(meth.qtl)
+}
+}

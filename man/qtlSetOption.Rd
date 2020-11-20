@@ -9,8 +9,8 @@ qtlSetOption(
   meth.data.type = "idat.dir",
   geno.data.type = "plink",
   rnbeads.report = "temp",
-  rnbeads.qc = F,
-  hdf5dump = F,
+  rnbeads.qc = FALSE,
+  hdf5dump = FALSE,
   hardy.weinberg.p = 0.001,
   db.snp.ref = NULL,
   minor.allele.frequency = 0.05,
@@ -175,7 +175,7 @@ https://imputationserver.readthedocs.io/en/latest/api/ for further information.}
 Change global options for methQTL calculation
 }
 \examples{
-\donttest{
+{
 qtlGetOption("rnbeads.report")
 qtlSetOption(rnbeads.report=getwd())
 qtlGetOption("rnbeads.report")

@@ -57,6 +57,14 @@ This method performs clustering of the correlation matrix obtaind from the DNA m
      We then compute the associated weighted, undirected graph from the similarity matrix and execute Louvain clustering
      on the graph. The resulting clusters of CpGs are returned.
 }
+\examples{
+{
+meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+meth.data <- getMethData(meth.qtl)
+anno.meth <- getAnno(meth.qtl,"meth")
+cor.blocks <- computeCorrelationBlocks(meth.data,annotation=anno.meth)
+}
+}
 \author{
 Michael Scherer
 }

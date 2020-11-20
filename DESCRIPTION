@@ -20,7 +20,8 @@ Imports: doParallel,
 	 jsonlite,
 	 methods,
 	 ff,
-	 argparse
+	 argparse,
+	 impute
 Depends: R (>= 4.0),
 	 HDF5Array,
 	 RnBeads,
@@ -38,9 +39,10 @@ Suggests: gridExtra,
 	 seqLogo,
          knitr,
 	 devtools,
-	 BiocGenerics
+	 BiocGenerics,
+	 RnBeads.hg19
 Encoding: UTF-8
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 biocViews: Regression, Epigenetics, DNAMethylation, SNP, GeneticVariability, MethylationArray
 BugReports: https://github.com/MPIIComputationalEpigenetics/MAGAR/issues

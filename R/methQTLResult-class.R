@@ -98,6 +98,10 @@ if(!isGeneric("getResult")) setGeneric("getResult",function(object,...) standard
 #' @aliases getResult,methQTLResult-method
 #' @aliases getResult
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  head(getResult(meth.qtl.res))
+#' }
 setMethod("getResult",signature(object="methQTLResult"),
           function(object,cor.blocks=NULL,na.rm=FALSE){
             ret <- object@result.frame
@@ -151,6 +155,11 @@ if(!isGeneric("getResultGWASMap")) setGeneric("getResultGWASMap",
 #' @aliases getResultGWASMap,methQTLResult-method
 #' @aliases getResultGWASMap
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#'  head(getResultGWASMap(meth.qtl.res,meth.qtl))
+#' }
 setMethod("getResultGWASMap",signature(object="methQTLResult"),
           function(object,meth.qtl){
             ret <- object@result.frame
@@ -175,6 +184,11 @@ if(!isGeneric("getAnno")) setGeneric("getAnno",
 #' @aliases getAnno,methQTL-method
 #' @aliases getAnno
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  head(getAnno(meth.qtl.res,"meth"))
+#'  head(getAnno(meth.qtl.res,"geno"))
+#' }
 setMethod("getAnno",signature(object="methQTLResult"),
           function(object,type="meth"){
             if(type=="meth"){
@@ -202,6 +216,10 @@ if(!isGeneric("getCorrelationBlocks")) setGeneric("getCorrelationBlocks",
 #' @aliases getCorrelationBlocks
 #' @return
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  head(getCorrelationBlocks(meth.qtl.res))
+#' }
 setMethod("getCorrelationBlocks",signature(object="methQTLResult"),
           function(object){
             cor.blocks <- object@correlation.blocks
@@ -273,6 +291,11 @@ if(!isGeneric("filterPval")) setGeneric("filterPval",
 #' @aliases filterPval
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  meth.qtl.res <- filterPval(meth.qtl.res)
+#'  meth.qtl.res
+#' }
 setMethod("filterPval","methQTLResult",
           function(object,p.val.cutoff=0.01){
             res <- object@result.frame
@@ -298,6 +321,10 @@ if(!isGeneric("saveMethQTLResult")) setGeneric("saveMethQTLResult",
 #' @aliases saveMethQTLResult
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  saveMethQTLResult(meth.qtl.res,"methQTLResult")
+#' }
 setMethod("saveMethQTLResult","methQTLResult",
           function(object,path){
             if(file.exists(path)){
@@ -333,6 +360,10 @@ setMethod("saveMethQTLResult","methQTLResult",
 #' @return The object of type \code{\link{methQTLResult-class}} that has been stored on disk.
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  meth.qtl.res
+#' }
 loadMethQTLResult <- function(path){
   if(any(!(file.exists(file.path(path,"result_frame.RDS"))),
          !file.exists(file.path(path,"anno_meth.RDS")),
@@ -362,6 +393,11 @@ loadMethQTLResult <- function(path){
 #' @return An object of type \code{\link{methQTLResult-class}} containing the combined information
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#'  meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  meth.qtl.res.2 <- meth.qtl.res.1
+#'  meth.qtl.res <- joinMethQTLResult(list(meth.qtl.res.1,meth.qtl.res.2))
+#' }
 joinMethQTLResult <- function(obj.list){
   if(any(!unlist(lapply(obj.list,function(x)inherits(x,"methQTLResult"))))){
     logger.error("Objects needs to be of type methQTLResult")

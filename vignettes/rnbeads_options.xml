@@ -9,7 +9,7 @@
 	<region.aggregation>mean</region.aggregation>
 	<region.subsegments>0</region.subsegments>
 	<region.subsegments.types null="null"></region.subsegments.types>
-	<identifiers.column>ind_IPC</identifiers.column>
+	<identifiers.column>geo_accession</identifiers.column>
 	<points.category>16,17,3,15,4,7,8</points.category>
 	<colors.category>#1B9E77,#D95F02,#7570B3,#E7298A,#66A61E,#E6AB02,#A6761D,#666666</colors.category>
 	<colors.gradient>#132B43,#56B1F7</colors.gradient>
@@ -28,7 +28,7 @@
 	<import.bed.test.only>false</import.bed.test.only>
 	<import.skip.object.check>false</import.skip.object.check>
 	<import.idat.chunk.size null="null"></import.idat.chunk.size>
-	<import.idat.platform>auto</import.idat.platform>
+	<import.idat.platform>probes450</import.idat.platform>
 	<import.sex.prediction>true</import.sex.prediction>
 	<qc>true</qc>
 	<qc.boxplots>true</qc.boxplots>

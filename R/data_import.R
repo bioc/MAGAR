@@ -155,7 +155,7 @@ doImport <- function(data.location,
 #' @param tab.sep Table separator used.
 #' @param snp.location Locations of SNPs called in the genotyped processing to be removed from the list of CpGs.
 #' @param out.folder If not \code{NULL} a directory in which intermediate results are to be written
-#' @param ... Further parameters passed to, e.g., \code{\link{qtlRunSegmentation}}, \code{\link{doGenoImportIDAT}}
+#' @param ... Further parameters passed to, e.g., \code{\link{doGenoImportIDAT}}
 #' @return A list with five elements:
 #'          \describe{
 #'            \item{sample}{The samples used in the dataset as a character vector}
@@ -721,7 +721,7 @@ doGenoImportIDAT <- function(idat.files,
 #' @return A \code{GRanges} object with the segmentation performed
 #' @details The 'epicPMDdetect' package has been created by Malte Gross
 #' @author Michael Scherer
-#' @export
+#' @noRd
 qtlRunSegmentation <- function(rnb.set,
 				out.folder,
 				train.chr="chr2"){

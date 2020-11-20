@@ -17,6 +17,11 @@ the option for the specified option
 qtlGetOption
 Print the value of the global option
 }
+\examples{
+{
+qtlGetOption("cluster.cor.threshold")
+}
+}
 \author{
 Michael Scherer
 }

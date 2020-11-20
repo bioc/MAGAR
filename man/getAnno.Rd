@@ -24,3 +24,15 @@ The genomic annotation as a \code{data.frame}.
 \description{
 Returns genomic annotation information for the given dataset.
 }
+\examples{
+{
+meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+head(getAnno(meth.qtl,"meth"))
+head(getAnno(meth.qtl,"geno"))
+}
+{
+ meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+ head(getAnno(meth.qtl.res,"meth"))
+ head(getAnno(meth.qtl.res,"geno"))
+}
+}

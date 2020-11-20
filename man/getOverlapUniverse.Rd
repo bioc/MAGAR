@@ -19,6 +19,13 @@ A list with two GRanges objects, one containing the overlapped set and the other
 This function overlaps results from a list of methQTLResults and returns the union of all
 the input data points used.
 }
+\examples{
+{
+ meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+ meth.qtl.res.2 <- meth.qtl.res.1
+ res <- getOverlapUniverse(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
+}
+}
 \author{
 Michael Scherer
 }

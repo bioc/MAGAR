@@ -17,6 +17,12 @@
 \description{
 This functions stores a methQTLInput object in disk.
 }
+\examples{
+{
+meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+saveMethQTL(meth.qtl,"methQTLInput")
+}
+}
 \author{
 Michael Scherer
 }

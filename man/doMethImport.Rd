@@ -30,7 +30,7 @@ doMethImport(
 
 \item{out.folder}{If not \code{NULL} a directory in which intermediate results are to be written}
 
-\item{...}{Further parameters passed to, e.g., \code{\link{qtlRunSegmentation}}, \code{\link{doGenoImportIDAT}}}
+\item{...}{Further parameters passed to, e.g., \code{\link{doGenoImportIDAT}}}
 }
 \value{
 A list with five elements:

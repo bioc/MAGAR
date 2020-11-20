@@ -29,6 +29,10 @@ my_theme <- theme_bw()+theme(panel.grid=element_blank(),
 #' @return An object of type \code{ggplot} comparing the CpG methylation states as boxplots across the different genotype states
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#' qtlPlotSNPCpGInteraction(meth.qtl,cpg="cg15979415",snp="rs59380221")
+#' }
 qtlPlotSNPCpGInteraction <- function(meth.qtl,
                                      cpg=NULL,
                                      snp=NULL,
@@ -175,6 +179,10 @@ qtlPlotSNPCorrelationBlock <- function(meth.qtl.res,
 #'          SNP is downstream of the CpG.
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  qtlDistanceScatterplot(meth.qtl.res)
+#' }
 qtlDistanceScatterplot <- function(meth.qtl.result,
                                    out.dir=NULL,
                                    out.name=NULL){
@@ -238,6 +246,10 @@ qtlDistanceScatterplot <- function(meth.qtl.result,
 #' @details A plot is shown that contains chromosome-wise interactions.
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  qtlManhattanPlot(meth.qtl.res)
+#' }
 qtlManhattanPlot <- function(meth.qtl.result,
                              type="CpG",
                              stat="p.val.adj.fdr"){
@@ -280,6 +292,11 @@ qtlManhattanPlot <- function(meth.qtl.result,
 #' @details The plot can be stored on disk using \code{out.folder} and \code{out.name}
 #' @export
 #' @author Michael Scherer
+#' @examples {
+#'  meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  meth.qtl.res.2 <- meth.qtl.res.1
+#'  qtlVennPlot(list(A=meth.qtl.res.1,B=meth.qtl.res.2),out.folder=getwd())
+#' }
 qtlVennPlot <- function(meth.qtl.result.list,
                         out.folder,
                         type="SNP",
@@ -320,6 +337,11 @@ qtlVennPlot <- function(meth.qtl.result.list,
 #' @export
 #' @author Michael Scherer
 #' @import UpSetR
+#' @examples {
+#'  meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  meth.qtl.res.2 <- meth.qtl.res.1
+#'  qtlUpsetPlot(list(A=meth.qtl.res.1,B=meth.qtl.res.2))
+#' }
 qtlUpsetPlot <- function(meth.qtl.result.list,
                          type="SNP",
                          ...){
@@ -440,6 +462,10 @@ qtlLOLAPlot <- function(meth.qtl.res,
 #' @return An object of type ggplot containing the histogram as a plot
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  qtlPlotClusterSize(meth.qtl.res)
+#' }
 qtlPlotClusterSize <- function(meth.qtl.res,
                                type="count"){
 	if(!inherits(meth.qtl.res,"methQTLResult")){
@@ -515,6 +541,10 @@ qtlPlotAnnotationEnrichment <- function(meth.qtl.res,
 #' @seealso qtlBaseSubstitutionEnrichment
 #' @export
 #' @author Michael Scherer
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  qtlPlotBaseSubstitution(meth.qtl.res)
+#' }
 qtlPlotBaseSubstitution <- function(meth.qtl.res,
                                     ...){
 	to.plot <- qtlBaseSubstitutionEnrichment(meth.qtl.res,...)
@@ -538,6 +568,11 @@ qtlPlotBaseSubstitution <- function(meth.qtl.res,
 #' @export
 #' @author Michael Scherer
 #' @import UpSetR
+#' @examples {
+#'  meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  meth.qtl.res.2 <- meth.qtl.res.1
+#'  qtlUpSetPlotCorBlocks(list(A=meth.qtl.res.1,B=meth.qtl.res.2))
+#' }
 qtlUpSetPlotCorBlocks <- function(meth.qtl.res.list,
                                   ...){
   if(!requireNamespace("UpSetR")){
@@ -568,6 +603,11 @@ qtlUpSetPlotCorBlocks <- function(meth.qtl.res.list,
 #' @export
 #' @author Michael Scherer
 #' @import UpSetR
+#' @examples {
+#'  meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  meth.qtl.res.2 <- meth.qtl.res.1
+#'  qtlUpSetPlotTagCpGs(list(A=meth.qtl.res.1,B=meth.qtl.res.2))
+#' }
 qtlUpSetPlotTagCpGs <- function(meth.qtl.res.list,
                                 ...){
   if(!requireNamespace("UpSetR")){

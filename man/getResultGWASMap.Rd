@@ -19,3 +19,10 @@ The methQTL results as a \code{data.frame} with each row being a methQTL.
 \description{
 Returns the methQTL results in the format used as input to GWAS-map and stores in the object.
 }
+\examples{
+{
+ meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+ meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+ head(getResultGWASMap(meth.qtl.res,meth.qtl))
+}
+}

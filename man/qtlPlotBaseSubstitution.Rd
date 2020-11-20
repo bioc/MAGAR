@@ -14,6 +14,12 @@ qtlPlotBaseSubstitution(meth.qtl.res, ...)
 \description{
 This function returns an enrichment plot for the different base substitutions.
 }
+\examples{
+{
+ meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+ qtlPlotBaseSubstitution(meth.qtl.res)
+}
+}
 \seealso{
 qtlBaseSubstitutionEnrichment
 }

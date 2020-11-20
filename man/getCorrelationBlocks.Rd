@@ -19,3 +19,9 @@ A \code{list} object containing the correlation blocks.
 \description{
 Returns the correlation blocks defined for the given dataset
 }
+\examples{
+{
+ meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+ head(getCorrelationBlocks(meth.qtl.res))
+}
+}

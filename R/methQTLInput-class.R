@@ -172,6 +172,10 @@ if(!isGeneric("getMethData")) setGeneric("getMethData",
 #' @aliases getMethData,methQTL-method
 #' @aliases getMethData
 #' @export
+#' @examples {
+#' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#' head(getMethData(meth.qtl))
+#' }
 setMethod("getMethData",signature(object="methQTLInput"),
           function(object,site=NULL,sample=NULL){
               ret.mat <- get.value(object@meth.data,site=site,sample=sample)
@@ -199,6 +203,10 @@ if(!isGeneric("getGeno")) setGeneric("getGeno",
 #' @aliases getGeno,methQTL-method
 #' @aliases getGeno
 #' @export
+#' @examples {
+#' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#' head(getGeno(meth.qtl))
+#' }
 setMethod("getGeno",signature(object="methQTLInput"),
         function(object,site=NULL,sample=NULL){
           ret.mat <- get.value(object@geno.data,site=site,sample=sample)
@@ -224,6 +232,10 @@ if(!isGeneric("getPheno")) setGeneric("getPheno",
 #' @aliases getPheno,methQTL-method
 #' @aliases getPheno
 #' @export
+#' @examples {
+#' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#' head(getPheno(meth.qtl))
+#' }
 setMethod("getPheno",signature(object="methQTLInput"),
           function(object){
             return(object@pheno.data)
@@ -247,6 +259,11 @@ if(!isGeneric("getAnno")) setGeneric("getAnno",
 #' @aliases getAnno,methQTL-method
 #' @aliases getAnno
 #' @export
+#' @examples {
+#' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#' head(getAnno(meth.qtl,"meth"))
+#' head(getAnno(meth.qtl,"geno"))
+#' }
 setMethod("getAnno",signature(object="methQTLInput"),
           function(object,type="meth"){
             if(type=="meth"){
@@ -274,6 +291,10 @@ if(!isGeneric("getSamples")) setGeneric("getSamples",
 #' @aliases getSamples,methQTL-method
 #' @aliases getSamples
 #' @export
+#' @examples {
+#' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#' getSamples(meth.qtl)
+#' }
 setMethod("getSamples",signature(object="methQTLInput"),
           function(object){
             return(object@samples)
@@ -291,10 +312,15 @@ if(!isGeneric("imputeMeth")) setGeneric("imputeMeth",
 #' @return The object with imputed values.
 #'
 #' @rdname imputeMeth
+#' @import impute
 #' @docType methods
 #' @aliases imputeMeth,methQTL-method
 #' @aliases imputeMeth
 #' @export
+#' @examples {
+#' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#' meth.qtl.imp <- imputeMeth(meth.qtl)
+#' }
 setMethod("imputeMeth",signature(object="methQTLInput"),
           function(object){
             rnb.xml2options(qtlGetOption("rnbeads.options"))
@@ -340,6 +366,10 @@ if(!isGeneric("saveMethQTL")) setGeneric("saveMethQTL",
 #' @aliases saveMethQTL
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#' saveMethQTL(meth.qtl,"methQTLInput")
+#' }
 setMethod("saveMethQTL","methQTLInput",
           function(object,path){
             if(file.exists(path)){
@@ -385,6 +415,10 @@ setMethod("saveMethQTL","methQTLInput",
 #' @return The object of type \code{\link{methQTLInput-class}} that has been stored on disk.
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#' meth.qtl
+#' }
 loadMethQTL <- function(path){
   if(any(!(file.exists(file.path(path,"meth_data.RDS"))||file.exists(file.path(path,"meth_data.h5"))),
          !(file.exists(file.path(path,"geno_data.RDS"))||file.exists(file.path(path,"geno_data.h5"))),

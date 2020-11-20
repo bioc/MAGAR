@@ -12,7 +12,7 @@ doGenoImportIDAT(
   idat.platform = "humanomni258v1a",
   call.method = "krlmm",
   gender.col = NULL,
-  store.crlmm = F
+  store.crlmm = FALSE
 )
 }
 \arguments{

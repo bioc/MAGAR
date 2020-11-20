@@ -9,7 +9,7 @@ doMethQTL(
   sel.covariates = NULL,
   p.val.cutoff = 1e-05,
   ncores = 1,
-  cluster.submit = F,
+  cluster.submit = FALSE,
   out.dir = getwd(),
   default.options = TRUE
 )
@@ -50,9 +50,15 @@ The process is split into 4 steps:
            \item{4}{For each of the CpG correlation blocks, we report the p-value of the representative CpG.}
          }
       Currently, if \code{qtlGetOption('cluster.architecture')=='sge'} the function does not return
-      a \code{methQTLResult} object, but \code{NULL}, since monitoring finished jobs is hard 
+      a \code{methQTLResult} object, but \code{NULL}, since monitoring finished jobs is hard
       through SLURM. After the jobs are finished (checked using \code{squeue}), the results can
       can be loaded from \code{out.dir} using \code{\link{loadMethQTLResult}}.
+}
+\examples{
+{
+meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+meth.qtl.res <- doMethQTL(meth.qtl,p.val.cutoff=0.01)
+}
 }
 \seealso{
 doMethQTLChromosome

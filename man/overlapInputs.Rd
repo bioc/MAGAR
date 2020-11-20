@@ -17,6 +17,13 @@ A data frame containing the annotations of the unique input values.
 \description{
 Overlaps the input annotations
 }
+\examples{
+{
+ meth.qtl.1 <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+ meth.qtl.2 <- meth.qtl.1
+ res <- overlapInputs(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
+}
+}
 \author{
 Michael Scherer
 }

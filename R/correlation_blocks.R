@@ -39,6 +39,12 @@
 #' @export
 #' @importFrom igraph graph.adjacency cluster_louvain groups
 #' @import bigstatsr
+#' @examples {
+#' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+#' meth.data <- getMethData(meth.qtl)
+#' anno.meth <- getAnno(meth.qtl,"meth")
+#' cor.blocks <- computeCorrelationBlocks(meth.data,annotation=anno.meth)
+#' }
 computeCorrelationBlocks <- function(meth.data,
                                        annotation,
                                        cor.threshold=qtlGetOption("cluster.cor.threshold"),

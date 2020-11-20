@@ -15,6 +15,12 @@ The object of type \code{\link{methQTLResult-class}} that has been stored on dis
 \description{
 This functions load a \code{\link{methQTLResult-class}} object from disk.
 }
+\examples{
+{
+ meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+ meth.qtl.res
+}
+}
 \author{
 Michael Scherer
 }

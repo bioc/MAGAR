@@ -46,6 +46,12 @@ We use all data points that have been used to calculate methQTLs as the backgrou
  is provided, the intersection between the methQTLs from all objects in the list is compared with the union of all interactions
  that have been tested.
 }
+\examples{
+{
+ meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+ res <- qtlTFBSMotifEnrichment(meth.qtl.res)
+}
+}
 \author{
 Michael Scherer
 }

@@ -20,6 +20,12 @@ An object of type \code{ggplot} comparing the distance between CpG and SNP. Nega
 \description{
 Computes a scatterplot between CpG-SNP distance with both effect size and p-value
 }
+\examples{
+{
+ meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+ qtlDistanceScatterplot(meth.qtl.res)
+}
+}
 \author{
 Michael Scherer
 }

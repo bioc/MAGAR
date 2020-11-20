@@ -24,6 +24,10 @@
 #'  that have been tested.
 #' @author Michael Scherer
 #' @export
+#' @examples \donttest{
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  res <- qtlLOLAEnrichment(meth.qtl.res)
+#' }
 qtlLOLAEnrichment <- function(meth.qtl.res,
                               type="SNP",
                               lola.db=NULL,
@@ -59,6 +63,10 @@ qtlLOLAEnrichment <- function(meth.qtl.res,
 #'    that have been tested.
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  res <- qtlAnnotationEnrichment(meth.qtl.res)
+#' }
 qtlAnnotationEnrichment <- function(meth.qtl.res,
                                       type="SNP",
                                       annotation="cpgislands"){
@@ -105,6 +113,10 @@ qtlAnnotationEnrichment <- function(meth.qtl.res,
 #' @author Michael Scherer
 #' @import plyr
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  res <- qtlBaseSubstitutionEnrichment(meth.qtl.res)
+#' }
 qtlBaseSubstitutionEnrichment <- function(meth.qtl.res,
 					merge=FALSE){
   stats <- getOverlapUniverse(meth.qtl.res,type="SNP")
@@ -179,6 +191,10 @@ qtlBaseSubstitutionEnrichment <- function(meth.qtl.res,
 #'  that have been tested.
 #' @author Michael Scherer
 #' @export
+#' @examples {
+#'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+#'  res <- qtlTFBSMotifEnrichment(meth.qtl.res)
+#' }
 qtlTFBSMotifEnrichment <- function(meth.qtl.res,
 	type="SNP",
 	size=500,
