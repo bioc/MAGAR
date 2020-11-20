@@ -249,7 +249,7 @@ Most of the functions discussed above either support a single ```methQTLResult``
 ```{r list, eval=TRUE}
 meth.qtl.res.2 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
 meth.qtl.list <- list(First=meth.qtl.res,Second=meth.qtl.res.2)
-qtlVennPlot(meth.qtl.list)
+qtlVennPlot(meth.qtl.list,out.folder=getwd())
 qtlUpsetPlot(meth.qtl.list,type = "cor.block")
 spec.first <- getSpecificQTL(meth.qtl.list$First,meth.qtl.list[-1])
 ```
