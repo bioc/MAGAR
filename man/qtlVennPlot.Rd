@@ -25,6 +25,9 @@ The names are used in the visualization.}
 
 \item{...}{Further argument passed to \code{\link[VennDiagram]{venn.diagram}}}
 }
+\value{
+None
+}
 \description{
 This function creates a venn plot from a list of methQTL results, showing the overlap between the interactions
 }

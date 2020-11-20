@@ -22,7 +22,7 @@
 #' @details Since PLINK files are converted to VCF files back and forth, unserscores are not allowed
 #'    in the sample IDs in case imputation is performed.
 #' @author Michael Scherer
-#' @export
+#' @noRd
 doImputation <- function(bed.file,
                           bim.file,
                           fam.file,
@@ -77,7 +77,7 @@ doImputation <- function(bed.file,
     res <- system(cmd,intern=TRUE)
     res <- unlist(strsplit(res,"\""))
     j.id <- res[unlist(lapply(res,function(x)grepl("job-",x)))]
-    run <- T
+    run <- TRUE
     logger.start("Waiting for imputation jobs to finish. This can take up to several days and you can check the state of the jobs in your user profile on https://imputationserver.sph.umich.edu/index.html#!pages/jobs")
     while(run){
       Sys.sleep(100)

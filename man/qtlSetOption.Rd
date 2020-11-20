@@ -171,6 +171,9 @@ https://imputationserver.readthedocs.io/en/latest/api/ for further information.}
 \item{imputation.population}{The population for the phasing method required by the Michigan imputation server. See
 https://imputationserver.readthedocs.io/en/latest/api/ for further information.}
 }
+\value{
+None
+}
 \description{
 Change global options for methQTL calculation
 }

@@ -9,6 +9,9 @@ qtlOptions2JSON(path = file.path(getwd(), "methQTL_options.json"))
 \arguments{
 \item{path}{A filename, to which the option setting is to be saved}
 }
+\value{
+None
+}
 \description{
 This function stores the current options setting as a JSON file at the specified path
 }

@@ -140,7 +140,7 @@ overlapQTLs <- function(meth.qtl.result.list,type){
 #' @examples {
 #'  meth.qtl.1 <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
 #'  meth.qtl.2 <- meth.qtl.1
-#'  res <- overlapInputs(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
+#'  res <- overlapInputs(list(A=meth.qtl.1,B=meth.qtl.2),type="SNP")
 #' }
 overlapInputs <- function(meth.qtl.list,type){
   if(!(inherits(meth.qtl.list[[1]],"methQTLResult")|inherits(meth.qtl.list[[1]],"methQTLInput"))){

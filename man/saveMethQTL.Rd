@@ -14,6 +14,9 @@
 
 \item{path}{A path to a non-existing directory for files to be stored.}
 }
+\value{
+None
+}
 \description{
 This functions stores a methQTLInput object in disk.
 }

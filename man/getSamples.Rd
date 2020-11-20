@@ -21,6 +21,6 @@ Returns the samples of the given dataset.
 \examples{
 {
 meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
-getSamples(meth.qtl,"meth")
+getSamples(meth.qtl)
 }
 }

@@ -76,7 +76,6 @@ submitClusterJobsSGE <- function(methQTL.input,
 				cov.file,
 				methQTL.file){
   all.chroms <- unique(getAnno(methQTL.input)$Chromosome)
-  set.seed(Sys.time())
   id <- sample(1:10000,1)
   dep.tok <- ""
   req.res <- qtlGetOption("cluster.config")$cluster.config
@@ -126,7 +125,7 @@ submitClusterJobsSGE <- function(methQTL.input,
                   )
   system(cmd.tok)
   logger.start("Waiting for jobs to finish")
-  finished <- F
+  finished <- FALSE
   while(!finished){
     Sys.sleep(100)
     qstat.res <- system(paste("qstat -j",
@@ -135,7 +134,7 @@ submitClusterJobsSGE <- function(methQTL.input,
                         ignore.stderr = TRUE)
     # 0 for running, 1 for finished
     if(qstat.res == 1){
-      finished <- T
+      finished <- TRUE
     }
   }
   methQTL.result <- loadMethQTLResult(file.path(out.dir,"methQTLResult"))
@@ -154,7 +153,6 @@ submitClusterJobsSLURM <- function(methQTL.input,
 				cov.file,
 				methQTL.file){
   all.chroms <- unique(getAnno(methQTL.input)$Chromosome)
-  set.seed(Sys.time())
   id <- sample(1:10000,1)
   dep.tok <- ""
   req.res <- qtlGetOption("cluster.config")$cluster.config

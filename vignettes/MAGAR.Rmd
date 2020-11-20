@@ -56,7 +56,7 @@ qtlSetOption(plink.path="path_to_plink")
 
 Additionally, depending on the type of the analysis, more external software tools are required. More specifically, if you want to perform imputation *bgzip* and *tabix* from the [*htslib*](http://www.htslib.org/download/) package are needed, as well as [*vcftools*](http://vcftools.sourceforge.net/downloads.html) for sorting VCF files. Lastly, if methQTL calling is to be performed through [*fastQTL*](http://fastqtl.sourceforge.net/), the software tool needs to be installed and the location of the executable specified to *MAGAR*.
 
-```{r tools, eval=F}
+```{r tools, eval=FALSE}
 qtlSetOption(
 	bgzip.path="path_to_bgzip",
 	tabix.path="path_to_tabix",
@@ -164,7 +164,7 @@ Although *MAGAR* conceptually splits the methQTL calling into two steps ((i) com
 imp.data <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
 qtlSetOption(standard.deviation.gauss=100,
 	cluster.cor.threshold=0.75)
-meth.qtl.res <- doMethQTL(imp.data,default.options=F,p.val.cutoff=0.05)
+meth.qtl.res <- doMethQTL(imp.data,default.options=FALSE,p.val.cutoff=0.05)
 ```
 
 We will now present the two steps of the methQTL calling procedure in more detail.
@@ -229,7 +229,7 @@ For more detailed information about the output, also see the function ```getResu
 To visualize methQTL, *MAGAR* provides some plotting functions. Most functions return an object of type ```ggplot```, which can be subsequently stored or viewed. Either all methQTL can be simultaneously visualized in a single plot, or a specific methQTL can be visualized:
 
 ```{r plots,eval=TRUE, include=TRUE}
-result.table <- result.table[order(result.table$P.value,decreasing=F),]
+result.table <- result.table[order(result.table$P.value,decreasing=FALSE),]
 qtlPlotSNPCpGInteraction(imp.data,result.table$CpG[1],result.table$SNP[1])
 qtlDistanceScatterplot(meth.qtl.res)
 ```
@@ -246,8 +246,9 @@ res <- qtlBaseSubstitutionEnrichment(meth.qtl.res)
 
 Most of the functions discussed above either support a single ```methQTLResult``` as input, or a list of such objects. In case a list is specified, the functions will typically overlap the methQTLs found and compare those with all SNPs/CpGs that have been used for methQTL calling. Additionally, there are functions that particularly work on a list of ```methQTLResult``` objects and that perform overlapping, or determine the methQTLs specific to a dataset.
 
-```{r list, eval=FALSE}
-meth.qtl.list <- list(First=meth.qtl.res.1,Second=meth.qtl.res.2,Third=meth.qtl.res.3)
+```{r list, eval=TRUE}
+meth.qtl.res.2 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+meth.qtl.list <- list(First=meth.qtl.res,Second=meth.qtl.res.2)
 qtlVennPlot(meth.qtl.list)
 qtlUpsetPlot(meth.qtl.list,type = "cor.block")
 spec.first <- getSpecificQTL(meth.qtl.list$First,meth.qtl.list[-1])

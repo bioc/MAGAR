@@ -175,6 +175,7 @@ assign("CLUSTER.ARCHITECTURE","sge",QTL.OPTIONS)
 #'              https://imputationserver.readthedocs.io/en/latest/api/ for further information.
 #' @param imputation.population The population for the phasing method required by the Michigan imputation server. See
 #'              https://imputationserver.readthedocs.io/en/latest/api/ for further information.
+#' @return None
 #' @export
 #' @author Michael Scherer
 #' @examples
@@ -704,6 +705,7 @@ qtlGetOption <- function(names){
 #'
 #' @param path A filename, to which the option setting is to be saved
 #' @author Michael Scherer
+#' @return None
 #' @export
 #' @examples {
 #'   qtlSetOption('cluster.cor.threshold'=0.5)
@@ -725,6 +727,7 @@ qtlOptions2JSON <- function(path=file.path(getwd(),"methQTL_options.json")){
 #'
 #' @param path Path to a JSON file containing the options to be specified
 #' @author Michael Scherer
+#' @return None
 #' @export
 #' @import jsonlite
 #' @examples {

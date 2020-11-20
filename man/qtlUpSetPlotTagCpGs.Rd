@@ -11,6 +11,9 @@ qtlUpSetPlotTagCpGs(meth.qtl.res.list, ...)
 
 \item{...}{Further argument passed to \code{\link[UpSetR]{upset}}}
 }
+\value{
+None
+}
 \description{
 This function overlaps the tagCpGs for a list of methQTL results
 }

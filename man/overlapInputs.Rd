@@ -21,7 +21,7 @@ Overlaps the input annotations
 {
  meth.qtl.1 <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
  meth.qtl.2 <- meth.qtl.1
- res <- overlapInputs(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
+ res <- overlapInputs(list(A=meth.qtl.1,B=meth.qtl.2),type="SNP")
 }
 }
 \author{

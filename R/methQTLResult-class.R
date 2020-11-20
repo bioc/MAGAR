@@ -314,6 +314,7 @@ if(!isGeneric("saveMethQTLResult")) setGeneric("saveMethQTLResult",
 #'
 #' @param object The \code{\link{methQTLResult-class}} object to be stored on disk.
 #' @param path A path to a non-existing directory for files to be stored.
+#' @return None
 #'
 #' @rdname saveMethQTLResult
 #' @docType methods

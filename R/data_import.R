@@ -47,7 +47,6 @@
 #' @seealso doMethImport, doGenoImport
 #' @export
 #' @import HDF5Array
-
 doImport <- function(data.location,
                       s.anno=NULL,
                       assembly.meth="hg19",
@@ -227,7 +226,7 @@ doMethImport <- function(data.location,assembly="hg19",
     logger.completed()
   }
   segmentation <- qtlRunSegmentation(rnb.imp,out.folder,...)
-  s.names <- samples(rnb.imp)
+  s.names <- as.character(pheno(rnb.imp)[,s.id.col])
   meth.data <- meth(rnb.imp)
   if(qtlGetOption("hdf5dump")){
     meth.data <- writeHDF5Array(meth.data)

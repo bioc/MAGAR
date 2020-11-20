@@ -9,6 +9,9 @@ qtlJSON2options(path)
 \arguments{
 \item{path}{Path to a JSON file containing the options to be specified}
 }
+\value{
+None
+}
 \description{
 This function reads an option setting from a JSON file and applies them to the current session
 }

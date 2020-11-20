@@ -11,6 +11,9 @@ qtlPlotBaseSubstitution(meth.qtl.res, ...)
 
 \item{...}{Further parameters passed to \code{\link{qtlBaseSubstitutionEnrichment}}}
 }
+\value{
+None
+}
 \description{
 This function returns an enrichment plot for the different base substitutions.
 }

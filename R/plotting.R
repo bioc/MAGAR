@@ -245,6 +245,7 @@ qtlDistanceScatterplot <- function(meth.qtl.result,
 #'              \code{p.val.adj.fdr}
 #' @details A plot is shown that contains chromosome-wise interactions.
 #' @author Michael Scherer
+#' @return None
 #' @export
 #' @examples {
 #'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
@@ -289,6 +290,7 @@ qtlManhattanPlot <- function(meth.qtl.result,
 #'     \code{'cor.block'} is to be visualized
 #' @param out.name Optional argument for the name of the plot on disk (ending needs to be .png)
 #' @param ... Further argument passed to \code{\link[VennDiagram]{venn.diagram}}
+#' @return None
 #' @details The plot can be stored on disk using \code{out.folder} and \code{out.name}
 #' @export
 #' @author Michael Scherer
@@ -333,6 +335,7 @@ qtlVennPlot <- function(meth.qtl.result.list,
 #' @param type Determines if either the SNP (default), the CpG, or the correlation block
 #'     \code{'cor.block'} is to be visualized
 #' @param ... Further argument passed to \code{\link[UpSetR]{upset}}
+#' @return None
 #' @details The plot is directly drawn and can be stored on disk using the known R graphic devices
 #' @export
 #' @author Michael Scherer
@@ -371,7 +374,7 @@ qtlUpsetPlot <- function(meth.qtl.result.list,
 #'          or \code{'genomic'}.
 #' @return A scatterplot and associated correlations as an objec to type \code{ggplot}
 #' @author Michael Scherer
-#' @export
+#' @noRd
 qtlCorrelateCorBlockStat <- function(meth.qtl.res,
                                      stat="p.val.adj.fdr",
                                      size.type='num.CpGs'){
@@ -499,6 +502,7 @@ qtlPlotClusterSize <- function(meth.qtl.res,
 #'
 #' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
 #' @param ... Further parameters passed to \code{\link{qtlAnnotationEnrichment}}
+#' @return None
 #' @seealso qtlAnnotationEnrichment
 #' @export
 #' @author Michael Scherer
@@ -538,6 +542,7 @@ qtlPlotAnnotationEnrichment <- function(meth.qtl.res,
 #'
 #' @param meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
 #' @param ... Further parameters passed to \code{\link{qtlBaseSubstitutionEnrichment}}
+#' @return None
 #' @seealso qtlBaseSubstitutionEnrichment
 #' @export
 #' @author Michael Scherer
@@ -564,6 +569,7 @@ qtlPlotBaseSubstitution <- function(meth.qtl.res,
 #'
 #' @param meth.qtl.res.list A list of \code{\link{methQTLResult-class}} objects, for which correlation blocks are to be overlapped
 #' @param ... Further argument passed to \code{\link[UpSetR]{upset}}
+#' @return None
 #' @details This function draws an UpSetPlot for the overlaps directly from to the open graphics device
 #' @export
 #' @author Michael Scherer
@@ -599,6 +605,7 @@ qtlUpSetPlotCorBlocks <- function(meth.qtl.res.list,
 #'
 #' @param meth.qtl.res.list A list of \code{\link{methQTLResult-class}} objects, for which correlation blocks are to be overlapped
 #' @param ... Further argument passed to \code{\link[UpSetR]{upset}}
+#' @return None
 #' @details This function draws an UpSetPlot for the overlaps directly from to the open graphics device
 #' @export
 #' @author Michael Scherer

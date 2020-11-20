@@ -14,6 +14,9 @@ qtlManhattanPlot(meth.qtl.result, type = "CpG", stat = "p.val.adj.fdr")
 \item{stat}{Determines the statistic that is to be visualized. Can be either \code{P.value}, \code{Beta} or
 \code{p.val.adj.fdr}}
 }
+\value{
+None
+}
 \description{
 This function creates a manhattan plot for the given methQTL result
 }

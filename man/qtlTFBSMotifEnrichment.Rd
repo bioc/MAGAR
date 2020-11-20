@@ -29,7 +29,7 @@ genomic regions using a width of this size around the site of interest.}
 
 \item{out.dir}{The output directory in which resulting plots will be stored.}
 
-\item{...}{Further parameters passed to \code{\link[motifRG]{findMotifFgBg}}}
+\item{...}{Further parameters passed to \code{findMotifFgBg}}
 }
 \value{
 A plot describing the TFB motif enrichment

@@ -359,6 +359,7 @@ if(!isGeneric("saveMethQTL")) setGeneric("saveMethQTL",
 #'
 #' @param object The \code{\link{methQTLInput-class}} object to be stored on disk.
 #' @param path A path to a non-existing directory for files to be stored.
+#' @return None
 #'
 #' @rdname saveMethQTL
 #' @docType methods

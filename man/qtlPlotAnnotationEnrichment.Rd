@@ -11,6 +11,9 @@ qtlPlotAnnotationEnrichment(meth.qtl.res, ...)
 
 \item{...}{Further parameters passed to \code{\link{qtlAnnotationEnrichment}}}
 }
+\value{
+None
+}
 \description{
 This functions returns and enrichment plot for different genomic annotation enrichments
 }

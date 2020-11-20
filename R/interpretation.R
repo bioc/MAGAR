@@ -23,7 +23,7 @@
 #'  is provided, the intersection between the methQTLs from all objects in the list is compared with the union of all interactions
 #'  that have been tested.
 #' @author Michael Scherer
-#' @export
+#' @noRd
 #' @examples \donttest{
 #'  meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
 #'  res <- qtlLOLAEnrichment(meth.qtl.res)
@@ -181,7 +181,7 @@ qtlBaseSubstitutionEnrichment <- function(meth.qtl.res,
 #' @param assembly The assembly used. Only \code{"hg19"} and \code{"hg38"} supported
 #' @param subsample Integer specifying how many of the regions are to be subsamples from the universe.
 #' @param out.dir The output directory in which resulting plots will be stored.
-#' @param ... Further parameters passed to \code{\link[motifRG]{findMotifFgBg}}
+#' @param ... Further parameters passed to \code{findMotifFgBg}
 #' @return A plot describing the TFB motif enrichment
 #' @details This function is in part based on the tutorial for Motif discovery in https://compgenomr.github.io/book/motif-discovery.html.
 #' We use all data points that have been used to calculate methQTLs as the background

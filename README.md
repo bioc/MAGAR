@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/MPIIComputationalEpigenetics/MAGAR.svg?branch=master)](https://travis-ci.org/MPIIComputationalEpigenetics/MAGAR)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-![](https://github.com/MPIIComputationalEpigenetics/methQTL.data/pictures/logo.png)
+![](https://github.com/MPIIComputationalEpigenetics/methQTL.data/raw/master/pictures/logo.png)
 
 ## Short description
 *MAGAR* (Methylation-Aware Genotype Association in R) is an R package for computing DNA methylation quantitative trait loci (methQTL) from DNA methylation and matched genotyping data. The tool employs a two-stage approach to compute methQTL:
