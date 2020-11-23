@@ -22,7 +22,7 @@ Imports: doParallel,
 	 ff,
 	 argparse,
 	 impute
-Depends: R (>= 4.1),
+Depends: R (>= 4.0),
 	 HDF5Array,
 	 RnBeads,
 	 snpStats,
