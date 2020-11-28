@@ -22,7 +22,7 @@ devtools::install_github("MPIIComputationalEpigenetics/MAGAR")
 ```
 
 ## Documentation
-You can find a detailed information for *MAGAR* [here](vignettes/MAGAR.md)
+You can find a detailed information for *MAGAR* [here](vignettes/MAGAR.Rmd)
 
 ## Citation
 A manuscript presentin *MAGAR* is currently in preparation.
