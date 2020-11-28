@@ -3,3 +3,4 @@
 .RData
 .Ruserdata
 inst/extdata/omni_exome_annotation.rds
+*.Rproj
