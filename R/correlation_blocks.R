@@ -43,7 +43,7 @@
 #' meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
 #' meth.data <- getMethData(meth.qtl)
 #' anno.meth <- getAnno(meth.qtl,"meth")
-#' cor.blocks <- computeCorrelationBlocks(meth.data,annotation=anno.meth)
+#' cor.blocks <- computeCorrelationBlocks(meth.data[1:10,],annotation=anno.meth[1:10,])
 #' }
 computeCorrelationBlocks <- function(meth.data,
                                        annotation,
