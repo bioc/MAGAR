@@ -1,12 +1,11 @@
 Package: MAGAR
 Type: Package
 Title: MAGAR: R-package to compute methylation Quantitative Trait Loci (methQTL) from DNA methylation and genotyping data
-Version: 0.99.0
-Date: 2020-11-17
+Version: 0.99.1
+Date: 2020-11-28
 Authors@R: c(
 	person("Scherer", "Michael", email="mscherer@mpi-inf.mpg.de", role=c("cre", "aut"), comment = c(ORCID = "0000-0001-7990-6179"))
 	)
-Maintainer: Michael Scherer <mscherer@mpi-inf.mpg.de>
 Description: "Methylation-Aware Genotype Association in R" (MAGAR) computes methQTL from DNA methylation and genotyping data from matched samples. MAGAR uses a linear modeling stragety to call CpGs/SNPs that are methQTLs. MAGAR accounts for the local correlation structure of CpGs.
 License: GPL-3
 Imports: doParallel,
@@ -22,7 +21,7 @@ Imports: doParallel,
 	 ff,
 	 argparse,
 	 impute
-Depends: R (>= 4.0),
+Depends: R (>= 4.1),
 	 HDF5Array,
 	 RnBeads,
 	 snpStats,
@@ -44,6 +43,6 @@ Suggests: gridExtra,
 Encoding: UTF-8
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
-biocViews: Regression, Epigenetics, DNAMethylation, SNP, GeneticVariability, MethylationArray
+biocViews: Regression, Epigenetics, DNAMethylation, SNP, GeneticVariability, MethylationArray, Microarray, CpGIsland, MethylSeq
 BugReports: https://github.com/MPIIComputationalEpigenetics/MAGAR/issues
 URL: https://github.com/MPIIComputationalEpigenetics/MAGAR

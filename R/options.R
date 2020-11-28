@@ -422,7 +422,7 @@ qtlSetOption <- function(rnbeads.options=NULL,
       stop("Invalid value for rscript.path, needs to be character")
     }
     tryCatch(o <- system(paste(rscript.path,"--version"),intern = TRUE),error=function(e){
-      logger.error("Invalid value for rscript.path. Needs to be a path to an executable version of Rscript")})
+      logger.warning("Invalid value for rscript.path. Needs to be a path to an executable version of Rscript")})
     QTL.OPTIONS[['RSCRIPT.PATH']] <- rscript.path
   }
   if(!missing(cluster.architecture)){

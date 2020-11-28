@@ -211,6 +211,7 @@ doMethQTLChromosome <- function(meth.qtl,
                                 sel.anno,
                                 sel.anno.geno,
                                 mc.cores = ncores)
+      parallel.teardown()
       res.all <- c()
       for(i in 1:length(res.chr.p.val)){
         res.all <- rbind(res.all,res.chr.p.val[[i]])
