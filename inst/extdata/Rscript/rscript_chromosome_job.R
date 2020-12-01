@@ -23,7 +23,9 @@ logger.start("Loading methQTL object")
 meth.qtl <- loadMethQTL(cmd.args$methQTL)
 logger.completed()
 
-setHDF5DumpDir(cmd.args$hdf5dir)
+dump.file <- file.path(cmd.args$hdf5dir,cmd.args$chr)
+dir.create(dump.file)
+setHDF5DumpDir(dump.file)
 options(fftempdir=cmd.args$ffdir)
 
 if(!is.null(cmd.args$covariates)){
