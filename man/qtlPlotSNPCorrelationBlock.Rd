@@ -17,7 +17,7 @@ annotation information.}
 }
 \value{
 The plot as an \code{ggplot} object, containing a facet with a scatterplot between the CpG
-   methylation state and the SNP dosage. Discrete genotypes are currently not supported.
+methylation state and the SNP dosage. Discrete genotypes are currently not supported.
 }
 \description{
 This functions creates a multi-facet plot with a panel for each CpG in the correlation block that has

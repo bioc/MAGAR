@@ -3,20 +3,18 @@ title: 'MAGAR: Methylation-Aware Genotype Association in R'
 author: "Michael Scherer"
 date: "November 19, 2020"
 output:
-  html_document:
+    html_document:
     df_print: paged
     toc: yes
-  md_document:
-    toc: yes
-  pdf_document:
+    md_document:
+    pdf_document:
     latex_engine: xelatex
     number_sections: yes
-    toc: yes
 header-includes: \usepackage{helvet} \hypersetup{colorlinks, urlcolor=blue}
 vignette: >
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteIndexEntry{MAGAR: Methylation-Aware Genotype Association in R}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+    %\VignetteIndexEntry{MAGAR: Methylation-Aware Genotype Association in R}
 bibliography: biblio.bib 
 ---
 
@@ -31,17 +29,14 @@ This vignette describes the package "Methylation-Aware Genotype Association with
 
 # Installation
 
-The package relies on some dependencies that are exclusively available from Bioconductor and not from CRAN, most notably [*RnBeads*](https://rnbeads.org). After installing the dependencies, *MAGAR* can be installed from GitHub, after installing the *devtools* package.
+*MAGAR* can be installed using the basic Bioconductor installation functions.
 
 ```{r installation, echo=FALSE, eval=TRUE}
-if(!requireNamespace("devtools")){
-	install.packages("devtools")
-}
-if(!requireNamespace("RnBeads")){
-	source("https://rnbeads.org/data/install.R")
+if(!requireNamespace("BiocManager")){
+    install.packages("BiocManager")
 }
 if(!requireNamespace("MAGAR")){
-  devtools::install_github("MPIIComputationalEpigenetics/MAGAR")
+    BiocManager::install("MAGAR")
 }  
 suppressPackageStartupMessages(library(MAGAR))
 ```
@@ -58,10 +53,10 @@ Additionally, depending on the type of the analysis, more external software tool
 
 ```{r tools, eval=FALSE}
 qtlSetOption(
-	bgzip.path="path_to_bgzip",
-	tabix.path="path_to_tabix",
-	vctools.path="path_to_vcftools_folder",
-	fast.qtl.path="path_to_fastQTL",
+    bgzip.path="path_to_bgzip",
+    tabix.path="path_to_tabix",
+    vctools.path="path_to_vcftools_folder",
+    fast.qtl.path="path_to_fastQTL",
 )
 ```
 
@@ -83,9 +78,9 @@ Sample_3,45,m,209054857842_R03C01
 For further details on the import process, we refer to the [RnBeads vignette](http://bioconductor.org/packages/release/bioc/vignettes/RnBeads/inst/doc/RnBeads.pdf). Most importantly, analysis options need to be specified for the import and preprocessing modules of *RnBeads*. *MAGAR* provides a default setting, which is available in *extdata/rnbeads_options.xml*. You can use this file as a template for your own setting and then specify it to the package:
 
 ```{r options, eval=TRUE}
-opts <- rnb.xml2options(system.file("extdata/rnbeads_options.xml",package="MAGAR"))
+opts <- rnb.xml2options(system.file("extdata","rnbeads_options.xml",package="MAGAR"))
 rnb.options(identifiers.column="geo_accession",
-	import.idat.platform="probes450")
+    import.idat.platform="probes450")
 xml.fi <- file.path(getwd(),"rnbeads_options.xml")
 cat(rnb.options2xml(),file=xml.fi)
 qtlSetOption(rnbeads.options = xml.fi)
@@ -105,11 +100,11 @@ rnb.set <- load.rnb.set("rnb_set_dir")
 s.anno <- "sample_annotation.csv"
 data.loc <- list(idat.dir=rnb.set,geno.dir=plink.dir)
 qtlSetOption(geno.data.type="plink",
-	meth.data.type="rnb.set")
+    meth.data.type="rnb.set")
 meth.qtl <- doImport(data.location=data.loc,
-	s.anno=s.anno,
-	s.id.col="SampleID",
-	out.folder=getwd())
+    s.anno=s.anno,
+    s.id.col="SampleID",
+    out.folder=getwd())
 ``` 
 
 ### IDAT files
@@ -148,10 +143,10 @@ geno.dir <- "geno_dir"
 anno.sheet <- "sample_annotation.tsv"
 qtlSetOption(hdf5dump=TRUE)
 imp.data <- doImport(data.location = c(idat.dir=idat.dir,geno.dir=geno.dir),
-                      s.anno = anno.sheet,
-                      s.id.col = "ID",
-                      tab.sep = "\t",
-                      out.folder = getwd())
+                    s.anno = anno.sheet,
+                    s.id.col = "ID",
+                    tab.sep = "\t",
+                    out.folder = getwd())
 ```
 
 Please note that the ```recode.allele.frequencies``` option specifies, if, according to the cohort analyzed, SNP reference and alternative allele are to be recoded according to the allele frequencies in the available samples. Alternatively, a path to a local version of dbSNP [@Sherry2001] can be provided through ```db.snp.ref```, and reference/alternative allele information will be automatically parsed from the database. This is especially crucial, if imputation is to be performed, since the Michigan Imputation Server is sensitive to reference mismatches.
@@ -161,9 +156,9 @@ Please note that the ```recode.allele.frequencies``` option specifies, if, accor
 Although *MAGAR* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter, or as global parameters using ```?qtlSetOption```.
 
 ```{r call_methQTL, eval=TRUE}
-imp.data <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+imp.data <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
 qtlSetOption(standard.deviation.gauss=100,
-	cluster.cor.threshold=0.75)
+    cluster.cor.threshold=0.75)
 meth.qtl.res <- doMethQTL(imp.data,default.options=FALSE,p.val.cutoff=0.05)
 ```
 
@@ -247,7 +242,7 @@ res <- qtlBaseSubstitutionEnrichment(meth.qtl.res)
 Most of the functions discussed above either support a single ```methQTLResult``` as input, or a list of such objects. In case a list is specified, the functions will typically overlap the methQTLs found and compare those with all SNPs/CpGs that have been used for methQTL calling. Additionally, there are functions that particularly work on a list of ```methQTLResult``` objects and that perform overlapping, or determine the methQTLs specific to a dataset.
 
 ```{r list, eval=TRUE}
-meth.qtl.res.2 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res.2 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
 meth.qtl.list <- list(First=meth.qtl.res,Second=meth.qtl.res.2)
 qtlVennPlot(meth.qtl.list,out.folder=getwd())
 qtlUpsetPlot(meth.qtl.list,type = "cor.block")
@@ -264,7 +259,7 @@ spec.first <- getSpecificQTL(meth.qtl.list$First,meth.qtl.list[-1])
 qtlSetOption(cluster.config = c(h_vmem="60G",mem_free="20G"))
 qtlSetOption(rscript.path = "/usr/bin/Rscript")
 meth.qtl.res <- doMethQTL(meth.qtl = imp.data,
-                          cluster.submit = T)
+                        cluster.submit = T)
 ```
 
 # References

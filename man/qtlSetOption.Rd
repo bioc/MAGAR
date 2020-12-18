@@ -30,7 +30,6 @@ qtlSetOption(
   representative.cpg.computation = "row.medians",
   meth.qtl.type = "oneVSall",
   max.cpgs = 40000,
-  rscript.path = "/usr/bin/Rscript",
   cluster.architecture = "sge",
   cluster.config = c(h_vmem = "5G", mem_free = "5G"),
   n.permutations = 1000,
@@ -68,7 +67,7 @@ Defaults to the temporary file.}
 Hardy-Weinberg equilibrium as implemented in \code{PLINK}.}
 
 \item{db.snp.ref}{Path to a locally stored version of dbSNP[3]. If this option is specified, the reference allele
-     is determined from this file instead of from the allele frequencies of the dataset. This circumvents problems
+is determined from this file instead of from the allele frequencies of the dataset. This circumvents problems
 with some imputation methods. If \code{NULL}(default), recoding will not be performed.}
 
 \item{minor.allele.frequency}{Threshold for the minor allele frequency of the SNPs to be used in the analysis.}
@@ -105,7 +104,7 @@ according to its distance.}
 \item{absolute.distance.cutoff}{Distance cutoff after which a CpG correlation is not considered anymore.}
 
 \item{linear.model.type}{Linear model type to be used. Can be either \code{"categorical.anova"} or \code{"classical.linear"}. If \code{'meth.qtl.type'='fastQTL'}, this option is automatically set to \code{'fastQTL'}
-see \code{\link{callMethQTLBlock}} for more informations.}
+see \code{callMethQTLBlock} for more informations.}
 
 \item{representative.cpg.computation}{Option specifying how reference CpGs per correlation block are to be computed. Available
 options are \code{"row.medians"} for the site that is the row median across the samples within the
@@ -122,8 +121,6 @@ to use (\code{FastQTL})[1] as a methQTL mapping tool (option \code{'fastQTL'}).}
 \item{max.cpgs}{Maximum number of CpGs used in the computation (used to save memory). 40,000 is a reasonable
 default for machines with ~128GB of main memory. Should be smaller for smaller machines and larger
 for larger ones.}
-
-\item{rscript.path}{Path to an executable version of Rscript needed for submitting batch jobs to a cluster}
 
 \item{cluster.architecture}{The type of HPC cluster architecture present. Currently supported are \code{'sge'} and \code{'slurm'}}
 
@@ -178,21 +175,19 @@ None
 Change global options for methQTL calculation
 }
 \examples{
-{
 qtlGetOption("rnbeads.report")
 qtlSetOption(rnbeads.report=getwd())
 qtlGetOption("rnbeads.report")
 }
-}
 \references{
 1. Ongen, H., Buil, A., Brown, A. A., Dermitzakis, E. T., & Delaneau, O. (2016).
-   Fast and efficient QTL mapper for thousands of molecular phenotypes. Bioinformatics, 32(10),
-   1479–1485. https://doi.org/10.1093/bioinformatics/btv722
-  2. Das S, Forer L, Schönherr S, Sidore C, Locke AE, et al. (2016).
-   Next-generation genotype imputation service and methods. Nature Genetics 48, 1284–1287,
-   https://doi.org/10.1038/ng.3656
-  3. Sherry, S. T. et al. (2001). dbSNP: the NCBI database of genetic variation.
-   Nucleic Acids Res. 29, 308–311, https://doi.org/10.1093/nar/29.1.308.
+Fast and efficient QTL mapper for thousands of molecular phenotypes. Bioinformatics, 32(10),
+1479–1485. https://doi.org/10.1093/bioinformatics/btv722
+2. Das S, Forer L, Schönherr S, Sidore C, Locke AE, et al. (2016).
+Next-generation genotype imputation service and methods. Nature Genetics 48, 1284–1287,
+https://doi.org/10.1038/ng.3656
+3. Sherry, S. T. et al. (2001). dbSNP: the NCBI database of genetic variation.
+Nucleic Acids Res. 29, 308–311, https://doi.org/10.1093/nar/29.1.308.
 }
 \author{
 Michael Scherer

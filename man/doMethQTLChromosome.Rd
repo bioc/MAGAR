@@ -30,24 +30,22 @@ used for covariate adjustment.}
 \value{
 A data frame with seven columns:
        \describe{
-         \item{CpGs}{The CpG ID chosen to be the representative CpG in the methQTL}
-         \item{SNP}{The SNP ID (as rsNNNNNN) involved in the methQTL}
-         \item{Beta}{The coefficient estimate of the linear model}
-         \item{P.value}{The p-value associated with the coefficient estimate}
-         \item{Chromosome}{The chromosome name}
-         \item{Position.CpG}{The genomic position of the CpG}
-         \item{Position.SNP}{The genomic position of the SNP}
-         \item{Distance}{The distance between the CpG and the SNP}
+           \item{CpGs}{The CpG ID chosen to be the representative CpG in the methQTL}
+           \item{SNP}{The SNP ID (as rsNNNNNN) involved in the methQTL}
+           \item{Beta}{The coefficient estimate of the linear model}
+           \item{P.value}{The p-value associated with the coefficient estimate}
+           \item{Chromosome}{The chromosome name}
+           \item{Position.CpG}{The genomic position of the CpG}
+           \item{Position.SNP}{The genomic position of the SNP}
+           \item{Distance}{The distance between the CpG and the SNP}
        }
 }
 \description{
 This functions computes the methQTL interactions for a single chromosome
 }
 \examples{
-{
-meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
 meth.qtl.res <- doMethQTLChromosome(meth.qtl,chrom="chr1",p.val.cutoff=0.01)
-}
 }
 \seealso{
 doMethQTL

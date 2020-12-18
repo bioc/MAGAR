@@ -20,11 +20,9 @@ A \code{data.frame} of methQTL interactions sorted by the effect size.
 This function returns the methQTL interactions specific for a result
 }
 \examples{
-{
- meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- meth.qtl.res.2 <- meth.qtl.res.1
- res <- getSpecificQTL(meth.qtl.res.1,list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
-}
+meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res.2 <- meth.qtl.res.1
+res <- getSpecificQTL(meth.qtl.res.1,list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
 }
 \author{
 Michael Scherer

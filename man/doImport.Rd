@@ -18,10 +18,10 @@ doImport(
 \arguments{
 \item{data.location}{Named character vector specifying the data location. The names correspond to:
 \describe{
-  \item{idat.dir}{Path to the idat-folder for raw DNA methylation data.}
-  \item{geno.dir}{Path to the genotyping data file directory, either containing PLINK files
-   (i.e. with \code{bed}, \code{bim} and \code{fam} files), imputed, (dosage) files (i.e. with
-   \code{dos} and \code{txt} files), or \code{idat} files}
+\item{idat.dir}{Path to the idat-folder for raw DNA methylation data.}
+\item{geno.dir}{Path to the genotyping data file directory, either containing PLINK files
+(i.e. with \code{bed}, \code{bim} and \code{fam} files), imputed, (dosage) files (i.e. with
+ \code{dos} and \code{txt} files), or \code{idat} files}
 }}
 
 \item{s.anno}{Path to the sample annotation sheet. If \code{NULL}, the program searches for potential sample
@@ -39,7 +39,7 @@ positions will be matched using liftOver.}
 
 \item{out.folder}{The output directory to store diagnostic plots}
 
-\item{...}{Futher parameters passed to e.g. \code{\link{doGenoImport}}}
+\item{...}{Futher parameters passed to e.g. \code{doGenoImport}}
 }
 \value{
 An object of type \code{\link{methQTLInput-class}} with the methylation and genotyping information added.
@@ -49,22 +49,19 @@ Performs input for the given DNA methylation and genotyping data.
 }
 \details{
 Import of DNA methylation and genotyping data is done separately:
-         \describe{
-           \item{DNA methylation data}{DNA methylation data is imported using the \code{\link{RnBeads}} package. We
-           use a default option setting commonly used for DNA methylation data obtained from the Illumina BeadArray
-           series. If you want to specify further options, we refer to the \code{\link{rnb.options}}.}
-           \item{Genotyping data}{Genotyping data is processed using PLINK. We focus on genotyping data generated
-           with the Illumina BeadArray series and use default options. For further option settings, you should consult
-           the \code{\link{qtlSetOption}} documentation.}
-         }
+       \describe{
+       \item{DNA methylation data}{DNA methylation data is imported using the \code{\link{RnBeads}} package. We
+       use a default option setting commonly used for DNA methylation data obtained from the Illumina BeadArray
+       series. If you want to specify further options, we refer to the \code{\link{rnb.options}}.}
+       \item{Genotyping data}{Genotyping data is processed using PLINK. We focus on genotyping data generated
+       with the Illumina BeadArray series and use default options. For further option settings, you should consult
+       the \code{\link{qtlSetOption}} documentation.}
+       }
 
-    You can specify the import type using \code{\link{qtlSetOption}} through the options
-         \code{meth.data.type} and \code{geno.data.type}.
+   You can specify the import type using \code{\link{qtlSetOption}} through the options
+       \code{meth.data.type} and \code{geno.data.type}.
 
-         This function internally uses \code{\link{doMethImport}} and \code{\link{doGenoImport}}
-}
-\seealso{
-doMethImport, doGenoImport
+       This function internally uses \code{doMethImport} and \code{doGenoImport}
 }
 \author{
 Michael Scherer

@@ -21,11 +21,9 @@ This function overlaps correlation blocks for a list of methQTL results
 This function draws an UpSetPlot for the overlaps directly from to the open graphics device
 }
 \examples{
-{
- meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- meth.qtl.res.2 <- meth.qtl.res.1
- qtlUpSetPlotCorBlocks(list(A=meth.qtl.res.1,B=meth.qtl.res.2))
-}
+meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res.2 <- meth.qtl.res.1
+qtlUpSetPlotCorBlocks(list(A=meth.qtl.res.1,B=meth.qtl.res.2))
 }
 \author{
 Michael Scherer

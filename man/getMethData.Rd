@@ -23,8 +23,6 @@ The methylation matrix either as a matrix of \code{\link{HDF5Matrix}}.
 Returns methylation information for the given dataset.
 }
 \examples{
-{
-meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
 head(getMethData(meth.qtl))
-}
 }

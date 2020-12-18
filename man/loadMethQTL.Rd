@@ -16,10 +16,8 @@ The object of type \code{\link{methQTLInput-class}} that has been stored on disk
 This functions load a \code{\link{methQTLInput-class}} object from disk.
 }
 \examples{
-{
-meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
 meth.qtl
-}
 }
 \author{
 Michael Scherer

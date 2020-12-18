@@ -16,11 +16,9 @@ None
 This function stores the current options setting as a JSON file at the specified path
 }
 \examples{
-{
-  qtlSetOption('cluster.cor.threshold'=0.5)
-  qtlOptions2JSON("my_opts.json")
-  qtlJSON2options("my_opts.json")
-}
+qtlSetOption('cluster.cor.threshold'=0.5)
+qtlOptions2JSON("my_opts.json")
+qtlJSON2options("my_opts.json")
 }
 \author{
 Michael Scherer

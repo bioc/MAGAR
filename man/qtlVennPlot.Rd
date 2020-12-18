@@ -35,11 +35,9 @@ This function creates a venn plot from a list of methQTL results, showing the ov
 The plot can be stored on disk using \code{out.folder} and \code{out.name}
 }
 \examples{
-{
- meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- meth.qtl.res.2 <- meth.qtl.res.1
- qtlVennPlot(list(A=meth.qtl.res.1,B=meth.qtl.res.2),out.folder=getwd())
-}
+meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res.2 <- meth.qtl.res.1
+qtlVennPlot(list(A=meth.qtl.res.1,B=meth.qtl.res.2),out.folder=getwd())
 }
 \author{
 Michael Scherer

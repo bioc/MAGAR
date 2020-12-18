@@ -40,7 +40,7 @@ object using the 'epicPMDdetect' package}
 }
 \value{
 A list representing the clustering of CpGs into correlation blocks. Each element is a cluster, which contains
-     row indices of the DNA methylation matrix that correspond to this cluster.
+   row indices of the DNA methylation matrix that correspond to this cluster.
 }
 \description{
 This function computes CpG correlation blocks from correlations of CpGs across samples by Louvian
@@ -48,22 +48,20 @@ clustering.
 }
 \details{
 This method performs clustering of the correlation matrix obtaind from the DNA methylation matrix. Correlations
-     are computed for each pair of CpGs across all the samples. We then compute a similarity matrix from this correlation
-     matrix and set correlations lower than the given threshold to 0. In the next step, we weight the correlations
-     by the distance between the CpGs: smaller distances get higher weights according to Gaussian distribution with
-     mean 0 and standard deviation as specified above. Furthermore, similarities of CpGs that are further than
-     \code{absolute.distance.cutoff} away from one another are discarded.
+   are computed for each pair of CpGs across all the samples. We then compute a similarity matrix from this correlation
+   matrix and set correlations lower than the given threshold to 0. In the next step, we weight the correlations
+   by the distance between the CpGs: smaller distances get higher weights according to Gaussian distribution with
+   mean 0 and standard deviation as specified above. Furthermore, similarities of CpGs that are further than
+   \code{absolute.distance.cutoff} away from one another are discarded.
 
-     We then compute the associated weighted, undirected graph from the similarity matrix and execute Louvain clustering
-     on the graph. The resulting clusters of CpGs are returned.
+   We then compute the associated weighted, undirected graph from the similarity matrix and execute Louvain clustering
+   on the graph. The resulting clusters of CpGs are returned.
 }
 \examples{
-{
-meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
 meth.data <- getMethData(meth.qtl)
 anno.meth <- getAnno(meth.qtl,"meth")
-cor.blocks <- computeCorrelationBlocks(meth.data,annotation=anno.meth)
-}
+cor.blocks <- computeCorrelationBlocks(meth.data[seq(1,10),],annotation=anno.meth[seq(1,10),])
 }
 \author{
 Michael Scherer

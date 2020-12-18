@@ -19,8 +19,6 @@ The phenotypic data either as a \code{data.frame}.
 Returns phenotypic information for the given dataset.
 }
 \examples{
-{
-meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
 head(getPheno(meth.qtl))
-}
 }

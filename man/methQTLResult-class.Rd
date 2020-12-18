@@ -9,26 +9,26 @@ Class storing methQTL analysis results and the associated genomic annotations
 }
 \details{
 This class stores the results of the methQTL analysis. It stores a \code{data.frame} with the methQTL results,
-  and associated genomic annotations for both the methylation sites and SNPs.
+and associated genomic annotations for both the methylation sites and SNPs.
 }
 \section{Slots}{
 
 \describe{
-  \item{\code{result.frame}}{The methQTL results as a \code{data.frame}}
-  \item{\code{anno.meth}}{Genomic annotation of the methylation sites as a \code{data.frame}.}
-  \item{\code{anno.geno}}{Genomic annotation of the SNPs as a \code{data.frame}.}
-  \item{\code{correlation.blocks}}{Correlation blocks determined from the methylation matrix.}
-  \item{\code{method}}{The method used to call methQTL.}
-  \item{\code{rep.type}}{Method used to determine representative CpGs from correlation blocks.}
-  \item{\code{chr}}{Optional argument specifying if methQTL were called on a single chromosome.}
+\item{\code{result.frame}}{The methQTL results as a \code{data.frame}}
+\item{\code{anno.meth}}{Genomic annotation of the methylation sites as a \code{data.frame}.}
+\item{\code{anno.geno}}{Genomic annotation of the SNPs as a \code{data.frame}.}
+\item{\code{correlation.blocks}}{Correlation blocks determined from the methylation matrix.}
+\item{\code{method}}{The method used to call methQTL.}
+\item{\code{rep.type}}{Method used to determine representative CpGs from correlation blocks.}
+\item{\code{chr}}{Optional argument specifying if methQTL were called on a single chromosome.}
 }
 }
 
 \section{Methods}{
 
 \describe{
-  \item{\code{\link[=getResult,methQTLResult-method]{getResult}}}{Returns the methQTL results.}
-  \item{\code{\link[=getAnno,methQTLResult-method]{getAnno}}}{Returns the genomic annotation.}
+\item{\code{\link[=getResult,methQTLResult-method]{getResult}}}{Returns the methQTL results.}
+\item{\code{\link[=getAnno,methQTLResult-method]{getAnno}}}{Returns the genomic annotation.}
 }
 }
 

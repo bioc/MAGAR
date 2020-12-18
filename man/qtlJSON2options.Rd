@@ -16,9 +16,7 @@ None
 This function reads an option setting from a JSON file and applies them to the current session
 }
 \examples{
-{
-qtlJSON2options(system.file("extdata/qtl_options_probesEPIC.json",package="MAGAR"))
-}
+qtlJSON2options(system.file("extdata","qtl_options_probesEPIC.json",package="MAGAR"))
 }
 \author{
 Michael Scherer

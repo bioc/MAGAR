@@ -24,16 +24,14 @@ with respect to different genomic annotations.
 }
 \details{
 We use all data points that have been used to calculate methQTLs as the background
-   and compare the overlaps with the annotation of interest in comparison to the methQTLs that
-   have been computed in case a \code{\link{methQTLResult-class}} is provided. If a list of \code{\link{methQTLResult-class}} objects
-   is provided, the intersection between the methQTLs from all objects in the list is compared with the union of all interactions
-   that have been tested.
+and compare the overlaps with the annotation of interest in comparison to the methQTLs that
+have been computed in case a \code{\link{methQTLResult-class}} is provided. If a list of \code{\link{methQTLResult-class}} objects
+is provided, the intersection between the methQTLs from all objects in the list is compared with the union of all interactions
+that have been tested.
 }
 \examples{
-{
- meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- res <- qtlAnnotationEnrichment(meth.qtl.res)
-}
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+res <- qtlAnnotationEnrichment(meth.qtl.res)
 }
 \author{
 Michael Scherer

@@ -19,14 +19,12 @@ This function tests for enrichment of a specific base substitution in the methQT
 }
 \details{
 The names of the list are e.g. \code{A_G}, which refers to a replacement of the reference base \code{A}
-  with an \code{A}. Enrichment is computed using Fisher's exact test, using all SNP that have been used
-  as input as the background.
+with an \code{A}. Enrichment is computed using Fisher's exact test, using all SNP that have been used
+as input as the background.
 }
 \examples{
-{
- meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- res <- qtlBaseSubstitutionEnrichment(meth.qtl.res)
-}
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+res <- qtlBaseSubstitutionEnrichment(meth.qtl.res)
 }
 \author{
 Michael Scherer

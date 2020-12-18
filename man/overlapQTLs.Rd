@@ -15,17 +15,15 @@ The names are used in the visualization.}
 }
 \value{
 A list with \code{length(meth.qtl.result.list)} elements, containing IDs of methQTL
-    interactions according to the option \code{type}.
+interactions according to the option \code{type}.
 }
 \description{
 This function overlaps a list of methQTLs to determine which interactions are common.
 }
 \examples{
-{
- meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- meth.qtl.res.2 <- meth.qtl.res.1
- res <- overlapQTLs(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
-}
+meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res.2 <- meth.qtl.res.1
+res <- overlapQTLs(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
 }
 \author{
 Michael Scherer

@@ -24,10 +24,8 @@ This function creates a manhattan plot for the given methQTL result
 A plot is shown that contains chromosome-wise interactions.
 }
 \examples{
-{
- meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- qtlManhattanPlot(meth.qtl.res)
-}
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+qtlManhattanPlot(meth.qtl.res)
 }
 \author{
 Michael Scherer

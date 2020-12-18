@@ -25,11 +25,9 @@ This function creates an UpSet plot from the given methQTL results
 The plot is directly drawn and can be stored on disk using the known R graphic devices
 }
 \examples{
-{
- meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- meth.qtl.res.2 <- meth.qtl.res.1
- qtlUpsetPlot(list(A=meth.qtl.res.1,B=meth.qtl.res.2))
-}
+meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res.2 <- meth.qtl.res.1
+qtlUpsetPlot(list(A=meth.qtl.res.1,B=meth.qtl.res.2))
 }
 \author{
 Michael Scherer

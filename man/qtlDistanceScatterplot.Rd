@@ -15,16 +15,14 @@ qtlDistanceScatterplot(meth.qtl.result, out.dir = NULL, out.name = NULL)
 }
 \value{
 An object of type \code{ggplot} comparing the distance between CpG and SNP. Negative values indicate that the
-         SNP is downstream of the CpG.
+       SNP is downstream of the CpG.
 }
 \description{
 Computes a scatterplot between CpG-SNP distance with both effect size and p-value
 }
 \examples{
-{
- meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- qtlDistanceScatterplot(meth.qtl.res)
-}
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+qtlDistanceScatterplot(meth.qtl.res)
 }
 \author{
 Michael Scherer

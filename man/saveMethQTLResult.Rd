@@ -21,10 +21,8 @@ None
 This functions stores a methQTLInputResult object in disk.
 }
 \examples{
-{
- meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- saveMethQTLResult(meth.qtl.res,"methQTLResult")
-}
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+saveMethQTLResult(meth.qtl.res,"methQTLResult")
 }
 \author{
 Michael Scherer

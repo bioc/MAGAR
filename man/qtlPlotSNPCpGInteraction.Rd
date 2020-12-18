@@ -36,10 +36,8 @@ An object of type \code{ggplot} comparing the CpG methylation states as boxplots
 Compares the methylation states of a given CpG for the genotype states availabe at the given SNP
 }
 \examples{
-{
-meth.qtl <- loadMethQTL(system.file("extdata/reduced_methQTL",package="MAGAR"))
+meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
 qtlPlotSNPCpGInteraction(meth.qtl,cpg="cg15979415",snp="rs59380221")
-}
 }
 \author{
 Michael Scherer

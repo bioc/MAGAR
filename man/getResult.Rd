@@ -24,8 +24,6 @@ The methQTL results as a \code{data.frame} with each row being a methQTL.
 Returns the methQTL results stores in the object.
 }
 \examples{
-{
- meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- head(getResult(meth.qtl.res))
-}
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+head(getResult(meth.qtl.res))
 }

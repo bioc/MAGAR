@@ -13,17 +13,15 @@ getOverlappingQTL(meth.qtl.list, type = "SNP")
 }
 \value{
 A \code{data.frame} with the methQTL interactions and an additional column specifying where the interaction
-   displayed has been found. This value is generated from the \code{names()} argument of \code{meth.qtl.list}.
+displayed has been found. This value is generated from the \code{names()} argument of \code{meth.qtl.list}.
 }
 \description{
 This function merges the QTLs given and returns the methQTL table in a merged format.
 }
 \examples{
-{
- meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- meth.qtl.res.2 <- meth.qtl.res.1
- res <- getOverlappingQTL(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
-}
+meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res.2 <- meth.qtl.res.1
+res <- getOverlappingQTL(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
 }
 \author{
 Michael Scherer

@@ -20,11 +20,9 @@ The filtered \code{\link{methQTLResult-class}} object
 This functions filters the methQTL results according to a given p-value cutoff
 }
 \examples{
-{
- meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- meth.qtl.res <- filterPval(meth.qtl.res)
- meth.qtl.res
-}
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res <- filterPval(meth.qtl.res)
+meth.qtl.res
 }
 \author{
 Michael Scherer

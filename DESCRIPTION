@@ -1,48 +1,48 @@
 Package: MAGAR
 Type: Package
 Title: MAGAR: R-package to compute methylation Quantitative Trait Loci (methQTL) from DNA methylation and genotyping data
-Version: 0.99.5
-Date: 2020-11-28
+Version: 0.99.6
+Date: 2020-12-17
 Authors@R: c(
-	person("Scherer", "Michael", email="mscherer@mpi-inf.mpg.de", role=c("cre", "aut"), comment = c(ORCID = "0000-0001-7990-6179"))
-	)
+    person("Scherer", "Michael", email="mscherer@mpi-inf.mpg.de", role=c("cre", "aut"), comment = c(ORCID = "0000-0001-7990-6179"))
+    )
 Description: "Methylation-Aware Genotype Association in R" (MAGAR) computes methQTL from DNA methylation and genotyping data from matched samples. MAGAR uses a linear modeling stragety to call CpGs/SNPs that are methQTLs. MAGAR accounts for the local correlation structure of CpGs.
 License: GPL-3
 Imports: doParallel,
-         igraph,
-         bigstatsr,
-         rjson,
-         plyr,
-	 data.table,
-	 UpSetR,
-	 reshape2,
-	 jsonlite,
-	 methods,
-	 ff,
-	 argparse,
-	 impute
-Depends: R (>= 3.6),
-	 HDF5Array,
-	 RnBeads,
-	 snpStats,
-	 crlmm
+     igraph,
+     bigstatsr,
+     rjson,
+     plyr,
+     data.table,
+     UpSetR,
+     reshape2,
+     jsonlite,
+     methods,
+     ff,
+     argparse,
+     impute,
+     RnBeads.hg19
+Depends: R (>= 4.1),
+     HDF5Array,
+     RnBeads,
+     snpStats,
+     crlmm
 Suggests: gridExtra,
-         VennDiagram,
-         qqman,
-         LOLA,
-         RUnit,
-         rmutil,
-         rmarkdown,
-	 JASPAR2018,
-	 TFBSTools,
-	 seqLogo,
-         knitr,
-	 devtools,
-	 BiocGenerics,
-	 RnBeads.hg19
+     VennDiagram,
+     qqman,
+     LOLA,
+     RUnit,
+     rmutil,
+     rmarkdown,
+     JASPAR2018,
+     TFBSTools,
+     seqLogo,
+     knitr,
+     devtools,
+     BiocGenerics
 Encoding: UTF-8
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
-biocViews: Regression, Epigenetics, DNAMethylation, SNP, GeneticVariability, MethylationArray, Microarray, CpGIsland, MethylSeq
+biocViews: Regression, Epigenetics, DNAMethylation, SNP, GeneticVariability, MethylationArray, Microarray, CpGIsland, MethylSeq, Sequencing, mRNAMicroarray, Preprocessing, CopyNumberVariation, TwoChannel, ImmunoOncology, DifferentialMethylation, BatchEffect, QualityControl, DataImport
 BugReports: https://github.com/MPIIComputationalEpigenetics/MAGAR/issues
 URL: https://github.com/MPIIComputationalEpigenetics/MAGAR

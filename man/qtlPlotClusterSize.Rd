@@ -20,10 +20,8 @@ This functions returns a histogram comprising the (genomic) sizes of the correla
 in the given objet.
 }
 \examples{
-{
- meth.qtl.res <- loadMethQTLResult(system.file("extdata/methQTLResult_chr18",package="MAGAR"))
- qtlPlotClusterSize(meth.qtl.res)
-}
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+qtlPlotClusterSize(meth.qtl.res)
 }
 \author{
 Michael Scherer
