@@ -49,7 +49,7 @@ suppressPackageStartupMessages(library(MAGAR))
 qtlSetOption(plink.path="path_to_plink")
 ```
 
-Additionally, depending on the type of the analysis, more external software tools are required. More specifically, if you want to perform imputation *bgzip* and *tabix* from the [*htslib*](http://www.htslib.org/download/) package are needed, as well as [*vcftools*](http://vcftools.sourceforge.net/downloads.html) for sorting VCF files. Lastly, if methQTL calling is to be performed through [*fastQTL*](http://fastqtl.sourceforge.net/), the software tool needs to be installed and the location of the executable specified to *MAGAR*.
+Additionally, depending on the type of the analysis, more external software tools are required (). More specifically, if you want to perform imputation *bgzip* and *tabix* from the [*htslib*](http://www.htslib.org/download/) package are needed, as well as [*vcftools*](https://vcftools.github.io/downloads.html) for sorting VCF files. Lastly, if methQTL calling is to be performed through [*fastQTL*](http://fastqtl.sourceforge.net/), the software tool needs to be installed and the location of the executable specified to *MAGAR*.
 
 ```{r tools, eval=FALSE}
 qtlSetOption(
@@ -59,6 +59,14 @@ qtlSetOption(
     fast.qtl.path="path_to_fastQTL",
 )
 ```
+
+**Tool** | **Description** | **Required for** | **URL**
+---- | ---- | ---- | ---- |
+PLINK | Toolsuite for processing genotyping data | *Import*, Processing genotyping data in binary PLINK format or as VCF files | [http://zzz.bwh.harvard.edu/plink/](http://zzz.bwh.harvard.edu/plink/)
+bgzip | Tool for compression of files | *Imputation*, Formating data for upload to the Michigan Imputation Server | [http://www.htslib.org/download/](http://www.htslib.org/download/)
+tabix | Tool for indexing sequencing files | *Imputation*, Formating data for upload to the Michigan Imputation Server | [http://www.htslib.org/download/](http://www.htslib.org/download/)
+vcftools | Tool for handling VCF files | *Imputation*, Formating data for upload to the Michigan Imputation Server | [https://vcftools.github.io/downloads.html](https://vcftools.github.io/downloads.html)
+fastQTL | Tool for determining eQTLs (methQTLs) from genotyping and DNA methylation data | *methQTL calling*, Alternative methQTL calling method in comparison to the default linear model | [http://fastqtl.sourceforge.net/](http://fastqtl.sourceforge.net/)
 
 # Input data
 
