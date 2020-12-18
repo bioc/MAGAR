@@ -46,6 +46,8 @@
 #'@author    Michael Scherer
 #'@export
 #'@import    HDF5Array
+#'@import    RnBeads
+#'@import    RnBeads.hg19
 doImport <- function(data.location,
                         s.anno=NULL,
                         assembly.meth="hg19",
