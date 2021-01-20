@@ -118,7 +118,7 @@ res.all <- foreach(i=1:100,.combine = "rbind") %dopar%{
   sel.snps.frame <- data.frame(Chromosome=seqnames(sel.snps),Start=start(sel.snps),End=end(sel.snps))
   row.names(sel.snps.frame) <- names(sel.snps)
   row.names(snp.matrix) <- names(sel.snps)
-  meth.qtl <- new("methQTLInput",
+  meth.qtl <- new("MethQTLInput",
                   meth.data=meth.matrix,
                   geno.data=snp.matrix,
                   pheno.data=data.frame(SampleID=paste0("Sample",1:100)),

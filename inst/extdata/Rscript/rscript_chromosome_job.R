@@ -20,7 +20,7 @@ qtlJSON2options(cmd.args$json)
 logger.completed()
 
 logger.start("Loading methQTL object")
-meth.qtl <- loadMethQTL(cmd.args$methQTL)
+meth.qtl <- loadMethQTLInput(cmd.args$methQTL)
 logger.completed()
 
 dump.file <- file.path(cmd.args$hdf5dir,cmd.args$chr)
@@ -43,6 +43,6 @@ methQTL.res <- doMethQTLChromosome(meth.qtl,cmd.args$chr,sel.covariates = covs,p
                                      ncores=ncores)
 
 logger.start("Saving results")
-path.save <- file.path(cmd.args$output,paste0("methQTLResult_",cmd.args$chr))
+path.save <- file.path(cmd.args$output,paste0("MethQTLResult_",cmd.args$chr))
 saveMethQTLResult(methQTL.res,path.save)
 logger.completed()

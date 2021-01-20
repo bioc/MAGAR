@@ -27,7 +27,7 @@
 #'@param    s.id.col The column name of the sample annotation sheet that specifies the sample identifier.
 #'@param    out.folder The output directory to store diagnostic plots
 #'@param    ... Futher parameters passed to e.g. \code{doGenoImport}
-#'@return    An object of type \code{\link{methQTLInput-class}} with the methylation and genotyping information added.
+#'@return    An object of type \code{\link{MethQTLInput-class}} with the methylation and genotyping information added.
 #'@details    Import of DNA methylation and genotyping data is done separately:
 #'        \describe{
 #'        \item{DNA methylation data}{DNA methylation data is imported using the \code{\link{RnBeads}} package. We
@@ -121,7 +121,7 @@ doImport <- function(data.location,
 #    }
     row.names(pheno.data) <- s.names
 #    pheno.data <- pheno.data[,!(colnames(pheno.data) %in% s.id.col)]
-    dataset.import <- new("methQTLInput",
+    dataset.import <- new("MethQTLInput",
     meth.data=meth.data,
     geno.data=geno.data,
     anno.meth=meth.import$annotation,

@@ -10,7 +10,7 @@
 #'
 #'This function overlaps a list of methQTLs to determine which interactions are common.
 #'
-#'@param    meth.qtl.result.list A named list with each entry being an object of type \code{\link{methQTLResult-class}}.
+#'@param    meth.qtl.result.list A named list with each entry being an object of type \code{\link{MethQTLResult-class}}.
 #'                    The names are used in the visualization.
 #'@param    type Determines if either the SNP (default), the CpG, or the correlation block
 #'\code{'cor.block'} is to be visualized
@@ -19,7 +19,7 @@
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'meth.qtl.res.2 <- meth.qtl.res.1
 #'res <- overlapQTLs(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
 overlapQTLs <- function(meth.qtl.result.list,type){
@@ -131,18 +131,18 @@ overlapQTLs <- function(meth.qtl.result.list,type){
 #'
 #'Overlaps the input annotations
 #'
-#'@param    meth.qtl.list A list of \code{\link{methQTLInput-class}} or \code{\link{methQTLResult-class}} objects to be overlapped
+#'@param    meth.qtl.list A list of \code{\link{MethQTLInput-class}} or \code{\link{MethQTLResult-class}} objects to be overlapped
 #'@param    type The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}
 #'@return    A data frame containing the annotations of the unique input values.
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl.1 <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'meth.qtl.1 <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 #'meth.qtl.2 <- meth.qtl.1
 #'res <- overlapInputs(list(A=meth.qtl.1,B=meth.qtl.2),type="SNP")
 overlapInputs <- function(meth.qtl.list,type){
-    if(!(inherits(meth.qtl.list[[1]],"methQTLResult")|inherits(meth.qtl.list[[1]],"methQTLInput"))){
-    stop("Invalid value for meth.qtl.list, needs to be methQTLResult")
+    if(!(inherits(meth.qtl.list[[1]],"MethQTLResult")|inherits(meth.qtl.list[[1]],"MethQTLInput"))){
+    stop("Invalid value for meth.qtl.list, needs to be MethQTLResult")
     }
     if(!(type%in%c("CpG","SNP","cor.block"))){
     stop("Invalid value for type, needs to be 'CpG', 'SNP', or 'cor.block'")
@@ -171,21 +171,21 @@ overlapInputs <- function(meth.qtl.list,type){
 
 #'getOverlapUniverse
 #'
-#'This function overlaps results from a list of methQTLResults and returns the union of all
+#'This function overlaps results from a list of MethQTLResults and returns the union of all
 #'the input data points used.
 #'
-#'@param    meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects
+#'@param    meth.qtl.res An object of type \code{\link{MethQTLResult-class}} or a list of such objects
 #'@param    type The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}
 #'@return    A list with two GRanges objects, one containing the overlapped set and the other the
 #'union of input data points as elements \code{'all.qtl'} and \code{'all.input'}
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'meth.qtl.res.2 <- meth.qtl.res.1
 #'res <- getOverlapUniverse(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
 getOverlapUniverse <- function(meth.qtl.res,type){
-    if(inherits(meth.qtl.res,"methQTLResult")){
+    if(inherits(meth.qtl.res,"MethQTLResult")){
     type.anno <- ifelse(type%in%c("CpG","cor.block"),"meth","geno")
     all.input <- getAnno(meth.qtl.res,type.anno)
 #    if(type%in%"SNP"){
@@ -213,8 +213,8 @@ getOverlapUniverse <- function(meth.qtl.res,type){
     }
     }
     if(is.list(meth.qtl.res)){
-    if(!inherits(meth.qtl.res[[1]],"methQTLResult")){
-        stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
+    if(!inherits(meth.qtl.res[[1]],"MethQTLResult")){
+        stop("Invalid value for meth.qtl.res, needs to be MethQTLResult")
     }
     all.input <- overlapInputs(meth.qtl.res,type=type)
     all.qtl <- overlapQTLs(meth.qtl.res = meth.qtl.res,type=type)
@@ -242,21 +242,21 @@ getOverlapUniverse <- function(meth.qtl.res,type){
 #'getSpecificQTL
 #'
 #'This function returns the methQTL interactions specific for a result
-#'@param    meth.qtl.res An object of type \code{\link{methQTLResult-class}} for which specific QTLs are to be obtained.
-#'@param    meth.qtl.background The background set as a list of \code{\link{methQTLResult-class}} objects.
+#'@param    meth.qtl.res An object of type \code{\link{MethQTLResult-class}} for which specific QTLs are to be obtained.
+#'@param    meth.qtl.background The background set as a list of \code{\link{MethQTLResult-class}} objects.
 #'@param    type The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}
 #'@return    A \code{data.frame} of methQTL interactions sorted by the effect size.
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'meth.qtl.res.2 <- meth.qtl.res.1
 #'res <- getSpecificQTL(meth.qtl.res.1,list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
 getSpecificQTL <- function(meth.qtl.res,
                             meth.qtl.background,
                             type="SNP"){
-    if(!inherits(meth.qtl.res,"methQTLResult")){
-    stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
+    if(!inherits(meth.qtl.res,"MethQTLResult")){
+    stop("Invalid value for meth.qtl.res, needs to be MethQTLResult")
     }
     #shared.qtl <- unique(unlist(lapply(meth.qtl.background,function(qtl.obj){
     #    ret <- overlap.QTLs(c(meth.qtl.res,qtl.obj),type=type)
@@ -307,14 +307,14 @@ getSpecificQTL <- function(meth.qtl.res,
 #'
 #'This function merges the QTLs given and returns the methQTL table in a merged format.
 #'
-#'@param    meth.qtl.list A list of \code{\link{methQTLResult-class}} objects to be merged
+#'@param    meth.qtl.list A list of \code{\link{MethQTLResult-class}} objects to be merged
 #'@param    type The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}
 #'@return    A \code{data.frame} with the methQTL interactions and an additional column specifying where the interaction
 #'displayed has been found. This value is generated from the \code{names()} argument of \code{meth.qtl.list}.
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'meth.qtl.res.2 <- meth.qtl.res.1
 #'res <- getOverlappingQTL(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
 getOverlappingQTL <- function(meth.qtl.list,type="SNP"){
@@ -352,7 +352,7 @@ getOverlappingQTL <- function(meth.qtl.list,type="SNP"){
 #'
 #'This function generates the required input to FastQTL and stores the files on disk.
 #'
-#'@param    meth.qtl An object of type \code{\link{methQTLInput-class}} with methylation and genotyping information
+#'@param    meth.qtl An object of type \code{\link{MethQTLInput-class}} with methylation and genotyping information
 #'@param    chrom The chromosome to be investigated.
 #'@param    correlation.block The correlation blocks generated.
 #'@param    sel.covariates The selected covariates as a \code{data.frame}

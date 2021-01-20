@@ -31,7 +31,7 @@ This vignette describes the package "Methylation-Aware Genotype Association with
 
 *MAGAR* can be installed using the basic Bioconductor installation functions.
 
-```{r installation, echo=FALSE, eval=TRUE}
+```{r installation, echo=TRUE, eval=FALSE}
 if(!requireNamespace("BiocManager")){
     install.packages("BiocManager")
 }
@@ -241,7 +241,7 @@ qtlDistanceScatterplot(meth.qtl.res)
 
 The package provides a bunch of interpretation functions to characterize the detected methQTLs. This includes LOLA enrichment analysis[@LOLA] (```qtlLOLAEnrichment```), genomic annotation enrichment based on putative regulatory elements defined by the Ensembl Regulatory Build[@Zerbino2015] (```qtlAnnotationEnrichment```), enrichment analysis of different base substitutions in SNPs (```qtlBaseSubstitutionEnrichment```), or TFBS motif enrichment using [TFBSTools](http://bioconductor.org/packages/release/bioc/html/TFBSTools.html). Enrichment is compared for the methQTLs that are available in the provided ```methQTLResult``` (for a single input), or to the overlapping QTLs for a list of ```methQTLResult```. The background of the enrichment is defined as all the SNPs/CpGs that have been used as input to the methQTL calling.
 
-```{r interpretation, eval=TRUE, include=TRUE}
+```{r interpretation, eval=TRUE, include=TRUE, warning=FALSE}
 res <- qtlBaseSubstitutionEnrichment(meth.qtl.res)
 ```
 
@@ -258,6 +258,25 @@ spec.first <- getSpecificQTL(meth.qtl.list$First,meth.qtl.list[-1])
 ```
 
 # Advanced configuration
+
+## *MAGAR* options
+
+*MAGAR* is a flexible software packages that allows for multiple flavors of methQTL analyses. Here, we present the different options that describe the analysis in a table and also discuss possible problems with choosing non-default options. Most options have reasonable default values that have been determined using a simulation experiment. For further information, see the documentation of `qtlSetOption`
+
+**Option** | **Description** | **Note**
+---- | ---- | ---- 
+**External tools** | |
+`vcftools.path` | Path to an installation of VCFtools for handling VCF files for genotyping data |
+`plink.path` | Path to an executable version of PLINK for processing genotyping data |
+`fast.qtl.path` | Path to an executable version of FastQTL for calling methQTLs | Only required, when `meth.qtl.type='fastQTL'`
+`bgzip.path` | Path to an executable version of bgzip from the HTSlib package for compressing genomic data |
+`tabix.path` | Path to an executable version of tabic from the HTSlib package for indexing genomic data | 
+**External tool configuration** | |
+`rnbeads.options` | Path to an XML file specifying the methylation data processing conducted through RnBeads |
+`hardy.weinberg.p` |  Hardy-Weinberg test p-value cutoff as used for filtering SNPs in PLINK |
+`minor.allele.frequency` | Minimum required minor allele frequency for a SNP to be considered in PLINK |
+`missing.values.samples` | Maximum number of missing genotypes per SNP across the samples for a SNP to be considerd by PLINK |
+`plink.geno` | Minimum genotypin rate for PLINK |
 
 ## Employ *MAGAR* on a scientific compute cluster
 
