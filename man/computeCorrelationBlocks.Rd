@@ -12,8 +12,7 @@ computeCorrelationBlocks(
   absolute.cutoff = qtlGetOption("absolute.distance.cutoff"),
   max.cpgs = qtlGetOption("max.cpgs"),
   assembly = "hg19",
-  chromosome = "chr1",
-  segmentation = NULL
+  chromosome = "chr1"
 )
 }
 \arguments{
@@ -34,9 +33,6 @@ for larger ones.}
 \item{assembly}{The assembly used}
 
 \item{chromosome}{The chromosome for which correlation block calling is to be performed}
-
-\item{segmentation}{If performed, DNA methylation based segmentation into PMDs/nonPMDs as a \code{GRanges}
-object using the 'epicPMDdetect' package}
 }
 \value{
 A list representing the clustering of CpGs into correlation blocks. Each element is a cluster, which contains
@@ -58,7 +54,7 @@ This method performs clustering of the correlation matrix obtaind from the DNA m
    on the graph. The resulting clusters of CpGs are returned.
 }
 \examples{
-meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 meth.data <- getMethData(meth.qtl)
 anno.meth <- getAnno(meth.qtl,"meth")
 cor.blocks <- computeCorrelationBlocks(meth.data[seq(1,10),],annotation=anno.meth[seq(1,10),])

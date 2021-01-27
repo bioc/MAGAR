@@ -7,7 +7,7 @@
 overlapInputs(meth.qtl.list, type)
 }
 \arguments{
-\item{meth.qtl.list}{A list of \code{\link{methQTLInput-class}} or \code{\link{methQTLResult-class}} objects to be overlapped}
+\item{meth.qtl.list}{A list of \code{\link{MethQTLInput-class}} or \code{\link{MethQTLResult-class}} objects to be overlapped}
 
 \item{type}{The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}}
 }
@@ -18,7 +18,7 @@ A data frame containing the annotations of the unique input values.
 Overlaps the input annotations
 }
 \examples{
-meth.qtl.1 <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+meth.qtl.1 <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 meth.qtl.2 <- meth.qtl.1
 res <- overlapInputs(list(A=meth.qtl.1,B=meth.qtl.2),type="SNP")
 }

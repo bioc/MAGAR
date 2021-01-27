@@ -7,7 +7,7 @@
 qtlUpSetPlotTagCpGs(meth.qtl.res.list, ...)
 }
 \arguments{
-\item{meth.qtl.res.list}{A list of \code{\link{methQTLResult-class}} objects, for which correlation blocks are to be overlapped}
+\item{meth.qtl.res.list}{A list of \code{\link{MethQTLResult-class}} objects, for which correlation blocks are to be overlapped}
 
 \item{...}{Further argument passed to \code{\link[UpSetR]{upset}}}
 }
@@ -21,7 +21,7 @@ This function overlaps the tagCpGs for a list of methQTL results
 This function draws an UpSetPlot for the overlaps directly from to the open graphics device
 }
 \examples{
-meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 meth.qtl.res.2 <- meth.qtl.res.1
 qtlUpSetPlotTagCpGs(list(A=meth.qtl.res.1,B=meth.qtl.res.2))
 }

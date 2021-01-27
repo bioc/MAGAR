@@ -1,12 +1,12 @@
 ##########################################################################################
-# methQTLResult-class.R
+# MethQTLResult-class.R
 # created: 2019-08-27
 # creator: Michael Scherer
 # ---------------------------------------------------------------------------------------
-# methQTLResult class definition
+# MethQTLResult class definition
 ##########################################################################################
 
-#'methQTLResult-class
+#'MethQTLResult-class
 #'
 #'Class storing methQTL analysis results and the associated genomic annotations
 #'
@@ -26,16 +26,16 @@
 #'}
 #'@section Methods:
 #'\describe{
-#'\item{\code{\link[=getResult,methQTLResult-method]{getResult}}}{Returns the methQTL results.}
-#'\item{\code{\link[=getAnno,methQTLResult-method]{getAnno}}}{Returns the genomic annotation.}
+#'\item{\code{\link[=getResult,MethQTLResult-method]{getResult}}}{Returns the methQTL results.}
+#'\item{\code{\link[=getAnno,MethQTLResult-method]{getAnno}}}{Returns the genomic annotation.}
 #'}
 #'
-#'@name methQTLResult-class
-#'@rdname methQTLResult-class
+#'@name MethQTLResult-class
+#'@rdname MethQTLResult-class
 #'@author    Michael Scherer
-#'@exportClass methQTLResult
+#'@exportClass MethQTLResult
 
-setClass("methQTLResult",
+setClass("MethQTLResult",
         representation(
             result.frame="data.frame",
             anno.meth="data.frame",
@@ -57,7 +57,7 @@ setClass("methQTLResult",
         package="MAGAR")
 
 # CONSTRUCTOR
-setMethod("initialize","methQTLResult",
+setMethod("initialize","MethQTLResult",
             function(.Object,
             result.frame=data.frame(),
             anno.meth=data.frame(),
@@ -87,21 +87,21 @@ if(!isGeneric("getResult")) setGeneric("getResult",function(object,...) standard
 #'
 #'Returns the methQTL results stores in the object.
 #'
-#'@param    object An of type \code{\link{methQTLResult-class}}.
+#'@param    object An of type \code{\link{MethQTLResult-class}}.
 #'@param    cor.blocks Correlation blocks as obtained using \code{getCorrelationBlocks}. Please note that the
-#'        correlation blocks need to contain the CpG identifiers, so the \code{\link{methQTLInput-class}} object
+#'        correlation blocks need to contain the CpG identifiers, so the \code{\link{MethQTLInput-class}} object
 #'        needs to be provided to \code{getCorrelationBlocks}.
 #'@param    na.rm Flag indicating if rows containing NA values are to be removed from the result.
 #'@return    The methQTL results as a \code{data.frame} with each row being a methQTL.
 #'@rdname getResult
 #'@docType methods
-#'@aliases getResult,methQTLResult-method
+#'@aliases getResult,MethQTLResult-method
 #'@aliases getResult
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'head(getResult(meth.qtl.res))
-setMethod("getResult",signature(object="methQTLResult"),
+setMethod("getResult",signature(object="MethQTLResult"),
             function(object,cor.blocks=NULL,na.rm=FALSE){
             ret <- object@result.frame
         if(na.rm){
@@ -146,19 +146,19 @@ if(!isGeneric("getResultGWASMap")) setGeneric("getResultGWASMap",
 #'
 #'Returns the methQTL results in the format used as input to GWAS-map and stores in the object.
 #'
-#'@param    object An of type \code{\link{methQTLResult-class}}.
-#'@param    meth.qtl An object of type \code{\link{methQTLInput-class}} containing further information about the QTLs
+#'@param    object An of type \code{\link{MethQTLResult-class}}.
+#'@param    meth.qtl An object of type \code{\link{MethQTLInput-class}} containing further information about the QTLs
 #'@return    The methQTL results as a \code{data.frame} with each row being a methQTL.
 #'@rdname getResultGWASMap
 #'@docType methods
-#'@aliases getResultGWASMap,methQTLResult-method
+#'@aliases getResultGWASMap,MethQTLResult-method
 #'@aliases getResultGWASMap
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
-#'meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
+#'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 #'head(getResultGWASMap(meth.qtl.res,meth.qtl))
-setMethod("getResultGWASMap",signature(object="methQTLResult"),
+setMethod("getResultGWASMap",signature(object="MethQTLResult"),
             function(object,meth.qtl){
             ret <- object@result.frame
 #            keep.lines <- apply(ret,1,function(line){
@@ -183,10 +183,10 @@ if(!isGeneric("getAnno")) setGeneric("getAnno",
 #'@aliases getAnno
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'head(getAnno(meth.qtl.res,"meth"))
 #'head(getAnno(meth.qtl.res,"geno"))
-setMethod("getAnno",signature(object="methQTLResult"),
+setMethod("getAnno",signature(object="MethQTLResult"),
             function(object,type="meth"){
             if(type=="meth"){
                 return(object@anno.meth)
@@ -205,24 +205,24 @@ if(!isGeneric("getCorrelationBlocks")) setGeneric("getCorrelationBlocks",
 #'
 #'Returns the correlation blocks defined for the given dataset
 #'
-#'@param    object An object of class \code{\link{methQTLResult-class}}.
+#'@param    object An object of class \code{\link{MethQTLResult-class}}.
 #'@return    A \code{list} object containing the correlation blocks.
 #'@rdname getCorrelationBlocks
 #'@docType methods
-#'@aliases getCorrelationBlocks,methQTLResult-method
+#'@aliases getCorrelationBlocks,MethQTLResult-method
 #'@aliases getCorrelationBlocks
 #'@return
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'head(getCorrelationBlocks(meth.qtl.res))
-setMethod("getCorrelationBlocks",signature(object="methQTLResult"),
+setMethod("getCorrelationBlocks",signature(object="MethQTLResult"),
             function(object){
             cor.blocks <- object@correlation.blocks
             if(is.list(cor.blocks[[1]])){
                 anno <- getAnno(object)
                 ret <- list()
-                if("chr1"%in%names(cor.blocks)){
+                if(grepl("chr",names(cor.blocks))){
                 chr.ids <- names(cor.blocks)
                 }else{
                 chr.ids <- paste0("chr:",seq(1,length(cor.blocks)))
@@ -248,10 +248,10 @@ setMethod("getCorrelationBlocks",signature(object="methQTLResult"),
             }
 )
 
-setMethod("show","methQTLResult",
+setMethod("show","MethQTLResult",
             function(object){
             ret.str <- list()
-            ret.str[1] <- "Object of class methQTLResult\n"
+            ret.str[1] <- "Object of class MethQTLResult\n"
             ret.str[2] <- paste("\t Contains",nrow(object@result.frame),"methQTL\n")
             if(length(object@correlation.blocks)>0){
                 if(is.list(object@correlation.blocks[[1]])){
@@ -278,20 +278,20 @@ if(!isGeneric("filterPval")) setGeneric("filterPval",
 #'
 #'This functions filters the methQTL results according to a given p-value cutoff
 #'
-#'@param    object The \code{\link{methQTLResult-class}} object to be filtered
+#'@param    object The \code{\link{MethQTLResult-class}} object to be filtered
 #'@param    p.val.cutoff The p-value cutoff to be employed
-#'@return    The filtered \code{\link{methQTLResult-class}} object
+#'@return    The filtered \code{\link{MethQTLResult-class}} object
 #'@rdname filterPval
 #'@docType methods
-#'@aliases filterPval,methQTLResult-method
+#'@aliases filterPval,MethQTLResult-method
 #'@aliases filterPval
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'meth.qtl.res <- filterPval(meth.qtl.res)
 #'meth.qtl.res
-setMethod("filterPval","methQTLResult",
+setMethod("filterPval","MethQTLResult",
             function(object,p.val.cutoff=0.01){
             res <- object@result.frame
             res <- res[res$p.val.adj.fdr <= p.val.cutoff,]
@@ -305,9 +305,9 @@ if(!isGeneric("saveMethQTLResult")) setGeneric("saveMethQTLResult",
 
 #'saveMethQTLResult
 #'
-#'This functions stores a methQTLInputResult object in disk.
+#'This functions stores a MethQTLInput object in disk.
 #'
-#'@param    object The \code{\link{methQTLResult-class}} object to be stored on disk.
+#'@param    object The \code{\link{MethQTLResult-class}} object to be stored on disk.
 #'@param    path A path to a non-existing directory for files to be stored.
 #'@return    None
 #'
@@ -318,13 +318,13 @@ if(!isGeneric("saveMethQTLResult")) setGeneric("saveMethQTLResult",
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
-#'saveMethQTLResult(meth.qtl.res,"methQTLResult")
-setMethod("saveMethQTLResult","methQTLResult",
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
+#'saveMethQTLResult(meth.qtl.res,"MethQTLResult")
+setMethod("saveMethQTLResult","MethQTLResult",
             function(object,path){
             if(file.exists(path)){
                 if(dir.exists(path)){
-                path <- file.path(path,"methQTLResult")
+                path <- file.path(path,"MethQTLResult")
                 if(file.exists(path)){
                     stop("Will not overwrite existing data")
                 }
@@ -343,20 +343,20 @@ setMethod("saveMethQTLResult","methQTLResult",
             object@anno.meth <- data.frame()
             object@anno.geno <- data.frame()
             object@correlation.blocks <- list()
-            save(object,file=file.path(path,"methQTLResult.RData"))
+            save(object,file=file.path(path,"MethQTLResult.RData"))
             }
 )
 
 #'loadMethQTLResult
 #'
-#'This functions load a \code{\link{methQTLResult-class}} object from disk.
+#'This functions load a \code{\link{MethQTLResult-class}} object from disk.
 #'
-#'@param    path Path to the directory that has been created by \code{saveMethQTLResult,methQTLInput-method}.
-#'@return    The object of type \code{\link{methQTLResult-class}} that has been stored on disk.
+#'@param    path Path to the directory that has been created by \code{saveMethQTLResult,MethQTLResult-method}.
+#'@return    The object of type \code{\link{MethQTLResult-class}} that has been stored on disk.
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'meth.qtl.res
 loadMethQTLResult <- function(path){
     if(any(!(file.exists(file.path(path,"result_frame.RDS"))),
@@ -366,7 +366,7 @@ loadMethQTLResult <- function(path){
     stop("Invalid value for path. Potentially not a directory saved with saveMethQTLResult")
     }
     load_env<-new.env(parent=emptyenv())
-    load(file.path(path, "methQTLResult.RData"),envir=load_env)
+    load(file.path(path, "MethQTLResult.RData"),envir=load_env)
     object <- get("object",load_env)
     result.frame <- readRDS(file.path(path,"result_frame.RDS"))
     anno.meth <- readRDS(file.path(path,"anno_meth.RDS"))
@@ -381,19 +381,19 @@ loadMethQTLResult <- function(path){
 
 #'joinMethQTLResult
 #'
-#'This function combines a list of \code{\link{methQTLResult-class}} objects.
+#'This function combines a list of \code{\link{MethQTLResult-class}} objects.
 #'
-#'@param    obj.list A list of \code{\link{methQTLResult-class}} objects to be joined
-#'@return    An object of type \code{\link{methQTLResult-class}} containing the combined information
+#'@param    obj.list A list of \code{\link{MethQTLResult-class}} objects to be joined
+#'@return    An object of type \code{\link{MethQTLResult-class}} containing the combined information
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'meth.qtl.res.2 <- meth.qtl.res.1
 #'meth.qtl.res <- joinMethQTLResult(list(meth.qtl.res.1,meth.qtl.res.2))
 joinMethQTLResult <- function(obj.list){
-    if(any(!unlist(lapply(obj.list,function(x)inherits(x,"methQTLResult"))))){
-    logger.error("Objects needs to be of type methQTLResult")
+    if(any(!unlist(lapply(obj.list,function(x)inherits(x,"MethQTLResult"))))){
+    logger.error("Objects needs to be of type MethQTLResult")
     }
     result.frame <- c()
     anno.meth <- c()
@@ -424,7 +424,7 @@ joinMethQTLResult <- function(obj.list){
     anno.meth <- data.frame(anno.meth[order(anno.meth[,1]),])
     anno.geno <- data.frame(anno.geno[order(anno.geno[,1]),])
     }
-    ret.obj <- new("methQTLResult",
+    ret.obj <- new("MethQTLResult",
                 result.frame=result.frame,
                 anno.meth=anno.meth,
                 anno.geno=anno.geno,

@@ -17,12 +17,12 @@ my_theme <- theme_bw()+theme(panel.grid=element_blank(),
 #'
 #'Compares the methylation states of a given CpG for the genotype states availabe at the given SNP
 #'
-#'@param    meth.qtl An object of type \code{\link{methQTLInput-class}} containing the methylation and genotype information
+#'@param    meth.qtl An object of type \code{\link{MethQTLInput-class}} containing the methylation and genotype information
 #'                for the given CpG and the given SNP
 #'@param    cpg The CpG identifier as a character (e.g. cg12345678)
 #'@param    snp The SNP identifier as a character (e.g. rs12345678)
 #'@param    out.dir If specified, the plot is stored as a pdf in this directory
-#'@param    meth.qtl.res An optional argument of type \code{\link{methQTLResult-class}} containing information on the results.
+#'@param    meth.qtl.res An optional argument of type \code{\link{MethQTLResult-class}} containing information on the results.
 #'        If either \code{cpg} or \code{snp} are NULL, this function sorts the results by increasing p-value and the uses the
 #'        best results for plotting.
 #'@param    out.name Optional name for the resulting plot
@@ -30,8 +30,8 @@ my_theme <- theme_bw()+theme(panel.grid=element_blank(),
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
-#'qtlPlotSNPCpGInteraction(meth.qtl,cpg="cg15979415",snp="rs59380221")
+#'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'qtlPlotSNPCpGInteraction(meth.qtl,cpg="cg19565884",snp="rs149871695")
 qtlPlotSNPCpGInteraction <- function(meth.qtl,
                                     cpg=NULL,
                                     snp=NULL,
@@ -114,23 +114,23 @@ qtlPlotSNPCpGInteraction <- function(meth.qtl,
 #'This functions creates a multi-facet plot with a panel for each CpG in the correlation block that has
 #'a methQTL interaction with the SNP of interest.
 #'
-#'@param    meth.qtl.res An object of type \code{\link{methQTLResult-class}} containing the methQTL interactions
+#'@param    meth.qtl.res An object of type \code{\link{MethQTLResult-class}} containing the methQTL interactions
 #'        and the CpG correlation blocks.
-#'@param    meth.qtl An object of type \code{\link{methQTLInput-class}} containing genotyping, methylation and
+#'@param    meth.qtl An object of type \code{\link{MethQTLInput-class}} containing genotyping, methylation and
 #'        annotation information.
 #'@param    snp The SNP identifier, for which the methQTL interaction is to be visualized.
 #'@return    The plot as an \code{ggplot} object, containing a facet with a scatterplot between the CpG
 #'methylation state and the SNP dosage. Discrete genotypes are currently not supported.
-#'@export
+#'@noRd
 #'@author    Michael Scherer
 qtlPlotSNPCorrelationBlock <- function(meth.qtl.res,
                                         meth.qtl,
                                         snp=NULL){
-    if(!inherits(meth.qtl.res,"methQTLResult")){
-    stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
+    if(!inherits(meth.qtl.res,"MethQTLResult")){
+    stop("Invalid value for meth.qtl.res, needs to be MethQTLResult")
     }
-    if(!inherits(meth.qtl,"methQTLInput")){
-    stop("Invalid value for meth.qtl, needs to be methQTLInput")
+    if(!inherits(meth.qtl,"MethQTLInput")){
+    stop("Invalid value for meth.qtl, needs to be MethQTLInput")
     }
     cor.blocks <- getCorrelationBlocks(meth.qtl.res)
     res <- getResult(meth.qtl.res,cor.blocks)
@@ -171,15 +171,16 @@ qtlPlotSNPCorrelationBlock <- function(meth.qtl.res,
 #'
 #'Computes a scatterplot between CpG-SNP distance with both effect size and p-value
 #'
-#'@param    meth.qtl.result An object of type \code{\link{methQTLResult-class}} containing called methQTL
+#'@param    meth.qtl.result An object of type \code{\link{MethQTLResult-class}} containing called methQTL
 #'@param    out.dir If specified, the plot is stored as a pdf in this directory
 #'@param    out.name Optional name for the resulting plot
 #'@return    An object of type \code{ggplot} comparing the distance between CpG and SNP. Negative values indicate that the
 #'        SNP is downstream of the CpG.
 #'@author    Michael Scherer
+#'@importFrom stats cor.test
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'qtlDistanceScatterplot(meth.qtl.res)
 qtlDistanceScatterplot <- function(meth.qtl.result,
                                     out.dir=NULL,
@@ -237,7 +238,7 @@ qtlDistanceScatterplot <- function(meth.qtl.result,
 #'
 #'This function creates a manhattan plot for the given methQTL result
 #'
-#'@param    meth.qtl.result An object of type \code{\link{methQTLResult-class}} containing the methQTL
+#'@param    meth.qtl.result An object of type \code{\link{MethQTLResult-class}} containing the methQTL
 #'@param    type Determines if either the CpG (default) or the SNP is to be visualized
 #'@param    stat Determines the statistic that is to be visualized. Can be either \code{P.value}, \code{Beta} or
 #'            \code{p.val.adj.fdr}
@@ -246,7 +247,7 @@ qtlDistanceScatterplot <- function(meth.qtl.result,
 #'@return    None
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'qtlManhattanPlot(meth.qtl.res)
 qtlManhattanPlot <- function(meth.qtl.result,
                             type="CpG",
@@ -280,7 +281,7 @@ qtlManhattanPlot <- function(meth.qtl.result,
 #'
 #'This function creates a venn plot from a list of methQTL results, showing the overlap between the interactions
 #'
-#'@param    meth.qtl.result.list A named list with each entry being an object of type \code{\link{methQTLResult-class}}.
+#'@param    meth.qtl.result.list A named list with each entry being an object of type \code{\link{MethQTLResult-class}}.
 #'                    The names are used in the visualization.
 #'@param    out.folder Required argument specifying the location to store the resulting plot
 #'@param    type Determines if either the SNP (default), the CpG, or the correlation block
@@ -292,7 +293,7 @@ qtlManhattanPlot <- function(meth.qtl.result,
 #'@export
 #'@author    Michael Scherer
 #'@examples
-#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'meth.qtl.res.2 <- meth.qtl.res.1
 #'qtlVennPlot(list(A=meth.qtl.res.1,B=meth.qtl.res.2),out.folder=getwd())
 qtlVennPlot <- function(meth.qtl.result.list,
@@ -326,7 +327,7 @@ qtlVennPlot <- function(meth.qtl.result.list,
 #'
 #'This function creates an UpSet plot from the given methQTL results
 #'
-#'@param    meth.qtl.result.list A named list with each entry being an object of type \code{\link{methQTLResult-class}}.
+#'@param    meth.qtl.result.list A named list with each entry being an object of type \code{\link{MethQTLResult-class}}.
 #'                    The names are used in the visualization.
 #'@param    type Determines if either the SNP (default), the CpG, or the correlation block
 #' \code{'cor.block'} is to be visualized
@@ -337,7 +338,7 @@ qtlVennPlot <- function(meth.qtl.result.list,
 #'@author    Michael Scherer
 #'@import    UpSetR
 #'@examples
-#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'meth.qtl.res.2 <- meth.qtl.res.1
 #'qtlUpsetPlot(list(A=meth.qtl.res.1,B=meth.qtl.res.2))
 qtlUpsetPlot <- function(meth.qtl.result.list,
@@ -362,7 +363,7 @@ qtlUpsetPlot <- function(meth.qtl.result.list,
 #'This function correlates the size of the correlation block, a particular CpG is part of, to the statistic
 #'that has been found for a methQTL this CpG is involved in.
 #'
-#'@param    meth.qtl.res An object of type \code{\link{methQTLResult-class}} containing methQTLs and correlation blocks.
+#'@param    meth.qtl.res An object of type \code{\link{MethQTLResult-class}} containing methQTLs and correlation blocks.
 #'@param    stat The statistic that is to be compared. Can be one of \code{'P.value'}, \code{'Beta'},
 #'        \code{'Distance'}, or \code{'p.val.adj.fdr'}(default).
 #'@param    size.type The size of correlation block to be used. Can be either \code{'num.CpGs'} (default)
@@ -373,8 +374,8 @@ qtlUpsetPlot <- function(meth.qtl.result.list,
 qtlCorrelateCorBlockStat <- function(meth.qtl.res,
                                     stat="p.val.adj.fdr",
                                     size.type='num.CpGs'){
-    if(!inherits(meth.qtl.res,"methQTLResult")){
-    stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
+    if(!inherits(meth.qtl.res,"MethQTLResult")){
+    stop("Invalid value for meth.qtl.res, needs to be MethQTLResult")
     }
     if(!(stat %in% c("P.value","Beta","Distance","p.val.adj.fdr"))){
     stop("Invalid value for stat, needs to be one of 'P.value', 'Beta', 'Distance', 'p.val.adj.fdr'")
@@ -426,7 +427,7 @@ qtlCorrelateCorBlockStat <- function(meth.qtl.res,
 #'
 #'This function plots the LOLA enrichment results using the \code{\link{lolaBarPlot}} routine.
 #'
-#'@param    meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects
+#'@param    meth.qtl.res An object of type \code{\link{MethQTLResult-class}} or a list of such objects
 #'@param    type The type of methQTL to be visualized. Can be either \code{'SNP'}, \code{'CpG'},
 #'or \code{'cor.block'}
 #'@param    lola.db The location of a LOLA DB already downloaded
@@ -434,7 +435,7 @@ qtlCorrelateCorBlockStat <- function(meth.qtl.res,
 #'@param    pvalCut The p-value cutoff employed
 #'@return    The LOLA enrichment bar plot as a \code{ggplot} object
 #'@author    Michael Scherer
-#'@export
+#'@noRd
 qtlLOLAPlot <- function(meth.qtl.res,
                         type="SNP",
                         lola.db=NULL,
@@ -454,19 +455,19 @@ qtlLOLAPlot <- function(meth.qtl.res,
 #'This functions returns a histogram comprising the (genomic) sizes of the correlation blocks
 #'in the given objet.
 #'
-#'@param    meth.qtl.res An object of type \code{\link{methQTLResult-class}}
+#'@param    meth.qtl.res An object of type \code{\link{MethQTLResult-class}}
 #'@param    type Either \code{"genomic"} or \code{"count"}, for genomic size of the correlation
 #'            block in base pairs or as the number of CpGs
 #'@return    An object of type ggplot containing the histogram as a plot
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'qtlPlotClusterSize(meth.qtl.res)
 qtlPlotClusterSize <- function(meth.qtl.res,
                                 type="count"){
-    if(!inherits(meth.qtl.res,"methQTLResult")){
-        stop("Invalid value for meth.qtl.res, needs to be methQTLResult")
+    if(!inherits(meth.qtl.res,"MethQTLResult")){
+        stop("Invalid value for meth.qtl.res, needs to be MethQTLResult")
     }
     if(!(type%in%c("count","genomic"))){
         stop("Invalid value for type, needs to be 'genomic' or 'count'")
@@ -494,11 +495,11 @@ qtlPlotClusterSize <- function(meth.qtl.res,
 #'
 #'This functions returns and enrichment plot for different genomic annotation enrichments
 #'
-#'@param    meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
+#'@param    meth.qtl.res An object of type \code{\link{MethQTLResult-class}} or a list of such objects.
 #'@param    ... Further parameters passed to \code{\link{qtlAnnotationEnrichment}}
 #'@return    None
 #'@seealso    qtlAnnotationEnrichment
-#'@export
+#'@noRd
 #'@author    Michael Scherer
 qtlPlotAnnotationEnrichment <- function(meth.qtl.res,
                                         ...){
@@ -534,21 +535,21 @@ qtlPlotAnnotationEnrichment <- function(meth.qtl.res,
 #'
 #'This function returns an enrichment plot for the different base substitutions.
 #'
-#'@param    meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
+#'@param    meth.qtl.res An object of type \code{\link{MethQTLResult-class}} or a list of such objects.
 #'@param    ... Further parameters passed to \code{\link{qtlBaseSubstitutionEnrichment}}
 #'@return    None
 #'@seealso    qtlBaseSubstitutionEnrichment
 #'@export
 #'@author    Michael Scherer
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'qtlPlotBaseSubstitution(meth.qtl.res)
 qtlPlotBaseSubstitution <- function(meth.qtl.res,
                                     ...){
-    to.plot <- qtlBaseSubstitutionEnrichment(meth.qtl.res,...)
+    to.plot <- as.data.frame(qtlBaseSubstitutionEnrichment(meth.qtl.res,...))
     to.plot <- data.frame(Substitution=colnames(to.plot),
-            OddsRatio=to.plot["OddsRatio",],
-            p.value=to.plot["p.value",])
+            OddsRatio=unlist(to.plot["OddsRatio",]),
+            p.value=unlist(to.plot["p.value",]))
     plot <- ggplot(to.plot,aes(x=Substitution,y="",fill=log10(OddsRatio)))+
         geom_tile(color="black",size=ifelse(to.plot$p.value<0.01,5,1))+
         my_theme+
@@ -560,7 +561,7 @@ qtlPlotBaseSubstitution <- function(meth.qtl.res,
 #'
 #'This function overlaps correlation blocks for a list of methQTL results
 #'
-#'@param    meth.qtl.res.list A list of \code{\link{methQTLResult-class}} objects, for which correlation blocks are to be overlapped
+#'@param    meth.qtl.res.list A list of \code{\link{MethQTLResult-class}} objects, for which correlation blocks are to be overlapped
 #'@param    ... Further argument passed to \code{\link[UpSetR]{upset}}
 #'@return    None
 #'@details    This function draws an UpSetPlot for the overlaps directly from to the open graphics device
@@ -568,7 +569,7 @@ qtlPlotBaseSubstitution <- function(meth.qtl.res,
 #'@author    Michael Scherer
 #'@import    UpSetR
 #'@examples
-#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'meth.qtl.res.2 <- meth.qtl.res.1
 #'qtlUpSetPlotCorBlocks(list(A=meth.qtl.res.1,B=meth.qtl.res.2))
 qtlUpSetPlotCorBlocks <- function(meth.qtl.res.list,
@@ -595,7 +596,7 @@ qtlUpSetPlotCorBlocks <- function(meth.qtl.res.list,
 #'
 #'This function overlaps the tagCpGs for a list of methQTL results
 #'
-#'@param    meth.qtl.res.list A list of \code{\link{methQTLResult-class}} objects, for which correlation blocks are to be overlapped
+#'@param    meth.qtl.res.list A list of \code{\link{MethQTLResult-class}} objects, for which correlation blocks are to be overlapped
 #'@param    ... Further argument passed to \code{\link[UpSetR]{upset}}
 #'@return    None
 #'@details    This function draws an UpSetPlot for the overlaps directly from to the open graphics device
@@ -603,7 +604,7 @@ qtlUpSetPlotCorBlocks <- function(meth.qtl.res.list,
 #'@author    Michael Scherer
 #'@import    UpSetR
 #'@examples
-#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'meth.qtl.res.2 <- meth.qtl.res.1
 #'qtlUpSetPlotTagCpGs(list(A=meth.qtl.res.1,B=meth.qtl.res.2))
 qtlUpSetPlotTagCpGs <- function(meth.qtl.res.list,

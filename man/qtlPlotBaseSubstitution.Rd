@@ -7,7 +7,7 @@
 qtlPlotBaseSubstitution(meth.qtl.res, ...)
 }
 \arguments{
-\item{meth.qtl.res}{An object of type \code{\link{methQTLResult-class}} or a list of such objects.}
+\item{meth.qtl.res}{An object of type \code{\link{MethQTLResult-class}} or a list of such objects.}
 
 \item{...}{Further parameters passed to \code{\link{qtlBaseSubstitutionEnrichment}}}
 }
@@ -18,7 +18,7 @@ None
 This function returns an enrichment plot for the different base substitutions.
 }
 \examples{
-meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 qtlPlotBaseSubstitution(meth.qtl.res)
 }
 \seealso{

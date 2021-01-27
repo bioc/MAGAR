@@ -14,7 +14,7 @@ qtlPlotSNPCpGInteraction(
 )
 }
 \arguments{
-\item{meth.qtl}{An object of type \code{\link{methQTLInput-class}} containing the methylation and genotype information
+\item{meth.qtl}{An object of type \code{\link{MethQTLInput-class}} containing the methylation and genotype information
 for the given CpG and the given SNP}
 
 \item{cpg}{The CpG identifier as a character (e.g. cg12345678)}
@@ -23,7 +23,7 @@ for the given CpG and the given SNP}
 
 \item{out.dir}{If specified, the plot is stored as a pdf in this directory}
 
-\item{meth.qtl.res}{An optional argument of type \code{\link{methQTLResult-class}} containing information on the results.
+\item{meth.qtl.res}{An optional argument of type \code{\link{MethQTLResult-class}} containing information on the results.
 If either \code{cpg} or \code{snp} are NULL, this function sorts the results by increasing p-value and the uses the
 best results for plotting.}
 
@@ -36,8 +36,8 @@ An object of type \code{ggplot} comparing the CpG methylation states as boxplots
 Compares the methylation states of a given CpG for the genotype states availabe at the given SNP
 }
 \examples{
-meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
-qtlPlotSNPCpGInteraction(meth.qtl,cpg="cg15979415",snp="rs59380221")
+meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
+qtlPlotSNPCpGInteraction(meth.qtl,cpg="cg19565884",snp="rs149871695")
 }
 \author{
 Michael Scherer

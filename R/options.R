@@ -34,11 +34,7 @@ assign('ALL',c('rnbeads.options',
                 'cluster.config',
                 'recode.allele.frequencies',
                 'n.permutations',
-                'p.value.correction',
                 'compute.cor.blocks',
-                'use.segmentation',
-                'use.functional.annotation',
-                'functional.annotation.weight',
                 'impute.geno.data',
                 'vcftools.path',
                 'cluster.architecture',
@@ -72,12 +68,8 @@ assign("METH.QTL.TYPE","oneVSall",QTL.OPTIONS)
 assign("MAX.CPGS",40000,QTL.OPTIONS)
 assign("CLUSTER.CONFIG",c(h_vmem="5G",mem_free="5G"),QTL.OPTIONS)
 assign("N.PERMUTATIONS",100,QTL.OPTIONS)
-assign("P.VALUE.CORRECTION","uncorrected.fdr",QTL.OPTIONS)
 assign("COMPUTE.COR.BLOCKS",TRUE,QTL.OPTIONS)
 assign("RECODE.ALLELE.FREQUENCIES",TRUE,QTL.OPTIONS)
-assign("USE.SEGMENTATION",FALSE,QTL.OPTIONS)
-assign("USE.FUNCTIONAL.ANNOTATION",FALSE,QTL.OPTIONS)
-assign("FUNCTIONAL.ANNOTATION.WEIGHT",1.1,QTL.OPTIONS)
 assign("IMPUTE.GENO.DATA",FALSE,QTL.OPTIONS)
 assign("VCFTOOLS.PATH",NULL,QTL.OPTIONS)
 assign("IMPUTATION.USER.TOKEN",NULL,QTL.OPTIONS)
@@ -145,21 +137,8 @@ assign("CLUSTER.ARCHITECTURE","sge",QTL.OPTIONS)
 #'An example configuration for SLURM would be \code{c("clock.limit"="1-0","mem.size"="10G")} for 1 day of running time (format days:hours) and 10 GB of maximum memory usage. Additionally, \code{'n.cpus'} can be specified as the SLURM option \code{cpus-per-task}
 #'@param    n.permutations The number of permutations used to correct the p-values for multiple testing. See
 #'        (http://fastqtl.sourceforge.net/) for further information.
-#'@param    p.value.correction The p-value correction method for multiple testing correction. Can be one of
-#'        \code{"uncorrected.fdr"} or \code{"corrected.fdr}. \code{"uncorrected.fdr"} uses nominal p-values
-#'        per correlation block as a lenient filtering and then uses FDR with the number of tests performed.
-#'        \code{"corrected.fdr} corrects the p-values per correlation block for multiple testing, accounting
-#'        for the correlation structure of the p-values and then uses FDR-correction for all the interactions computed.
 #'@param    compute.cor.blocks Flag indicating if correlation blocks are to be called. If \code{FALSE}, each CpG is considered
 #'        separately.
-#'@param    use.segmentation Flag indicating if segmenation into partically methylated domains (PMDs) and non-PMDs is to
-#'        be used for computing correlation block. If \code{TRUE}, two CpGs cannot be connected in the graph if they
-#'        are in different segments.
-#'@param    use.functional.annotation Flag indicating if functional genome annotation according to the ENSEMBL regulatory
-#'        build is to be incorportated into the correlation block computation. If \code{TRUE}, samples within the
-#'        same annotation are prioritized and in different ones penalized.
-#'@param    functional.annotation.weight Numeric value specifying how strong CpGs in the same functional annotation should
-#'        be prioritized.
 #'@param    recode.allele.frequencies Flag indicating if the reference allele is to be redefined according to the frequenciess
 #'        found in the cohort investigated.
 #'@param    vcftools.path Path to the installation of VCFtools. Necessary is the vcf-sort function in this folder.
@@ -216,12 +195,8 @@ qtlSetOption <- function(rnbeads.options=NULL,
                         cluster.architecture='sge',
                         cluster.config=c(h_vmem="5G",mem_free="5G"),
                         n.permutations=1000,
-                        p.value.correction="uncorrected.fdr",
                         compute.cor.blocks=TRUE,
                         recode.allele.frequencies=FALSE,
-                        use.segmentation=FALSE,
-                        use.functional.annotation=FALSE,
-                        functional.annotation.weight=1.1,
                         vcftools.path=NULL,
                         imputation.user.token=NULL,
                         imputation.reference.panel="apps@hrc-r1.1",
@@ -434,12 +409,6 @@ qtlSetOption <- function(rnbeads.options=NULL,
     }
     QTL.OPTIONS[['N.PERMUTATIONS']] <- n.permutations
     }
-    if(!missing(p.value.correction)){
-    if(!is.character(p.value.correction) || !p.value.correction %in% c("uncorrected.fdr","corrected.fdr")){
-        stop("Invalid value for p.value.correction, needs to be either 'uncorrected.fdr' or 'corrected.fdr'")
-    }
-    QTL.OPTIONS[['P.VALUE.CORRECTION']] <- p.value.correction
-    }
     if(!missing(compute.cor.blocks)){
     if(!is.logical(compute.cor.blocks)){
         stop("Invalid value for compute.cor.blocks, needs to be logical.")
@@ -451,24 +420,6 @@ qtlSetOption <- function(rnbeads.options=NULL,
         stop("Invalid value for recode.allele.frequencies, needs to be logical.")
     }
     QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']] <- recode.allele.frequencies
-    }
-    if(!missing(use.segmentation)){
-    if(!is.logical(use.segmentation)){
-        stop("Invalid value for use.segmentation, needs to be logical.")
-    }
-    QTL.OPTIONS[['USE.SEGMENTATION']] <- use.segmentation
-    }
-    if(!missing(use.functional.annotation)){
-    if(!is.logical(use.functional.annotation)){
-        stop("Invalid value for use.functional.annotation, needs to be logical.")
-    }
-    QTL.OPTIONS[['USE.FUNCTIONAL.ANNOTATION']] <- use.functional.annotation
-    }
-    if(!missing(functional.annotation.weight)){
-    if(!is.numeric(functional.annotation.weight)){
-        stop("Invalid value for functional.annotation.weight, needs to be numeric.")
-    }
-    QTL.OPTIONS[['FUNCTIONAL.ANNOTATION.WEIGHT']] <- functional.annotation.weight
     }
     if(!missing(vcftools.path)){
     if(!is.null(vcftools.path)){
@@ -645,23 +596,11 @@ qtlGetOption <- function(names){
     if('n.permutations'%in%names){
     ret <- c(ret,n.permutations=QTL.OPTIONS[['N.PERMUTATIONS']])
     }
-    if('p.value.correction'%in%names){
-    ret <- c(ret,p.value.correction=QTL.OPTIONS[['P.VALUE.CORRECTION']])
-    }
     if('compute.cor.blocks'%in%names){
     ret <- c(ret,compute.cor.blocks=QTL.OPTIONS[['COMPUTE.COR.BLOCKS']])
     }
     if('recode.allele.frequencies'%in%names){
     ret <- c(ret,recode.allele.frequencies=QTL.OPTIONS[['RECODE.ALLELE.FREQUENCIES']])
-    }
-    if('use.segmentation'%in%names){
-    ret <- c(ret,use.segmentation=QTL.OPTIONS[['USE.SEGMENTATION']])
-    }
-    if('use.functional.annotation'%in%names){
-    ret <- c(ret,use.functional.annotation=QTL.OPTIONS[['USE.FUNCTIONAL.ANNOTATION']])
-    }
-    if('functional.annotation.weight'%in%names){
-    ret <- c(ret,functional.annotation.weight=QTL.OPTIONS[['FUNCTIONAL.ANNOTATION.WEIGHT']])
     }
     if('vcftools.path'%in%names){
     ret <- c(ret,vcftools.path=QTL.OPTIONS[['VCFTOOLS.PATH']])

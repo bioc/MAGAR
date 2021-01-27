@@ -1,9 +1,9 @@
 ##########################################################################################
-# methQTLInput-class.R
+# MethQTLInput-class.R
 # created: 2019-08-27
 # creator: Michael Scherer
 # ---------------------------------------------------------------------------------------
-# methQTLInput class definition
+# MethQTLInput class definition
 ##########################################################################################
 
 ##########################################################################################
@@ -13,7 +13,7 @@ setClassUnion("matrixOrHDF",c("matrix","HDF5Matrix"))
 setClassUnion("characterOrNULL",c("character","NULL"))
 setClassUnion("GRangesOrNULL",c("GRanges","NULL"))
 
-#'methQTLInput-class
+#'MethQTLInput-class
 #'
 #'Class storing methQTL input data, such as DNA methylation and genotyping data, as well as sample metadata
 #'
@@ -37,7 +37,6 @@ setClassUnion("GRangesOrNULL",c("GRanges","NULL"))
 #'    \code{pheno.data}.}
 #'\item{\code{assembly}}{The genome assembly used.}
 #'\item{\code{platform}}{The platform used to compute the methylation data.}
-#'\item{\code{segmentation}}{If performed, the segmentation into PMD/nonPMDs using the epicPMDdetect package.}
 #'\item{\code{disk.dump}}{Flag indicating if the matrices are stored on disk rather than in memory.}
 #'\item{\code{imputed}}{Flag indicating if genotype dataset has been imputed.}
 #'}
@@ -47,15 +46,15 @@ setClassUnion("GRangesOrNULL",c("GRanges","NULL"))
 #'\item{\code{\link[=getGeno,methQTL-method]{getGeno}}}{Returns the genotyping matrix.}
 #'\item{\code{\link[=getPheno,methQTL-method]{getPheno}}}{Returns the phenotypic information.}
 #'\item{\code{\link[=getAnno,methQTL-method]{getAnno}}}{Returns the genomic annotation.}
-#'\item{\code{\link[=saveMethQTL,methQTLInput-method]{saveMethQTL}}}{Stores the object on disk.}
+#'\item{\code{\link[=saveMethQTLInput,MethQTLInput-method]{saveMethQTLInput}}}{Stores the object on disk.}
 #'\item{\code{\link[=imputeMeth,methQTL-method]{imputeMeth}}}{Imputes the DNA methylation data matrix}
 #'}
 #'
-#'@name methQTLInput-class
-#'@rdname methQTLInput-class
+#'@name MethQTLInput-class
+#'@rdname MethQTLInput-class
 #'@author    Michael Scherer
-#'@exportClass methQTLInput
-setClass("methQTLInput",
+#'@exportClass MethQTLInput
+setClass("MethQTLInput",
         representation(
             meth.data="matrixOrHDF",
             geno.data="matrixOrHDF",
@@ -66,9 +65,7 @@ setClass("methQTLInput",
             assembly="character",
             disk.dump="logical",
             imputed="logical",
-            platform="character",
-        segmentation="GRangesOrNULL"
-        ),
+            platform="character"),
         prototype(
             meth.data=matrix(nrow=0,ncol=0),
             geno.data=matrix(nrow=0,ncol=0),
@@ -79,13 +76,11 @@ setClass("methQTLInput",
             assembly="hg19",
             disk.dump=FALSE,
             imputed=FALSE,
-            platform="probesEPIC",
-        segmentation=NULL
-        ),
+            platform="probesEPIC"),
         package="MAGAR")
 
 # CONSTRUCTOR
-setMethod("initialize","methQTLInput",
+setMethod("initialize","MethQTLInput",
             function(.Object,
             meth.data=matrix(nrow=0,ncol=0),
             geno.data=matrix(nrow=0,ncol=0),
@@ -96,9 +91,7 @@ setMethod("initialize","methQTLInput",
             assembly="hg19",
             disk.dump=FALSE,
             imputed=FALSE,
-            platform="probesEPIC",
-        segmentation=NULL
-            ){
+            platform="probesEPIC"){
             if(length(samples) != ncol(meth.data) |
                 length(samples) != ncol(geno.data) |
                 length(samples) != nrow(pheno.data)){
@@ -114,7 +107,6 @@ setMethod("initialize","methQTLInput",
             .Object@disk.dump <- disk.dump
             .Object@imputed <- imputed
             .Object@platform <- platform
-            .Object@segmentation <- segmentation
 
             .Object
             })
@@ -162,7 +154,7 @@ if(!isGeneric("getMethData")) setGeneric("getMethData",
 #'
 #'Returns methylation information for the given dataset.
 #'
-#'@param    object An object of class \code{\link{methQTLInput-class}}.
+#'@param    object An object of class \code{\link{MethQTLInput-class}}.
 #'@param    site The sites to be selected either as a numeric or logical vector. If \code{NULL} all sites are returned.
 #'@param    sample The samples to be selected either as a numeric or logical vector. If \code{NULL} all samples are returned.
 #'@return    The methylation matrix either as a matrix of \code{\link{HDF5Matrix}}.
@@ -173,9 +165,9 @@ if(!isGeneric("getMethData")) setGeneric("getMethData",
 #'@aliases getMethData
 #'@export
 #'@examples
-#'meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 #'head(getMethData(meth.qtl))
-setMethod("getMethData",signature(object="methQTLInput"),
+setMethod("getMethData",signature(object="MethQTLInput"),
             function(object,site=NULL,sample=NULL){
                 ret.mat <- get.value(object@meth.data,site=site,sample=sample)
                 if(object@disk.dump){
@@ -192,7 +184,7 @@ if(!isGeneric("getGeno")) setGeneric("getGeno",
 #'
 #'Returns genotyping information for the given dataset.
 #'
-#'@param    object An object of class \code{\link{methQTLInput-class}}.
+#'@param    object An object of class \code{\link{MethQTLInput-class}}.
 #'@param    site The sites to be selected either as a numeric or logical vector. If \code{NULL} all sites are returned.
 #'@param    sample The samples to be selected either as a numeric or logical vector. If \code{NULL} all samples are returned.
 #'@return    The genotyping matrix either as a matrix of \code{\link{HDF5Matrix}}.
@@ -203,9 +195,9 @@ if(!isGeneric("getGeno")) setGeneric("getGeno",
 #'@aliases getGeno
 #'@export
 #'@examples
-#'meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 #'head(getGeno(meth.qtl))
-setMethod("getGeno",signature(object="methQTLInput"),
+setMethod("getGeno",signature(object="MethQTLInput"),
         function(object,site=NULL,sample=NULL){
             ret.mat <- get.value(object@geno.data,site=site,sample=sample)
             if(object@disk.dump){
@@ -222,7 +214,7 @@ if(!isGeneric("getPheno")) setGeneric("getPheno",
 #'
 #'Returns phenotypic information for the given dataset.
 #'
-#'@param    object An object of class \code{\link{methQTLInput-class}}.
+#'@param    object An object of class \code{\link{MethQTLInput-class}}.
 #'@return    The phenotypic data either as a \code{data.frame}.
 #'
 #'@rdname getPheno
@@ -231,9 +223,9 @@ if(!isGeneric("getPheno")) setGeneric("getPheno",
 #'@aliases getPheno
 #'@export
 #'@examples
-#'meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 #'head(getPheno(meth.qtl))
-setMethod("getPheno",signature(object="methQTLInput"),
+setMethod("getPheno",signature(object="MethQTLInput"),
             function(object){
             return(object@pheno.data)
             }
@@ -246,7 +238,7 @@ if(!isGeneric("getAnno")) setGeneric("getAnno",
 #'
 #'Returns genomic annotation information for the given dataset.
 #'
-#'@param    object An object of class \code{\link{methQTLInput-class}} or \code{\link{methQTLResult-class}}.
+#'@param    object An object of class \code{\link{MethQTLInput-class}} or \code{\link{MethQTLResult-class}}.
 #'@param    type The type of annotation to be returned. Can either be \code{'meth'} or \code{'geno'} for methylation,
 #'and genotyping information, respectively.
 #'@return    The genomic annotation as a \code{data.frame}.
@@ -257,10 +249,10 @@ if(!isGeneric("getAnno")) setGeneric("getAnno",
 #'@aliases getAnno
 #'@export
 #'@examples
-#'meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 #'head(getAnno(meth.qtl,"meth"))
 #'head(getAnno(meth.qtl,"geno"))
-setMethod("getAnno",signature(object="methQTLInput"),
+setMethod("getAnno",signature(object="MethQTLInput"),
             function(object,type="meth"){
             if(type=="meth"){
                 return(object@anno.meth)
@@ -279,7 +271,7 @@ if(!isGeneric("getSamples")) setGeneric("getSamples",
 #'
 #'Returns the samples of the given dataset.
 #'
-#'@param    object An object of class \code{\link{methQTLInput-class}}.
+#'@param    object An object of class \code{\link{MethQTLInput-class}}.
 #'@return    The samples of the dataset as a character vector.
 #'
 #'@rdname getSamples
@@ -288,9 +280,9 @@ if(!isGeneric("getSamples")) setGeneric("getSamples",
 #'@aliases getSamples
 #'@export
 #'@examples
-#'meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 #'getSamples(meth.qtl)
-setMethod("getSamples",signature(object="methQTLInput"),
+setMethod("getSamples",signature(object="MethQTLInput"),
             function(object){
             return(object@samples)
             }
@@ -303,7 +295,7 @@ if(!isGeneric("imputeMeth")) setGeneric("imputeMeth",
 #'
 #'Replaces missing values in the DNA methylation data matrix by imputed values
 #'
-#'@param    object An object of class \code{\link{methQTLInput-class}}.
+#'@param    object An object of class \code{\link{MethQTLInput-class}}.
 #'@return    The object with imputed values.
 #'
 #'@rdname imputeMeth
@@ -313,9 +305,9 @@ if(!isGeneric("imputeMeth")) setGeneric("imputeMeth",
 #'@aliases imputeMeth
 #'@export
 #'@examples
-#'meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 #'meth.qtl.imp <- imputeMeth(meth.qtl)
-setMethod("imputeMeth",signature(object="methQTLInput"),
+setMethod("imputeMeth",signature(object="MethQTLInput"),
             function(object){
             rnb.xml2options(qtlGetOption("rnbeads.options"))
             if(!object@disk.dump){
@@ -329,42 +321,39 @@ setMethod("imputeMeth",signature(object="methQTLInput"),
             }
 )
 
-setMethod("show","methQTLInput",
+setMethod("show","MethQTLInput",
     function(object){
     ret.str <- list()
-    ret.str[1] <- "Object of class methQTLInput\n"
+    ret.str[1] <- "Object of class MethQTLInput\n"
     ret.str[2] <- paste("\t Contains",length(object@samples),"samples\n")
     ret.str[3] <- paste("\t Methylation data for",nrow(object@meth.data),"CpGs\n")
     ret.str[4] <- paste("\t Genotyping data for",nrow(object@geno.data),"SNPs\n")
     ret.str[5] <- paste("\t Genome assembly:",object@assembly,"\n")
-    if(!is.null(object@segmentation)){
-        ret.str[6] <- "\t Segmentation was performed"
-    }
     cat(do.call(paste0,ret.str))
     }
 )
 
-if(!isGeneric("saveMethQTL")) setGeneric("saveMethQTL",
-                                        function(object,...)standardGeneric("saveMethQTL"))
+if(!isGeneric("saveMethQTLInput")) setGeneric("saveMethQTLInput",
+                                        function(object,...)standardGeneric("saveMethQTLInput"))
 
-#'saveMethQTL
+#'saveMethQTLInput
 #'
-#'This functions stores a methQTLInput object in disk.
+#'This functions stores a MethQTLInput object in disk.
 #'
-#'@param    object The \code{\link{methQTLInput-class}} object to be stored on disk.
+#'@param    object The \code{\link{MethQTLInput-class}} object to be stored on disk.
 #'@param    path A path to a non-existing directory for files to be stored.
 #'@return    None
 #'
-#'@rdname saveMethQTL
+#'@rdname saveMethQTLInput
 #'@docType methods
-#'@aliases saveMethQTL,methQTL-method
-#'@aliases saveMethQTL
+#'@aliases saveMethQTLInput,methQTL-method
+#'@aliases saveMethQTLInput
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
-#'saveMethQTL(meth.qtl,"methQTLInput")
-setMethod("saveMethQTL","methQTLInput",
+#'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'saveMethQTLInput(meth.qtl,"MethQTLInput")
+setMethod("saveMethQTLInput","MethQTLInput",
             function(object,path){
             if(file.exists(path)){
                 if(dir.exists(path)){
@@ -386,9 +375,6 @@ setMethod("saveMethQTL","methQTLInput",
                 writeHDF5Array(object@meth.data,filepath = file.path(path,"meth_data.h5"),name="meth.data")
                 writeHDF5Array(object@geno.data,filepath = file.path(path,"geno_data.h5"),name="geno.data")
             }
-            if(!is.null(object@segmentation)){
-                saveRDS(object@segmentation,file=file.path(path,"segmentation.RDS"))
-            }
             saveRDS(object@anno.meth,file=file.path(path,"anno_meth.RDS"))
             saveRDS(object@anno.geno,file=file.path(path,"anno_geno.RDS"))
             saveRDS(object@pheno.data,file=file.path(path,"pheno_data.RDS"))
@@ -397,31 +383,31 @@ setMethod("saveMethQTL","methQTLInput",
             object@anno.meth <- data.frame()
             object@anno.geno <- data.frame()
             object@pheno.data <- data.frame()
-            save(object,file=file.path(path,"methQTLInput.RData"))
+            save(object,file=file.path(path,"MethQTLInput.RData"))
             }
 )
 
-#'loadMethQTL
+#'loadMethQTLInput
 #'
-#'This functions load a \code{\link{methQTLInput-class}} object from disk.
+#'This functions load a \code{\link{MethQTLInput-class}} object from disk.
 #'
-#'@param    path Path to the directory that has been created by \code{\link{saveMethQTL,methQTLInput-method}}.
-#'@return    The object of type \code{\link{methQTLInput-class}} that has been stored on disk.
+#'@param    path Path to the directory that has been created by \code{\link{saveMethQTLInput,MethQTLInput-method}}.
+#'@return    The object of type \code{\link{MethQTLInput-class}} that has been stored on disk.
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 #'meth.qtl
-loadMethQTL <- function(path){
+loadMethQTLInput <- function(path){
     if(any(!(file.exists(file.path(path,"meth_data.RDS"))||file.exists(file.path(path,"meth_data.h5"))),
         !(file.exists(file.path(path,"geno_data.RDS"))||file.exists(file.path(path,"geno_data.h5"))),
         !file.exists(file.path(path,"anno_meth.RDS")),
         !file.exists(file.path(path,"anno_geno.RDS")),
         !file.exists(file.path(path,"pheno_data.RDS")))){
-    stop("Invalid value for path. Potentially not a directory saved with saveMethQTL")
+    stop("Invalid value for path. Potentially not a directory saved with saveMethQTLInput")
     }
     load_env<-new.env(parent=emptyenv())
-    load(file.path(path, "methQTLInput.RData"),envir=load_env)
+    load(file.path(path, "MethQTLInput.RData"),envir=load_env)
     object <- get("object",load_env)
     is.dumped <- object@disk.dump
     if(!is.dumped){
@@ -439,9 +425,5 @@ loadMethQTL <- function(path){
     object@anno.meth <- anno.meth
     object@anno.geno <- anno.geno
     object@pheno.data <- pheno.data
-    if(file.exists(file.path(path,"segmentation.RDS"))){
-    segmentation <- readRDS(file.path(path,"segmentation.RDS"))
-    object@segmentation <- segmentation
-    }
     return(object)
 }

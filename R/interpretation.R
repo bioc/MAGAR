@@ -11,7 +11,7 @@
 #'This functions performn LOLA enrichment analysis for the methQTL sites or the sites that are
 #'shared across all methQTLs in the input list.
 #'
-#'@param    meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects
+#'@param    meth.qtl.res An object of type \code{\link{MethQTLResult-class}} or a list of such objects
 #'@param    type The type of methQTL to be visualized. Can be either \code{'SNP'}, \code{'CpG'},
 #'or \code{'cor.block'}
 #'@param    lola.db The location of a LOLA DB already downloaded
@@ -19,13 +19,13 @@
 #'@return    The LOLA enrichment result
 #'@details    We use all data points that have been used to calculate methQTLs as the background
 #'and compare the overlaps with the annotation of interest in comparison to the methQTLs that
-#'have been computed in case a \code{\link{methQTLResult-class}} is provided. If a list of \code{\link{methQTLResult-class}} objects
+#'have been computed in case a \code{\link{MethQTLResult-class}} is provided. If a list of \code{\link{MethQTLResult-class}} objects
 #'is provided, the intersection between the methQTLs from all objects in the list is compared with the union of all interactions
 #'that have been tested.
 #'@author    Michael Scherer
 #'@noRd
 #'@examples \donttest{
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'res <- qtlLOLAEnrichment(meth.qtl.res)
 #'}
 qtlLOLAEnrichment <- function(meth.qtl.res,
@@ -50,7 +50,7 @@ qtlLOLAEnrichment <- function(meth.qtl.res,
 #'This functions performs enrichment analysis using the Fisher's test for the methQTLs detected
 #'with respect to different genomic annotations.
 #'
-#'@param    meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
+#'@param    meth.qtl.res An object of type \code{\link{MethQTLResult-class}} or a list of such objects.
 #'@param    type The type of methQTL to be visualized. Can be either \code{'SNP'}, \code{'CpG'},
 #'or \code{'cor.block'}
 #'@param    annotation The genomic annotation to be used. Can be the ones available in \code{\link{rnb.region.types}} or
@@ -58,13 +58,14 @@ qtlLOLAEnrichment <- function(meth.qtl.res,
 #'@return    A list of two p-values named \code{'enrichment'} for overrepresentation and \code{'depletion'} for underrepresentation
 #'@details    We use all data points that have been used to calculate methQTLs as the background
 #'and compare the overlaps with the annotation of interest in comparison to the methQTLs that
-#'have been computed in case a \code{\link{methQTLResult-class}} is provided. If a list of \code{\link{methQTLResult-class}} objects
+#'have been computed in case a \code{\link{MethQTLResult-class}} is provided. If a list of \code{\link{MethQTLResult-class}} objects
 #'is provided, the intersection between the methQTLs from all objects in the list is compared with the union of all interactions
 #'that have been tested.
 #'@author    Michael Scherer
+#'@importFrom stats fisher.test
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'res <- qtlAnnotationEnrichment(meth.qtl.res)
 qtlAnnotationEnrichment <- function(meth.qtl.res,
                                         type="SNP",
@@ -103,7 +104,7 @@ qtlAnnotationEnrichment <- function(meth.qtl.res,
 #'
 #'This function tests for enrichment of a specific base substitution in the methQTL interactions.
 #'
-#'@param    meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects.
+#'@param    meth.qtl.res An object of type \code{\link{MethQTLResult-class}} or a list of such objects.
 #'@param    merge Flag indicating if 5' and 3' substitutions are to be merged or to be analyzed separately.
 #'@return    A list with one element for each potential base substitution containing the enrichment p-value.
 #'@details    The names of the list are e.g. \code{A_G}, which refers to a replacement of the reference base \code{A}
@@ -113,7 +114,7 @@ qtlAnnotationEnrichment <- function(meth.qtl.res,
 #'@import    plyr
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'res <- qtlBaseSubstitutionEnrichment(meth.qtl.res)
 qtlBaseSubstitutionEnrichment <- function(meth.qtl.res,
                     merge=FALSE){
@@ -171,7 +172,7 @@ qtlBaseSubstitutionEnrichment <- function(meth.qtl.res,
 #'This function performs TFBS enrichment analysis for the methQTL SNPs/CpGs detected and returns overrepresented
 #'binding motifs.
 #'
-#'@param    meth.qtl.res An object of type \code{\link{methQTLResult-class}} or a list of such objects
+#'@param    meth.qtl.res An object of type \code{\link{MethQTLResult-class}} or a list of such objects
 #'@param    type The type of methQTL to be visualized. Can be either \code{'SNP'}, \code{'CpG'},
 #'or \code{'cor.block'}
 #'@param    size Motif enrichment is only supported for genomic regions. Therefore, we resize the invididual methQTL to
@@ -184,13 +185,13 @@ qtlBaseSubstitutionEnrichment <- function(meth.qtl.res,
 #'@details    This function is in part based on the tutorial for Motif discovery in https://compgenomr.github.io/book/motif-discovery.html.
 #'We use all data points that have been used to calculate methQTLs as the background
 #'and compare the overlaps with the annotation of interest in comparison to the methQTLs that
-#'have been computed in case a \code{\link{methQTLResult-class}} is provided. If a list of \code{\link{methQTLResult-class}} objects
+#'have been computed in case a \code{\link{MethQTLResult-class}} is provided. If a list of \code{\link{MethQTLResult-class}} objects
 #'is provided, the intersection between the methQTLs from all objects in the list is compared with the union of all interactions
 #'that have been tested.
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+#'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 #'res <- qtlTFBSMotifEnrichment(meth.qtl.res)
 qtlTFBSMotifEnrichment <- function(meth.qtl.res,
     type="SNP",

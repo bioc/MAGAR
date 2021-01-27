@@ -14,7 +14,7 @@ doMethQTLChromosome(
 )
 }
 \arguments{
-\item{meth.qtl}{An Object of type \code{\link{methQTLInput-class}}.}
+\item{meth.qtl}{An Object of type \code{\link{MethQTLInput-class}}.}
 
 \item{chrom}{Character vector represeting the chromosome to be investigated.}
 
@@ -44,8 +44,8 @@ A data frame with seven columns:
 This functions computes the methQTL interactions for a single chromosome
 }
 \examples{
-meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
-meth.qtl.res <- doMethQTLChromosome(meth.qtl,chrom="chr1",p.val.cutoff=0.01)
+meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
+meth.qtl.res <- doMethQTLChromosome(meth.qtl,chrom="chr18",p.val.cutoff=0.01)
 }
 \seealso{
 doMethQTL

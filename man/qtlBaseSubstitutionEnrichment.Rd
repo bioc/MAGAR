@@ -7,7 +7,7 @@
 qtlBaseSubstitutionEnrichment(meth.qtl.res, merge = FALSE)
 }
 \arguments{
-\item{meth.qtl.res}{An object of type \code{\link{methQTLResult-class}} or a list of such objects.}
+\item{meth.qtl.res}{An object of type \code{\link{MethQTLResult-class}} or a list of such objects.}
 
 \item{merge}{Flag indicating if 5' and 3' substitutions are to be merged or to be analyzed separately.}
 }
@@ -23,7 +23,7 @@ with an \code{A}. Enrichment is computed using Fisher's exact test, using all SN
 as input as the background.
 }
 \examples{
-meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 res <- qtlBaseSubstitutionEnrichment(meth.qtl.res)
 }
 \author{

@@ -18,7 +18,8 @@ doImport(
 \arguments{
 \item{data.location}{Named character vector specifying the data location. The names correspond to:
 \describe{
-\item{idat.dir}{Path to the idat-folder for raw DNA methylation data.}
+\item{idat.dir}{Path to the DNA methylation data. Can be in the form of IDAT files or in any other
+   format accepted by RnBeads}
 \item{geno.dir}{Path to the genotyping data file directory, either containing PLINK files
 (i.e. with \code{bed}, \code{bim} and \code{fam} files), imputed, (dosage) files (i.e. with
  \code{dos} and \code{txt} files), or \code{idat} files}
@@ -42,7 +43,7 @@ positions will be matched using liftOver.}
 \item{...}{Futher parameters passed to e.g. \code{doGenoImport}}
 }
 \value{
-An object of type \code{\link{methQTLInput-class}} with the methylation and genotyping information added.
+An object of type \code{\link{MethQTLInput-class}} with the methylation and genotyping information added.
 }
 \description{
 Performs input for the given DNA methylation and genotyping data.
@@ -62,6 +63,10 @@ Import of DNA methylation and genotyping data is done separately:
        \code{meth.data.type} and \code{geno.data.type}.
 
        This function internally uses \code{doMethImport} and \code{doGenoImport}
+}
+\examples{
+ meth.qtl.in <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
+ meth.qtl.in
 }
 \author{
 Michael Scherer

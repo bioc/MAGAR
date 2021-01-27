@@ -7,7 +7,7 @@
 qtlDistanceScatterplot(meth.qtl.result, out.dir = NULL, out.name = NULL)
 }
 \arguments{
-\item{meth.qtl.result}{An object of type \code{\link{methQTLResult-class}} containing called methQTL}
+\item{meth.qtl.result}{An object of type \code{\link{MethQTLResult-class}} containing called methQTL}
 
 \item{out.dir}{If specified, the plot is stored as a pdf in this directory}
 
@@ -21,7 +21,7 @@ An object of type \code{ggplot} comparing the distance between CpG and SNP. Nega
 Computes a scatterplot between CpG-SNP distance with both effect size and p-value
 }
 \examples{
-meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 qtlDistanceScatterplot(meth.qtl.res)
 }
 \author{

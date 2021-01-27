@@ -10,7 +10,7 @@
 #'
 #'Function to compute methQTL given DNA methylation and genotyping data.
 #'
-#'@param    meth.qtl An object of type \code{\link{methQTLInput-class}} on which methQTL computation is to be performed
+#'@param    meth.qtl An object of type \code{\link{MethQTLInput-class}} on which methQTL computation is to be performed
 #'@param    sel.covariates Covariates as column names of the sample annotation sheet stored in \code{meth.qtl} to be
 #'            used for covariate adjustment.
 #'@param    p.val.cutoff The p-value cutoff used for methQTL calling
@@ -20,7 +20,7 @@
 #'@param    default.options Flag indicating if default options for \code{cluster.cor.threshold},
 #'            \code{standard.deviation.gauss}, and \code{absolute.distance.cutoff} should be loaded for the
 #'            data set used. See the option settings in \code{'inst/extdata'}.
-#'@return    An object of type \code{\link{methQTLResult-class}} containing the called methQTL interactions.
+#'@return    An object of type \code{\link{MethQTLResult-class}} containing the called methQTL interactions.
 #'@details    The process is split into 4 steps:
 #'            \describe{
 #'            \item{1}{First the two matrices are split according to the chromosomes.}
@@ -32,7 +32,7 @@
 #'            \item{4}{For each of the CpG correlation blocks, we report the p-value of the representative CpG.}
 #'            }
 #'        Currently, if \code{qtlGetOption('cluster.architecture')=='sge'} the function does not return
-#'        a \code{methQTLResult} object, but \code{NULL}, since monitoring finished jobs is hard
+#'        a \code{MethQTLResult} object, but \code{NULL}, since monitoring finished jobs is hard
 #'        through SLURM. After the jobs are finished (checked using \code{squeue}), the results can
 #'        can be loaded from \code{out.dir} using \code{\link{loadMethQTLResult}}.
 #'@seealso    doMethQTLChromosome
@@ -40,7 +40,7 @@
 #'@author    Michael Scherer
 #'@export
 #'@examples
-#'meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 #'meth.qtl.res <- doMethQTL(meth.qtl,p.val.cutoff=0.01)
 doMethQTL <- function(meth.qtl,
     sel.covariates=NULL,
@@ -49,8 +49,8 @@ doMethQTL <- function(meth.qtl,
     cluster.submit=FALSE,
     out.dir=getwd(),
     default.options=TRUE){
-    if(!inherits(meth.qtl,"methQTLInput")){
-        stop("Invalid value for meth.qtl, needs to be of type methQTLInput")
+    if(!inherits(meth.qtl,"MethQTLInput")){
+        stop("Invalid value for meth.qtl, needs to be of type MethQTLInput")
     }
     if(default.options){
         logger.info("Loading default option setting")
@@ -60,8 +60,8 @@ doMethQTL <- function(meth.qtl,
             if(meth.qtl@platform %in% "probes27"){
                 stop("This package does not support Illumina Infinium 27k arrays.")
             }
-            qtlJSON2options(file.path(system.file("extdata/",package="MAGAR"),
-                paste0("qtl_options_",meth.qtl@platform,".json")))
+            qtlJSON2options(system.file("extdata/",
+                paste0("qtl_options_",meth.qtl@platform,".json"),package="MAGAR"))
         }
     }
     if(!meth.qtl@imputed){
@@ -78,7 +78,7 @@ doMethQTL <- function(meth.qtl,
                 p.val.cutoff,
                 out.dir,
                 ncores=ncores)
-            meth.qtl.path <- file.path(out.dir,paste0("methQTLResult_",chrom))
+            meth.qtl.path <- file.path(out.dir,paste0("MethQTLResult_",chrom))
             saveMethQTLResult(res.chrom,meth.qtl.path)
             rm(res.chrom)
             gc()
@@ -101,7 +101,7 @@ doMethQTL <- function(meth.qtl,
 #'
 #'This functions computes the methQTL interactions for a single chromosome
 #'
-#'@param    meth.qtl An Object of type \code{\link{methQTLInput-class}}.
+#'@param    meth.qtl An Object of type \code{\link{MethQTLInput-class}}.
 #'@param    chrom Character vector represeting the chromosome to be investigated.
 #'@param    sel.covariates Covariates as column names of the sample annotation sheet stored in \code{meth.qtl} to be
 #'            used for covariate adjustment.
@@ -123,9 +123,10 @@ doMethQTL <- function(meth.qtl,
 #'@author    Michael Scherer
 #'@export
 #'@import    doParallel
+#'@importFrom stats p.adjust
 #'@examples
-#'meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
-#'meth.qtl.res <- doMethQTLChromosome(meth.qtl,chrom="chr1",p.val.cutoff=0.01)
+#'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'meth.qtl.res <- doMethQTLChromosome(meth.qtl,chrom="chr18",p.val.cutoff=0.01)
 doMethQTLChromosome <- function(meth.qtl,
                                 chrom,
                                 sel.covariates=NULL,
@@ -144,8 +145,7 @@ doMethQTLChromosome <- function(meth.qtl,
     cor.blocks <- computeCorrelationBlocks(sel.meth,
                                             sel.anno,
                                             assembly=meth.qtl@assembly,
-                                            chromosome=chrom,
-                                            segmentation=meth.qtl@segmentation)
+                                            chromosome=chrom)
     cor.blocks <- lapply(cor.blocks,as.numeric)
     if(!is.null(out.dir)){
         to.plot <- data.frame(Size=lengths(cor.blocks))
@@ -215,10 +215,8 @@ doMethQTLChromosome <- function(meth.qtl,
         rm(res.all)
     logger.completed()
     }
-    if(qtlGetOption("p.value.correction")=="uncorrected.fdr"){
     res.chr.p.val <- res.chr.p.val[as.numeric(
         as.character(res.chr.p.val$P.value))<p.val.cutoff,]
-    }
     if(is.null(res.chr.p.val)){
     logger.info(paste("No methQTL found for chromosome",chrom))
     chrom.frame <- data.frame()
@@ -235,20 +233,18 @@ doMethQTLChromosome <- function(meth.qtl,
                 Position.CpG=as.numeric(as.character(res.chr.p.val$Position_CpG)),
                 Position.SNP=as.numeric(as.character(res.chr.p.val$Position_SNP)))
     chrom.frame$Distance <- chrom.frame$Position.CpG - chrom.frame$Position.SNP
-    if(qtlGetOption("p.value.correction") == "uncorrected.fdr"){
-        tests.performed <- length(cor.blocks)*nrow(sel.geno)
-        if(is.na(tests.performed)){
-        tests.performed <- .Machine$integer.max
-        }
-        chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,
-        method="fdr",
-        n=tests.performed)
+    tests.performed <- length(cor.blocks)*nrow(sel.geno)
+    if(is.na(tests.performed)){
+    tests.performed <- .Machine$integer.max
     }
+    chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,
+    method="fdr",
+    n=tests.performed)
     meth.qtl.id <- paste(chrom.frame$CpG,chrom.frame$SNP,sep="_")
     match.unique <- match(unique(meth.qtl.id),meth.qtl.id)
     chrom.frame <- chrom.frame[match.unique,]
     }
-    methQTL.result <- new("methQTLResult",
+    methQTL.result <- new("MethQTLResult",
                         result.frame=chrom.frame,
                         anno.meth=sel.anno,
                         anno.geno=sel.anno.geno,
@@ -279,7 +275,7 @@ doMethQTLChromosome <- function(meth.qtl,
 #'        and the associated beta value.}
 #'   }
 #'@param    n.permutations    Number of permutations used to correct the p-values. Only has an influence, if the parameter
-#'            \code{"p.value.correction"="permutation".}
+#'            \code{"meth.qtl.type"="fastQTL".}
 #'@return    A vector of three elements:
 #'    \describe{
 #'        \item{1}{The p-value of the best methQTL}
@@ -293,6 +289,7 @@ doMethQTLChromosome <- function(meth.qtl,
 #'    p-value and return it.
 #'@author    Michael Scherer
 #'@noRd
+#'@importFrom stats anova as.formula coef lm
 callMethQTLBlock <- function(cor.block,
                             meth.data,
                             geno.data,
@@ -411,26 +408,26 @@ callMethQTLBlock <- function(cor.block,
         p.val <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
         beta <- summary(lm.model)$coefficients["SNP","Estimate"]
         se.beta <- summary(lm.model)$coefficients["SNP","Std. Error"]
-        if(qtlGetOption("p.value.correction") == "corrected.fdr"){
-        permuted.pvals <- matrix(nrow = n.permutations,ncol=2)
-        # determine number of independent tests
-        for(i in seq(1,n.permutations)){
-            in.mat[,1] <- in.mat[sample(seq(1,nrow(in.mat)),nrow(in.mat)),1]
-            lm.model <- lm(form,data=in.mat)
-            p.value <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
-            p.value.adj <- p.value*n.permutations
-            if(p.value.adj>=1) p.value.adj <- 0.99999999999
-            p.value.adj <- log10(1-(p.value.adj))
-            permuted.pvals[i,] <- c(log10(1-p.value),p.value.adj)
-        }
-        mod <- lm(permuted.pvals[,1]~permuted.pvals[,2])
-        if(is.na(coef(mod)[2])){
-            n.tests <- 1
-        }else{
-            n.tests <- round(summary(mod)$coefficients[2,"Estimate"])
-        }
-        p.val <- p.adjust(p.val,"bonferroni",n=ifelse(n.tests<1,1,n.tests))
-        }
+#        if(qtlGetOption("p.value.correction") == "corrected.fdr"){
+#        permuted.pvals <- matrix(nrow = n.permutations,ncol=2)
+#        # determine number of independent tests
+#        for(i in seq(1,n.permutations)){
+#            in.mat[,1] <- in.mat[sample(seq(1,nrow(in.mat)),nrow(in.mat)),1]
+#            lm.model <- lm(form,data=in.mat)
+#            p.value <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
+#            p.value.adj <- p.value*n.permutations
+#            if(p.value.adj>=1) p.value.adj <- 0.99999999999
+#            p.value.adj <- log10(1-(p.value.adj))
+#            permuted.pvals[i,] <- c(log10(1-p.value),p.value.adj)
+#        }
+#        mod <- lm(permuted.pvals[,1]~permuted.pvals[,2])
+#        if(is.na(coef(mod)[2])){
+#            n.tests <- 1
+#        }else{
+#            n.tests <- round(summary(mod)$coefficients[2,"Estimate"])
+#        }
+#        p.val <- p.adjust(p.val,"bonferroni",n=ifelse(n.tests<1,1,n.tests))
+#        }
     return(c(p.val=p.val,beta=beta,se.beta=se.beta))
     }
     })
@@ -500,6 +497,7 @@ callMethQTLBlock <- function(cor.block,
 #'}
 #'@author    Michael Scherer
 #'@noRd
+#'@importFrom stats median
 computeRepresentativeCpG <- function(cor.blocks,meth.data,annotation){
     res.meth <- c()
     res.anno <- c()
@@ -565,7 +563,7 @@ computeRepresentativeCpG <- function(cor.blocks,meth.data,annotation){
 #'This functions runs fastQTL on the specified input prepared using \code{generate.fastQTL.input}
 #'
 #'@param    prepard.input The input as prepared through \code{generate.fastQTL.input}
-#'@param    meth.qtl The input object of type \code{\link{methQTLInput}}
+#'@param    meth.qtl The input object of type \code{\link{MethQTLInput}}
 #'@param    chrom The chromosome to be analyzed
 #'@param    out.dir The output directory
 #'@return    A \code{data.frame} in analogy to \code{callMethQTLBlock}

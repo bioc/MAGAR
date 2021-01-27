@@ -7,7 +7,7 @@
 getOverlappingQTL(meth.qtl.list, type = "SNP")
 }
 \arguments{
-\item{meth.qtl.list}{A list of \code{\link{methQTLResult-class}} objects to be merged}
+\item{meth.qtl.list}{A list of \code{\link{MethQTLResult-class}} objects to be merged}
 
 \item{type}{The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}}
 }
@@ -19,7 +19,7 @@ displayed has been found. This value is generated from the \code{names()} argume
 This function merges the QTLs given and returns the methQTL table in a merged format.
 }
 \examples{
-meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 meth.qtl.res.2 <- meth.qtl.res.1
 res <- getOverlappingQTL(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
 }

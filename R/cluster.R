@@ -11,13 +11,13 @@
 #'This functions distributes chromosome-wise methQTL jobs across a SGE high
 #'performance computing cluster
 #'
-#'@param    methQTL.input An object of type \code{\link{methQTLInput-class}}
+#'@param    methQTL.input An object of type \code{\link{MethQTLInput-class}}
 #'    on which the methQTL are to be computed
 #'@param    covariates The selected covariates as a character vector
 #'@param    p.val.cutoff The p-value cutoff employed
 #'@param    out.dir The output directory
 #'@param    ncores The number of cores to be used
-#'@return    A list containing \code{\link{methQTLResult-class}}
+#'@return    A list containing \code{\link{MethQTLResult-class}}
 #'    objects for each chromosome
 #'@details    The function support SLURM and SGE architectures
 #'@import    argparse
@@ -35,9 +35,9 @@ submitClusterJobs <- function(methQTL.input,
     cov.file <- file.path(out.dir,"methQTL_covariates.txt")
     writeLines(covariates,cov.file)
     }
-    methQTL.file <- file.path(out.dir,"methQTLInput")
+    methQTL.file <- file.path(out.dir,"MethQTLInput")
     if(!file.exists(methQTL.file)){
-    saveMethQTL(methQTL.input,methQTL.file)
+    saveMethQTLInput(methQTL.input,methQTL.file)
     }
     logger.completed()
     if(qtlGetOption("cluster.architecture")=='sge'){
@@ -144,7 +144,7 @@ submitClusterJobsSGE <- function(methQTL.input,
         finished <- TRUE
     }
     }
-    methQTL.result <- loadMethQTLResult(file.path(out.dir,"methQTLResult"))
+    methQTL.result <- loadMethQTLResult(file.path(out.dir,"MethQTLResult"))
     return(methQTL.result)
 }
 

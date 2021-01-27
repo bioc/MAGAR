@@ -10,7 +10,7 @@ test.constructors <- function(){
   colnames(meth.matrix) <- s.names
   colnames(geno.matrix) <- s.names
   row.names(pheno.dat) <- s.names
-  obj <- new("methQTLInput",
+  obj <- new("MethQTLInput",
              meth.data=meth.matrix,
              geno.data=geno.matrix,
              anno.meth=anno.meth,
@@ -19,7 +19,7 @@ test.constructors <- function(){
              samples=s.names)
   print(obj)
   res.frame <- as.data.frame(cbind(sample(1:10,10),sample(1:10,10)))
-  obj <- new("methQTLResult",
+  obj <- new("MethQTLResult",
              result.frame=res.frame,
              anno.meth=anno.meth,
              anno.geno=anno.geno)
@@ -36,21 +36,20 @@ test.options <- function(){
 }
 
 test_calling <- function(){
-    meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+    meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
     meth.qtl@meth.data <- as.matrix(meth.qtl@meth.data[1:10,])
     meth.qtl@geno.data <- as.matrix(meth.qtl@geno.data[1:10,])
     meth.qtl@anno.meth <- meth.qtl@anno.meth[1:10,]
     meth.qtl@anno.geno <- meth.qtl@anno.geno[1:10,]
     qtlSetOption(compute.cor.blocks=FALSE,
-        p.value.correction="corrected.fdr",
         representative.cpg.computation="mean.center",
         rnbeads.options=system.file("extdata","rnbeads_options.xml",package="MAGAR"))
     meth.qtl.res <- doMethQTL(meth.qtl,p.val.cutoff=1)
-    checkTrue(inherits(meth.qtl.res,"methQTLResult"))
+    checkTrue(inherits(meth.qtl.res,"MethQTLResult"))
 }
 
 test_cor_blocks <- function(){
-    meth.qtl <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+    meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
     qtlSetOption(cluster.cor.threshold=0.1,
         standard.deviation.gauss=5000,
         absolute.distance.cutoff=100000)
