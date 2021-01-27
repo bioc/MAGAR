@@ -7,7 +7,7 @@
 qtlPlotClusterSize(meth.qtl.res, type = "count")
 }
 \arguments{
-\item{meth.qtl.res}{An object of type \code{\link{methQTLResult-class}}}
+\item{meth.qtl.res}{An object of type \code{\link{MethQTLResult-class}}}
 
 \item{type}{Either \code{"genomic"} or \code{"count"}, for genomic size of the correlation
 block in base pairs or as the number of CpGs}
@@ -20,7 +20,7 @@ This functions returns a histogram comprising the (genomic) sizes of the correla
 in the given objet.
 }
 \examples{
-meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 qtlPlotClusterSize(meth.qtl.res)
 }
 \author{

@@ -33,12 +33,8 @@ qtlSetOption(
   cluster.architecture = "sge",
   cluster.config = c(h_vmem = "5G", mem_free = "5G"),
   n.permutations = 1000,
-  p.value.correction = "uncorrected.fdr",
   compute.cor.blocks = TRUE,
   recode.allele.frequencies = FALSE,
-  use.segmentation = FALSE,
-  use.functional.annotation = FALSE,
-  functional.annotation.weight = 1.1,
   vcftools.path = NULL,
   imputation.user.token = NULL,
   imputation.reference.panel = "apps@hrc-r1.1",
@@ -130,28 +126,11 @@ An example configuration for SLURM would be \code{c("clock.limit"="1-0","mem.siz
 \item{n.permutations}{The number of permutations used to correct the p-values for multiple testing. See
 (http://fastqtl.sourceforge.net/) for further information.}
 
-\item{p.value.correction}{The p-value correction method for multiple testing correction. Can be one of
-\code{"uncorrected.fdr"} or \code{"corrected.fdr}. \code{"uncorrected.fdr"} uses nominal p-values
-per correlation block as a lenient filtering and then uses FDR with the number of tests performed.
-\code{"corrected.fdr} corrects the p-values per correlation block for multiple testing, accounting
-for the correlation structure of the p-values and then uses FDR-correction for all the interactions computed.}
-
 \item{compute.cor.blocks}{Flag indicating if correlation blocks are to be called. If \code{FALSE}, each CpG is considered
 separately.}
 
 \item{recode.allele.frequencies}{Flag indicating if the reference allele is to be redefined according to the frequenciess
 found in the cohort investigated.}
-
-\item{use.segmentation}{Flag indicating if segmenation into partically methylated domains (PMDs) and non-PMDs is to
-be used for computing correlation block. If \code{TRUE}, two CpGs cannot be connected in the graph if they
-are in different segments.}
-
-\item{use.functional.annotation}{Flag indicating if functional genome annotation according to the ENSEMBL regulatory
-build is to be incorportated into the correlation block computation. If \code{TRUE}, samples within the
-same annotation are prioritized and in different ones penalized.}
-
-\item{functional.annotation.weight}{Numeric value specifying how strong CpGs in the same functional annotation should
-be prioritized.}
 
 \item{vcftools.path}{Path to the installation of VCFtools. Necessary is the vcf-sort function in this folder.}
 

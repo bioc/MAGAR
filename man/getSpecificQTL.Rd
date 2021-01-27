@@ -7,9 +7,9 @@
 getSpecificQTL(meth.qtl.res, meth.qtl.background, type = "SNP")
 }
 \arguments{
-\item{meth.qtl.res}{An object of type \code{\link{methQTLResult-class}} for which specific QTLs are to be obtained.}
+\item{meth.qtl.res}{An object of type \code{\link{MethQTLResult-class}} for which specific QTLs are to be obtained.}
 
-\item{meth.qtl.background}{The background set as a list of \code{\link{methQTLResult-class}} objects.}
+\item{meth.qtl.background}{The background set as a list of \code{\link{MethQTLResult-class}} objects.}
 
 \item{type}{The type of annotation to be overlapped. Needs to be \code{'SNP'}, \code{'CpG'} or \code{'cor.block'}}
 }
@@ -20,7 +20,7 @@ A \code{data.frame} of methQTL interactions sorted by the effect size.
 This function returns the methQTL interactions specific for a result
 }
 \examples{
-meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 meth.qtl.res.2 <- meth.qtl.res.1
 res <- getSpecificQTL(meth.qtl.res.1,list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
 }

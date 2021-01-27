@@ -1,3 +1,8 @@
+MAGAR version 0.99.9
+---------------------
+ * Removed the functional annotation and segmentation, since they are currently not supported
+ * Fixed further issues for the Bioconductor submission
+
 MAGAR version 0.3.8
 ---------------------
  * Implemented and tested support for the SLURM HPC architecture

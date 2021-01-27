@@ -12,7 +12,8 @@
 #'
 #'@param    data.location Named character vector specifying the data location. The names correspond to:
 #'        \describe{
-#'        \item{idat.dir}{Path to the idat-folder for raw DNA methylation data.}
+#'        \item{idat.dir}{Path to the DNA methylation data. Can be in the form of IDAT files or in any other
+#'           format accepted by RnBeads}
 #'        \item{geno.dir}{Path to the genotyping data file directory, either containing PLINK files
 #'        (i.e. with \code{bed}, \code{bim} and \code{fam} files), imputed, (dosage) files (i.e. with
 #'         \code{dos} and \code{txt} files), or \code{idat} files}
@@ -48,6 +49,10 @@
 #'@import    HDF5Array
 #'@import    RnBeads
 #'@import    RnBeads.hg19
+#'@importFrom utils read.table write.table
+#'@examples
+#'  meth.qtl.in <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
+#'  meth.qtl.in
 doImport <- function(data.location,
                         s.anno=NULL,
                         assembly.meth="hg19",
@@ -132,7 +137,6 @@ doImport <- function(data.location,
     disk.dump=qtlGetOption("hdf5dump"),
     imputed=geno.import$imputed,
     platform=meth.import$platform,
-    segmentation=meth.import$segmentation
     )
     if(assembly.meth != assembly.geno){
     dataset.import <- match.assemblies(dataset.import)
@@ -162,7 +166,6 @@ doImport <- function(data.location,
 #'        \item{data}{The DNA methylation data matrix as the results of import and preprocessing}
 #'        \item{annotation}{The genomic annotation of the sites present in \code{data}}
 #'        \item{platform}{The platform used, e.g. \code{'probesEPIC'}}
-#'        \item{segmentation}{If segmentation was performed, the segmentation as a \code{GRanges} object}
 #'        }
 #'@details    This function execute the import and preprocessing modules of RnBeads. In the default setting, a common
 #'        option setting for Illumina BeadArray data is used (described in \code{inst/extdata/rnbeads_options.xml}).
@@ -227,7 +230,6 @@ doMethImport <- function(data.location,assembly="hg19",
     rnb.imp <- remove.sites(rnb.imp,rem.sites)
     logger.completed()
     }
-    segmentation <- qtlRunSegmentation(rnb.imp,out.folder,...)
     s.names <- as.character(pheno(rnb.imp)[,s.id.col])
     meth.data <- meth(rnb.imp)
     if(qtlGetOption("hdf5dump")){
@@ -236,7 +238,7 @@ doMethImport <- function(data.location,assembly="hg19",
     anno.meth <- annotation(rnb.imp)
     gc()
     logger.completed()
-    return(list(samples=s.names,data=meth.data,annotation=anno.meth,platform=rnb.imp@target,segmentation=segmentation))
+    return(list(samples=s.names,data=meth.data,annotation=anno.meth,platform=rnb.imp@target))
 }
 
 #'doGenoImport
@@ -261,6 +263,7 @@ doMethImport <- function(data.location,assembly="hg19",
 #'@noRd
 #'@import    data.table
 #'@import    snpStats
+#'@importFrom stats prcomp na.omit
 doGenoImport <- function(data.location,
                         s.anno,
                         s.id.col,
@@ -536,6 +539,7 @@ match.assemblies <- function(meth.qtl){
 #'@import    crlmm
 #'@import    data.table
 #'@import    ff
+#'@importFrom utils download.file
 doGenoImportIDAT <- function(idat.files,
                                     s.anno,
                                     s.id.col,
@@ -714,35 +718,4 @@ doGenoImportIDAT <- function(idat.files,
     bim.file=file.path(out.dir,"plink_sorted.bim"),
     fam.file=file.path(out.dir,"plink_sorted.fam")
     ))
-}
-
-#'qtlRunSegmentation
-#'
-#'This function performs DNA methylation based segmentation using the 'epicPMDdetect' package
-#'
-#'@param    rnb.set An object of type \code{\link{RnBSet-class}} with required DNA methylation information
-#'@param    out.folder The output folder to store intermediate results
-#'@param    train.chr The chromosome on which the HMM should be trained
-#'@return    A \code{GRanges} object with the segmentation performed
-#'@details    The 'epicPMDdetect' package has been created by Malte Gross
-#'@author    Michael Scherer
-#'@noRd
-qtlRunSegmentation <- function(rnb.set,
-                out.folder,
-                train.chr="chr2"){
-    if(qtlGetOption("use.segmentation")){
-        logger.info("The segmenation function is not available through the Bioconductor version of the package. Please see the branch withPMDs on GitHub (https://github.com/MPIIComputationalEpigenetics/MAGAR)")
-#    if(requireNamespace("epicPMDdetect")){
-#        logger.start("Start segmentation")
-#        gr <- epicPMDdetect::buildMethGrangesFromRnbSet(rnb.set)
-#        segmentation <- epicPMDdetect::segmentPMDsKNN(gr,training.chr.sel=train.chr)
-#        segmentation <- segmentation[values(segmentation)$type%in%c("PMD","notPMD")]
-#        logger.completed()
-#    }else{
-#        stop("Please install the 'epicPMDdetect' package, which is required for computing segmentations")
-#    }
-    }else{
-    segmentation <- NULL
-    }
-    return(segmentation)
 }

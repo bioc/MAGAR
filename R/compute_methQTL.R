@@ -123,9 +123,10 @@ doMethQTL <- function(meth.qtl,
 #'@author    Michael Scherer
 #'@export
 #'@import    doParallel
+#'@importFrom stats p.adjust
 #'@examples
 #'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
-#'meth.qtl.res <- doMethQTLChromosome(meth.qtl,chrom="chr1",p.val.cutoff=0.01)
+#'meth.qtl.res <- doMethQTLChromosome(meth.qtl,chrom="chr18",p.val.cutoff=0.01)
 doMethQTLChromosome <- function(meth.qtl,
                                 chrom,
                                 sel.covariates=NULL,
@@ -144,8 +145,7 @@ doMethQTLChromosome <- function(meth.qtl,
     cor.blocks <- computeCorrelationBlocks(sel.meth,
                                             sel.anno,
                                             assembly=meth.qtl@assembly,
-                                            chromosome=chrom,
-                                            segmentation=meth.qtl@segmentation)
+                                            chromosome=chrom)
     cor.blocks <- lapply(cor.blocks,as.numeric)
     if(!is.null(out.dir)){
         to.plot <- data.frame(Size=lengths(cor.blocks))
@@ -215,10 +215,8 @@ doMethQTLChromosome <- function(meth.qtl,
         rm(res.all)
     logger.completed()
     }
-    if(qtlGetOption("p.value.correction")=="uncorrected.fdr"){
     res.chr.p.val <- res.chr.p.val[as.numeric(
         as.character(res.chr.p.val$P.value))<p.val.cutoff,]
-    }
     if(is.null(res.chr.p.val)){
     logger.info(paste("No methQTL found for chromosome",chrom))
     chrom.frame <- data.frame()
@@ -235,15 +233,13 @@ doMethQTLChromosome <- function(meth.qtl,
                 Position.CpG=as.numeric(as.character(res.chr.p.val$Position_CpG)),
                 Position.SNP=as.numeric(as.character(res.chr.p.val$Position_SNP)))
     chrom.frame$Distance <- chrom.frame$Position.CpG - chrom.frame$Position.SNP
-    if(qtlGetOption("p.value.correction") == "uncorrected.fdr"){
-        tests.performed <- length(cor.blocks)*nrow(sel.geno)
-        if(is.na(tests.performed)){
-        tests.performed <- .Machine$integer.max
-        }
-        chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,
-        method="fdr",
-        n=tests.performed)
+    tests.performed <- length(cor.blocks)*nrow(sel.geno)
+    if(is.na(tests.performed)){
+    tests.performed <- .Machine$integer.max
     }
+    chrom.frame$p.val.adj.fdr <- p.adjust(chrom.frame$P.value,
+    method="fdr",
+    n=tests.performed)
     meth.qtl.id <- paste(chrom.frame$CpG,chrom.frame$SNP,sep="_")
     match.unique <- match(unique(meth.qtl.id),meth.qtl.id)
     chrom.frame <- chrom.frame[match.unique,]
@@ -279,7 +275,7 @@ doMethQTLChromosome <- function(meth.qtl,
 #'        and the associated beta value.}
 #'   }
 #'@param    n.permutations    Number of permutations used to correct the p-values. Only has an influence, if the parameter
-#'            \code{"p.value.correction"="permutation".}
+#'            \code{"meth.qtl.type"="fastQTL".}
 #'@return    A vector of three elements:
 #'    \describe{
 #'        \item{1}{The p-value of the best methQTL}
@@ -293,6 +289,7 @@ doMethQTLChromosome <- function(meth.qtl,
 #'    p-value and return it.
 #'@author    Michael Scherer
 #'@noRd
+#'@importFrom stats anova as.formula coef lm
 callMethQTLBlock <- function(cor.block,
                             meth.data,
                             geno.data,
@@ -411,26 +408,26 @@ callMethQTLBlock <- function(cor.block,
         p.val <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
         beta <- summary(lm.model)$coefficients["SNP","Estimate"]
         se.beta <- summary(lm.model)$coefficients["SNP","Std. Error"]
-        if(qtlGetOption("p.value.correction") == "corrected.fdr"){
-        permuted.pvals <- matrix(nrow = n.permutations,ncol=2)
-        # determine number of independent tests
-        for(i in seq(1,n.permutations)){
-            in.mat[,1] <- in.mat[sample(seq(1,nrow(in.mat)),nrow(in.mat)),1]
-            lm.model <- lm(form,data=in.mat)
-            p.value <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
-            p.value.adj <- p.value*n.permutations
-            if(p.value.adj>=1) p.value.adj <- 0.99999999999
-            p.value.adj <- log10(1-(p.value.adj))
-            permuted.pvals[i,] <- c(log10(1-p.value),p.value.adj)
-        }
-        mod <- lm(permuted.pvals[,1]~permuted.pvals[,2])
-        if(is.na(coef(mod)[2])){
-            n.tests <- 1
-        }else{
-            n.tests <- round(summary(mod)$coefficients[2,"Estimate"])
-        }
-        p.val <- p.adjust(p.val,"bonferroni",n=ifelse(n.tests<1,1,n.tests))
-        }
+#        if(qtlGetOption("p.value.correction") == "corrected.fdr"){
+#        permuted.pvals <- matrix(nrow = n.permutations,ncol=2)
+#        # determine number of independent tests
+#        for(i in seq(1,n.permutations)){
+#            in.mat[,1] <- in.mat[sample(seq(1,nrow(in.mat)),nrow(in.mat)),1]
+#            lm.model <- lm(form,data=in.mat)
+#            p.value <- summary(lm.model)$coefficients["SNP","Pr(>|t|)"]
+#            p.value.adj <- p.value*n.permutations
+#            if(p.value.adj>=1) p.value.adj <- 0.99999999999
+#            p.value.adj <- log10(1-(p.value.adj))
+#            permuted.pvals[i,] <- c(log10(1-p.value),p.value.adj)
+#        }
+#        mod <- lm(permuted.pvals[,1]~permuted.pvals[,2])
+#        if(is.na(coef(mod)[2])){
+#            n.tests <- 1
+#        }else{
+#            n.tests <- round(summary(mod)$coefficients[2,"Estimate"])
+#        }
+#        p.val <- p.adjust(p.val,"bonferroni",n=ifelse(n.tests<1,1,n.tests))
+#        }
     return(c(p.val=p.val,beta=beta,se.beta=se.beta))
     }
     })
@@ -500,6 +497,7 @@ callMethQTLBlock <- function(cor.block,
 #'}
 #'@author    Michael Scherer
 #'@noRd
+#'@importFrom stats median
 computeRepresentativeCpG <- function(cor.blocks,meth.data,annotation){
     res.meth <- c()
     res.anno <- c()

@@ -62,6 +62,7 @@ qtlLOLAEnrichment <- function(meth.qtl.res,
 #'is provided, the intersection between the methQTLs from all objects in the list is compared with the union of all interactions
 #'that have been tested.
 #'@author    Michael Scherer
+#'@importFrom stats fisher.test
 #'@export
 #'@examples
 #'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))

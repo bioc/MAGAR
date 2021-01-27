@@ -42,7 +42,6 @@ test_calling <- function(){
     meth.qtl@anno.meth <- meth.qtl@anno.meth[1:10,]
     meth.qtl@anno.geno <- meth.qtl@anno.geno[1:10,]
     qtlSetOption(compute.cor.blocks=FALSE,
-        p.value.correction="corrected.fdr",
         representative.cpg.computation="mean.center",
         rnbeads.options=system.file("extdata","rnbeads_options.xml",package="MAGAR"))
     meth.qtl.res <- doMethQTL(meth.qtl,p.val.cutoff=1)

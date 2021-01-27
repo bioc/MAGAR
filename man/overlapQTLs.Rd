@@ -7,7 +7,7 @@
 overlapQTLs(meth.qtl.result.list, type)
 }
 \arguments{
-\item{meth.qtl.result.list}{A named list with each entry being an object of type \code{\link{methQTLResult-class}}.
+\item{meth.qtl.result.list}{A named list with each entry being an object of type \code{\link{MethQTLResult-class}}.
 The names are used in the visualization.}
 
 \item{type}{Determines if either the SNP (default), the CpG, or the correlation block
@@ -21,7 +21,7 @@ interactions according to the option \code{type}.
 This function overlaps a list of methQTLs to determine which interactions are common.
 }
 \examples{
-meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res.1 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 meth.qtl.res.2 <- meth.qtl.res.1
 res <- overlapQTLs(list(A=meth.qtl.res.1,B=meth.qtl.res.2),type="SNP")
 }

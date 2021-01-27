@@ -25,20 +25,20 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
-This vignette describes the package "Methylation-Aware Genotype Association with R* ([*MAGAR*](https://github.com/MPIIComputationalEpigenetics/MAGAR)) available from GitHub. *MAGAR* uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). The package provides mutliple flavors of linear modeling strategies to compute *methQTL* as statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block (tag-CpG) is used in the methQTL calling.
+This vignette describes the package *Methylation-Aware Genotype Association with R* ([*MAGAR*](https://github.com/MPIIComputationalEpigenetics/MAGAR)) available from GitHub. *MAGAR* uses DNA methylation data obtained using the Illumina BeadArrays, and genotyping data from Illumina genotyping microarrays or whole genome sequencing to compute methylation quantitative trait loci (methQTL). The package provides mutliple flavors of linear modeling strategies to compute *methQTL* as statistically significant interactions between single nucleotide polymorphisms (SNPs) and changes in the DNA methylation state of individual CpGs. DNA methylation values at single CpGs are first summarized into correlation blocks, and a representative of this correlation block (tag-CpG) is used in the methQTL calling.
 
 # Installation
 
 *MAGAR* can be installed using the basic Bioconductor installation functions.
 
-```{r installation, echo=TRUE, eval=FALSE}
+```{r installation, echo=TRUE, eval=TRUE}
 if(!requireNamespace("BiocManager")){
     install.packages("BiocManager")
 }
 if(!requireNamespace("MAGAR")){
     BiocManager::install("MAGAR")
-}  
-suppressPackageStartupMessages(library(MAGAR))
+}
+suppressPackageStartupMessages(library(MAGAR))  
 ```
 
 ## Required external software tools
@@ -93,8 +93,6 @@ xml.fi <- file.path(getwd(),"rnbeads_options.xml")
 cat(rnb.options2xml(),file=xml.fi)
 qtlSetOption(rnbeads.options = xml.fi)
 ```
-
-To redefine the correlation blocks, we allow for including additional information such as genome-wide segmentation of the methylation landscape (see option ```use.segmentation``` and function ```qtlRunSegmentation```), and also functional annotation according to the Ensembl regulatory build [@Zerbino2015].
 
 ## Genotyping data
 
@@ -164,7 +162,7 @@ Please note that the ```recode.allele.frequencies``` option specifies, if, accor
 Although *MAGAR* conceptually splits the methQTL calling into two steps ((i) compute correlation block, (ii) call methQTL per correlation block), only a single function call is needed. The function only requires the input ```methQTLInput``` object produced in the previous step, but further options, such as covariates and the p-value cutoff can be directly specified as a function parameter, or as global parameters using ```?qtlSetOption```.
 
 ```{r call_methQTL, eval=TRUE}
-imp.data <- loadMethQTL(system.file("extdata","reduced_methQTL",package="MAGAR"))
+imp.data <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
 qtlSetOption(standard.deviation.gauss=100,
     cluster.cor.threshold=0.75)
 meth.qtl.res <- doMethQTL(imp.data,default.options=FALSE,p.val.cutoff=0.05)
@@ -249,8 +247,8 @@ res <- qtlBaseSubstitutionEnrichment(meth.qtl.res)
 
 Most of the functions discussed above either support a single ```methQTLResult``` as input, or a list of such objects. In case a list is specified, the functions will typically overlap the methQTLs found and compare those with all SNPs/CpGs that have been used for methQTL calling. Additionally, there are functions that particularly work on a list of ```methQTLResult``` objects and that perform overlapping, or determine the methQTLs specific to a dataset.
 
-```{r list, eval=TRUE}
-meth.qtl.res.2 <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+```{r list, eval=TRUE, warning=FALSE}
+meth.qtl.res.2 <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 meth.qtl.list <- list(First=meth.qtl.res,Second=meth.qtl.res.2)
 qtlVennPlot(meth.qtl.list,out.folder=getwd())
 qtlUpsetPlot(meth.qtl.list,type = "cor.block")
@@ -273,10 +271,41 @@ spec.first <- getSpecificQTL(meth.qtl.list$First,meth.qtl.list[-1])
 `tabix.path` | Path to an executable version of tabic from the HTSlib package for indexing genomic data | 
 **External tool configuration** | |
 `rnbeads.options` | Path to an XML file specifying the methylation data processing conducted through RnBeads |
+`rnbeads.report` | Path to an existing directory, where the RnBeads report is to be stored | 
+`rnbeads.qc` | Flag indicating if the QC module of RnBeads is to be executed | 
 `hardy.weinberg.p` |  Hardy-Weinberg test p-value cutoff as used for filtering SNPs in PLINK |
 `minor.allele.frequency` | Minimum required minor allele frequency for a SNP to be considered in PLINK |
 `missing.values.samples` | Maximum number of missing genotypes per SNP across the samples for a SNP to be considerd by PLINK |
-`plink.geno` | Minimum genotypin rate for PLINK |
+`plink.geno` | Minimum genotyping rate for samples in PLINK |
+`n.permutations` | Number of permutations used to correct for multiple testing in fastQTL |
+**Imputation options** | |
+`impute.geno.data` | Flag indicating if genotyping data is to be executed or not |
+`imputation.user.token` | User token generated by the Michigan Imputation server that allows for communicating with the Server API | Needs to be generated at [https://imputationserver.sph.umich.edu](https://imputationserver.sph.umich.edu)
+`imputation.reference.panel` | Reference panel used for the imputation | See [https://imputationserver.readthedocs.io/en/latest/api/](https://imputationserver.readthedocs.io/en/latest/api/) for further information
+`imputation.phasing.method` | Phasing method used for the imputation | See [https://imputationserver.readthedocs.io/en/latest/api/](https://imputationserver.readthedocs.io/en/latest/api/)  for further information
+`imputation.population` | The population of the reference panel to be used for the imputation | See https://imputationserver.readthedocs.io/en/latest/api/ for further information
+**Import options** | |
+`meth.data.type` | The type of methylation data that is about to be processed | Accepted values are `idat.dir`, `data.dir`, `data.files`, `GS.report`, `GEO`, or `rnb.set`
+`geno.data.type` | The type of genotyping data that is about to be processed | Accepted values are `idat` or `plink`
+**Correlation Block Calling** | |
+`compute.cor.blocks` | Flag indicating if correlation blocks are to be identified from the methylation data | 
+`correlation.type` | The type of correlation to be employed for computing correlation blocks | Accepted values are `pearson`, `spearman`, and `kendall`
+`cluster.cor.threshold` | The correlation threshold leading to an entry of zero in the correlation matrix | 
+`standard.deviation.gauss` | The standard deviation of the Gaussian that is used for weighting similarities according to the genomic distance | 
+`absolute.distance.cutoff` | The distance cutoff for the genomic distance. Higher distances lead to a zero in the similarity matrix | 
+`max.cpgs` | Maximum number of CpGs used for computing correlation blocks | Depends on the main memory available
+**MethQTL Calling** | | 
+`meth.qtl.type` | This options determines how a methQTL is defined | Accepted values are `oneVSall`, `allVSall`, `twoVSall`, or `fastQTL`.
+`linear.model.type` | Determines how the linear model is defined for calling methQTLs| Accepted values are `categorical.anova`, `classical.linear`, or `fastQTL`
+`representative.cpg.computation` | Determines how a representative CpG is identified per correlation block, which is associated with the SNP genotype | Accepted values are `row.medians`, `mean.center`, or `best.all`
+`n.prin.comp` | Numeric value indicating how many of the PCs are to be used as covariates in the identification of methQTLs |
+**General options** | |
+`hdf5dump` | Flag indicating if large matrices are to be stored on disk rather than in main memory using the `HDF5Array` package | Consider further options for `HDF5Array` such as `setHDF5DumpDir` and `setHDF5DumpFile`
+`db.snp.ref` | A path to a downloaded version of dbSNP. With dbSNP, SNP identifiers can be extracted and annotated SNPs can be removed from the methylation data | dbSNP should be in vcf.gz format and can be downloaded from [https://ftp.ncbi.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/](https://ftp.ncbi.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/)
+`cluster.config` | Configuration for a high perfomance computing cluster. Currently supported are SLURM and SGE. | 
+`cluster.architecture` | String indicating which high performance computing architecture is used | Currently supported are 'slurm' and 'sge'
+`recode.allele.frequencies` | Flag indicating if the allele frequencies are to be computed from the genotype data. | 
+
 
 ## Employ *MAGAR* on a scientific compute cluster
 

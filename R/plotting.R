@@ -31,7 +31,7 @@ my_theme <- theme_bw()+theme(panel.grid=element_blank(),
 #'@export
 #'@examples
 #'meth.qtl <- loadMethQTLInput(system.file("extdata","reduced_methQTL",package="MAGAR"))
-#'qtlPlotSNPCpGInteraction(meth.qtl,cpg="cg15979415",snp="rs59380221")
+#'qtlPlotSNPCpGInteraction(meth.qtl,cpg="cg19565884",snp="rs149871695")
 qtlPlotSNPCpGInteraction <- function(meth.qtl,
                                     cpg=NULL,
                                     snp=NULL,
@@ -121,7 +121,7 @@ qtlPlotSNPCpGInteraction <- function(meth.qtl,
 #'@param    snp The SNP identifier, for which the methQTL interaction is to be visualized.
 #'@return    The plot as an \code{ggplot} object, containing a facet with a scatterplot between the CpG
 #'methylation state and the SNP dosage. Discrete genotypes are currently not supported.
-#'@export
+#'@noRd
 #'@author    Michael Scherer
 qtlPlotSNPCorrelationBlock <- function(meth.qtl.res,
                                         meth.qtl,
@@ -177,6 +177,7 @@ qtlPlotSNPCorrelationBlock <- function(meth.qtl.res,
 #'@return    An object of type \code{ggplot} comparing the distance between CpG and SNP. Negative values indicate that the
 #'        SNP is downstream of the CpG.
 #'@author    Michael Scherer
+#'@importFrom stats cor.test
 #'@export
 #'@examples
 #'meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
@@ -434,7 +435,7 @@ qtlCorrelateCorBlockStat <- function(meth.qtl.res,
 #'@param    pvalCut The p-value cutoff employed
 #'@return    The LOLA enrichment bar plot as a \code{ggplot} object
 #'@author    Michael Scherer
-#'@export
+#'@noRd
 qtlLOLAPlot <- function(meth.qtl.res,
                         type="SNP",
                         lola.db=NULL,
@@ -498,7 +499,7 @@ qtlPlotClusterSize <- function(meth.qtl.res,
 #'@param    ... Further parameters passed to \code{\link{qtlAnnotationEnrichment}}
 #'@return    None
 #'@seealso    qtlAnnotationEnrichment
-#'@export
+#'@noRd
 #'@author    Michael Scherer
 qtlPlotAnnotationEnrichment <- function(meth.qtl.res,
                                         ...){
@@ -545,10 +546,10 @@ qtlPlotAnnotationEnrichment <- function(meth.qtl.res,
 #'qtlPlotBaseSubstitution(meth.qtl.res)
 qtlPlotBaseSubstitution <- function(meth.qtl.res,
                                     ...){
-    to.plot <- qtlBaseSubstitutionEnrichment(meth.qtl.res,...)
+    to.plot <- as.data.frame(qtlBaseSubstitutionEnrichment(meth.qtl.res,...))
     to.plot <- data.frame(Substitution=colnames(to.plot),
-            OddsRatio=to.plot["OddsRatio",],
-            p.value=to.plot["p.value",])
+            OddsRatio=unlist(to.plot["OddsRatio",]),
+            p.value=unlist(to.plot["p.value",]))
     plot <- ggplot(to.plot,aes(x=Substitution,y="",fill=log10(OddsRatio)))+
         geom_tile(color="black",size=ifelse(to.plot$p.value<0.01,5,1))+
         my_theme+

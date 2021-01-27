@@ -7,7 +7,7 @@
 qtlAnnotationEnrichment(meth.qtl.res, type = "SNP", annotation = "cpgislands")
 }
 \arguments{
-\item{meth.qtl.res}{An object of type \code{\link{methQTLResult-class}} or a list of such objects.}
+\item{meth.qtl.res}{An object of type \code{\link{MethQTLResult-class}} or a list of such objects.}
 
 \item{type}{The type of methQTL to be visualized. Can be either \code{'SNP'}, \code{'CpG'},
 or \code{'cor.block'}}
@@ -25,12 +25,12 @@ with respect to different genomic annotations.
 \details{
 We use all data points that have been used to calculate methQTLs as the background
 and compare the overlaps with the annotation of interest in comparison to the methQTLs that
-have been computed in case a \code{\link{methQTLResult-class}} is provided. If a list of \code{\link{methQTLResult-class}} objects
+have been computed in case a \code{\link{MethQTLResult-class}} is provided. If a list of \code{\link{MethQTLResult-class}} objects
 is provided, the intersection between the methQTLs from all objects in the list is compared with the union of all interactions
 that have been tested.
 }
 \examples{
-meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 res <- qtlAnnotationEnrichment(meth.qtl.res)
 }
 \author{

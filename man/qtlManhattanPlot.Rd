@@ -7,7 +7,7 @@
 qtlManhattanPlot(meth.qtl.result, type = "CpG", stat = "p.val.adj.fdr")
 }
 \arguments{
-\item{meth.qtl.result}{An object of type \code{\link{methQTLResult-class}} containing the methQTL}
+\item{meth.qtl.result}{An object of type \code{\link{MethQTLResult-class}} containing the methQTL}
 
 \item{type}{Determines if either the CpG (default) or the SNP is to be visualized}
 
@@ -24,7 +24,7 @@ This function creates a manhattan plot for the given methQTL result
 A plot is shown that contains chromosome-wise interactions.
 }
 \examples{
-meth.qtl.res <- loadMethQTLResult(system.file("extdata","methQTLResult_chr18",package="MAGAR"))
+meth.qtl.res <- loadMethQTLResult(system.file("extdata","MethQTLResult_chr18",package="MAGAR"))
 qtlManhattanPlot(meth.qtl.res)
 }
 \author{
