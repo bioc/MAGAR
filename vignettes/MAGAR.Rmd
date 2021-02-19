@@ -31,34 +31,25 @@ This vignette describes the package *Methylation-Aware Genotype Association with
 
 *MAGAR* can be installed using the basic Bioconductor installation functions.
 
-```{r installation, echo=TRUE, eval=TRUE}
+```{r installation, echo=TRUE, eval=FALSE}
 if(!requireNamespace("BiocManager")){
     install.packages("BiocManager")
 }
 if(!requireNamespace("MAGAR")){
     BiocManager::install("MAGAR")
 }
+```
+
+```{r loading, eval=TRUE}
 suppressPackageStartupMessages(library(MAGAR))  
 ```
 
 ## Required external software tools
 
-*MAGAR* depends on a funtional installation of *PLINK* for handling genotyping data. Follow the installation instructions available [here](https://www.cog-genomics.org/plink2/) and specify the path to the installation for the package:
+*MAGAR* depends on a funtional installation of *PLINK* for handling genotyping data. Follow the installation instructions available [here](https://www.cog-genomics.org/plink2/) and specify the path to the installation for the package ```qtlSetOption(plink.path="path_to_plink")```.
 
-```{r plink_setup, eval=FALSE}
-qtlSetOption(plink.path="path_to_plink")
-```
-
-Additionally, depending on the type of the analysis, more external software tools are required (). More specifically, if you want to perform imputation *bgzip* and *tabix* from the [*htslib*](http://www.htslib.org/download/) package are needed, as well as [*vcftools*](https://vcftools.github.io/downloads.html) for sorting VCF files. Lastly, if methQTL calling is to be performed through [*fastQTL*](http://fastqtl.sourceforge.net/), the software tool needs to be installed and the location of the executable specified to *MAGAR*.
-
-```{r tools, eval=FALSE}
-qtlSetOption(
-    bgzip.path="path_to_bgzip",
-    tabix.path="path_to_tabix",
-    vctools.path="path_to_vcftools_folder",
-    fast.qtl.path="path_to_fastQTL",
-)
-```
+Additionally, depending on the type of the analysis, more external software tools are required (). More specifically, if you want to perform imputation *bgzip* and *tabix* from the [*htslib*](http://www.htslib.org/download/) package are needed, as well as [*vcftools*](https://vcftools.github.io/downloads.html) for sorting VCF files. Lastly, if methQTL calling is to be performed through [*fastQTL*](http://fastqtl.sourceforge.net/), the software tool needs to be installed and the location of the executable specified to *MAGAR* using the ```qtlSetOption``` function with the value ```bgzip.path, tabix.path,
+vcftools.path, fast.qtl.path```.
 
 **Tool** | **Description** | **Required for** | **URL**
 ---- | ---- | ---- | ---- |
