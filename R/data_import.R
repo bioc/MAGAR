@@ -136,7 +136,7 @@ doImport <- function(data.location,
     assembly=assembly.meth,
     disk.dump=qtlGetOption("hdf5dump"),
     imputed=geno.import$imputed,
-    platform=meth.import$platform,
+    platform=meth.import$platform
     )
     if(assembly.meth != assembly.geno){
     dataset.import <- match.assemblies(dataset.import)
