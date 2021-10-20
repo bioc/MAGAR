@@ -1,15 +1,17 @@
 ---
 title: 'MAGAR: Methylation-Aware Genotype Association in R'
 author: "Michael Scherer"
-date: "November 19, 2020"
+date: "October 20, 2021"
 output:
     html_document:
-    df_print: paged
-    toc: yes
+        df_print: paged
+        toc: yes
+        toc_float:
+            collapsed: false
+        number_sections: yes
     md_document:
     pdf_document:
-    latex_engine: xelatex
-    number_sections: yes
+        latex_engine: xelatex
 header-includes: \usepackage{helvet} \hypersetup{colorlinks, urlcolor=blue}
 vignette: >
     %\VignetteEngine{knitr::rmarkdown}
