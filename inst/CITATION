@@ -1,0 +1,28 @@
+citHeader("To cite package 'MAGAR' in publications please use:")
+
+citEntry(entry = "Article",
+	title = "Identification of tissue-specific and common methylation quantitative trait loci in healthy individuals using MAGAR",
+	author = personList(as.person("Michael Scherer"),
+		as.person("Gilles Gasparoni"),
+		as.person("Souad Rahmouni"),
+		as.person("Tatiana Shashkova"),
+		as.person("Marion Arnoux"),
+		as.person("Edouard Louis"),
+		as.person("Arina Nostaeva"),
+		as.person("Diana Avalos"),
+		as.person("Emmanouil T. Dermitzakis"),
+		as.person("Yurii S. Aulchenko"),
+		as.person("Thomas Lengauer"),
+		as.person("Paul A. Lyons"),
+		as.person("Michel Georges"),
+		as.person("Joern Walter")),
+	journal = "Epigenetics & Chromatin",
+	year = 2021L,
+	volume = 14L,
+	number = 44L,
+	month = "sep",
+	url = "https://epigeneticsandchromatin.biomedcentral.com/articles/10.1186/s13072-021-00415-6",
+	doi = "10.1186/s13072-021-00415-6",
+	textVersion = "Scherer, M., Gasparoni, G., Rahmouni, S. et al. Identification of tissue-specific and common methylation quantitative trait loci in healthy individuals using MAGAR. Epigenetics & Chromatin 14, 44 (2021)"
+)
+
