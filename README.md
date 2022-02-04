@@ -25,7 +25,7 @@ devtools::install_github("MPIIComputationalEpigenetics/MAGAR")
 You can find a detailed information for *MAGAR* [here](vignettes/MAGAR.Rmd)
 
 ## Citation
-A manuscript presenting *MAGAR* is currently in preparation.
+Scherer, M., Gasparoni, G., Rahmouni, S. et al. Identification of tissue-specific and common methylation quantitative trait loci in healthy individuals using MAGAR. Epigenetics & Chromatin 14, 44 (2021). [doi:10.1186/s13072-021-00415-6](https://doi.org/10.1186/s13072-021-00415-6)
 
 ## Contact
-You can contact [Michael Scherer](mailto:mscherer@mpi-inf.mpg.de) for reporting bugs, feature requests or questions.
+You can contact [Michael Scherer](mailto:michael.scherer@crg.eu) for reporting bugs, feature requests or questions.
