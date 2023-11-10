@@ -485,7 +485,7 @@ qtlPlotClusterSize <- function(meth.qtl.res,
         }))
         to.plot$Size <- sizes
     }
-    plot <- ggplot(to.plot,aes(x=Size,y=..count..))+
+    plot <- ggplot(to.plot,aes(x=Size,y=after_stat(count)))+
         geom_histogram()+
         my_theme
     return(plot)

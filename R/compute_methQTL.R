@@ -149,7 +149,7 @@ doMethQTLChromosome <- function(meth.qtl,
     cor.blocks <- lapply(cor.blocks,as.numeric)
     if(!is.null(out.dir)){
         to.plot <- data.frame(Size=lengths(cor.blocks))
-        plot <- ggplot(to.plot,aes(x=Size,y=..count..))+
+        plot <- ggplot(to.plot,aes(x=Size,y=after_stat(count)))+
         geom_histogram(binwidth = 1)+
         geom_vline(xintercept = mean(to.plot$Size,na.rm=TRUE))+
         theme_bw()+
