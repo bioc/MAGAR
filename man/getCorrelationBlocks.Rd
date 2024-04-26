@@ -13,8 +13,6 @@
 }
 \value{
 A \code{list} object containing the correlation blocks.
-
-
 }
 \description{
 Returns the correlation blocks defined for the given dataset

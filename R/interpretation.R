@@ -55,6 +55,7 @@ qtlLOLAEnrichment <- function(meth.qtl.res,
 #'or \code{'cor.block'}
 #'@param    annotation The genomic annotation to be used. Can be the ones available in \code{\link{rnb.region.types}} or
 #'\code{"ctcf", "distal", "dnase", "proximal", "tfbs", "tss"}
+#'@param    assembly The assembly used. Only \code{"hg19"} (default) and \code{"hg38"} supported.
 #'@return    A list of two p-values named \code{'enrichment'} for overrepresentation and \code{'depletion'} for underrepresentation
 #'@details    We use all data points that have been used to calculate methQTLs as the background
 #'and compare the overlaps with the annotation of interest in comparison to the methQTLs that
@@ -69,7 +70,8 @@ qtlLOLAEnrichment <- function(meth.qtl.res,
 #'res <- qtlAnnotationEnrichment(meth.qtl.res)
 qtlAnnotationEnrichment <- function(meth.qtl.res,
                                         type="SNP",
-                                        annotation="cpgislands"){
+                                        annotation="cpgislands",
+                                        assembly='hg19'){
     ensembl.anno <- c("ctcf","distal","dnase","proximal","tfbs","tss")
     if(!(annotation%in%c("cpgislands","genes","promoters",ensembl.anno))){
     stop(paste("Invalid value for annotation, needs to be",c("cpgislands","genes","promoters",ensembl.anno)))
@@ -79,7 +81,7 @@ qtlAnnotationEnrichment <- function(meth.qtl.res,
     }else{
     anno.type <- paste0("ensembleRegBuildBP",annotation)
     if(!anno.type%in%rnb.region.types()){
-        rnb.load.annotation.from.db(anno.type)
+        rnb.load.annotation.from.db(anno.type, assembly = assembly)
     }
     }
     if(!(type%in%c("SNP","CpG","cor.block"))){
@@ -89,7 +91,7 @@ qtlAnnotationEnrichment <- function(meth.qtl.res,
     all.input <- stats$all.input
     all.qtl <- stats$all.qtl
     all.input <- all.input[!(names(all.input)%in%names(all.qtl))]
-    annotation <- unlist(rnb.get.annotation(anno.type))
+    annotation <- unlist(rnb.get.annotation(anno.type, assembly = assembly))
     tps <- length(findOverlaps(all.qtl,annotation))
     fps <- length(all.qtl)-tps
     fns <- length(findOverlaps(all.input,annotation))

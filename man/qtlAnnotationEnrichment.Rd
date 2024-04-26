@@ -4,7 +4,12 @@
 \alias{qtlAnnotationEnrichment}
 \title{qtlAnnotationEnrichment}
 \usage{
-qtlAnnotationEnrichment(meth.qtl.res, type = "SNP", annotation = "cpgislands")
+qtlAnnotationEnrichment(
+  meth.qtl.res,
+  type = "SNP",
+  annotation = "cpgislands",
+  assembly = "hg19"
+)
 }
 \arguments{
 \item{meth.qtl.res}{An object of type \code{\link{MethQTLResult-class}} or a list of such objects.}
@@ -14,6 +19,8 @@ or \code{'cor.block'}}
 
 \item{annotation}{The genomic annotation to be used. Can be the ones available in \code{\link{rnb.region.types}} or
 \code{"ctcf", "distal", "dnase", "proximal", "tfbs", "tss"}}
+
+\item{assembly}{The assembly used. Only \code{"hg19"} (default) and \code{"hg38"} supported.}
 }
 \value{
 A list of two p-values named \code{'enrichment'} for overrepresentation and \code{'depletion'} for underrepresentation

@@ -22,6 +22,7 @@ Imports: doParallel,
      argparse,
      impute,
      RnBeads.hg19,
+     RnBeads.hg38,
      utils,
      stats
 Depends: R (>= 4.1),
@@ -44,7 +45,7 @@ Suggests: gridExtra,
      BiocGenerics,
      BiocManager
 Encoding: UTF-8
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 VignetteBuilder: knitr
 biocViews: Regression, Epigenetics, DNAMethylation, SNP, GeneticVariability, MethylationArray, Microarray, CpGIsland, MethylSeq, Sequencing, mRNAMicroarray, Preprocessing, CopyNumberVariation, TwoChannel, ImmunoOncology, DifferentialMethylation, BatchEffect, QualityControl, DataImport, Network, Clustering, GraphAndNetwork
 BugReports: https://github.com/MPIIComputationalEpigenetics/MAGAR/issues
