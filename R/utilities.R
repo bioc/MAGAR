@@ -234,8 +234,8 @@ getOverlapUniverse <- function(meth.qtl.res,type){
     all.input$End <- all.input$Start+1
     }
     all.qtl <- all.input[all.qtl,]
-    all.input <- makeGRangesFromDataFrame(all.input)
-    all.qtl <- makeGRangesFromDataFrame(all.qtl)
+    all.input <- makeGRangesFromDataFrame(all.input, na.rm=TRUE)
+    all.qtl <- makeGRangesFromDataFrame(all.qtl, na.rm=TRUE)
     return(list("all.qtl"=all.qtl,"all.input"=all.input))
 }
 
