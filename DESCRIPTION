@@ -1,7 +1,7 @@
 Package: MAGAR
 Type: Package
 Title: MAGAR: R-package to compute methylation Quantitative Trait Loci (methQTL) from DNA methylation and genotyping data
-Version: 1.11.2
+Version: 1.15.1
 Date: 2024-11-13
 Authors@R: c(
     person("Michael", "Scherer", email="michael.scherer@dkfz.de", role=c("cre", "aut"), comment = c(ORCID = "0000-0001-7990-6179"))
