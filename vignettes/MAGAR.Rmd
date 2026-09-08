@@ -312,3 +312,6 @@ meth.qtl.res <- doMethQTL(meth.qtl = imp.data,
 ```
 
 # References
+
+# de.NBI service 
+MAGAR is an approved de.NBI service. Please help us improve by taking our short user [survey](https://www.surveymonkey.de/r/denbi-service?sc=hd-hub&tool=magar).
